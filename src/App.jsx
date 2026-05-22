@@ -20,24 +20,47 @@ function App() {
   return (
     <div style={{ backgroundColor: '#001710', minHeight: '100vh', position: 'relative', fontFamily: 'sans-serif', overflowX: 'hidden', paddingBottom: '140px', boxSizing: 'border-box' }}>
       
-      {/* PERSISTENT HEADER AREA */}
-      <header className="w-full px-6 py-4 flex justify-between items-center z-40 sticky top-0" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-        <button className="bg-transparent border-none cursor-pointer flex items-center justify-center" style={{ color: '#ecc151' }} type="button">
-          <span className="material-symbols-outlined text-2xl">menu</span>
-        </button>
-        <div className="flex flex-col items-center">
-          <h1 className="font-black italic uppercase tracking-tighter text-2xl leading-none" style={{ color: '#ecc151', margin: 0 }}>CADDYKEE</h1>
-          <span className="text-[9px] font-bold uppercase tracking-widest mt-1" style={{ color: 'rgba(190, 237, 217, 0.6)' }}>SYSTEM OPERATIONAL</span>
+      {/* 1. ROCK-SOLID DYNAMIC TOP HEADER */}
+      <header style={{ width: '100%', padding: '16px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+        
+        {/* Left Side: Dynamic Navigation Trigger (Menu vs. Back Arrow) */}
+        <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+          {activeScreen === 'mission-control' ? (
+            /* Show standard menu icon ONLY on landing page */
+            <button className="bg-transparent border-none cursor-pointer flex items-center justify-center" style={{ color: '#ecc151', padding: 0, outline: 'none' }} type="button">
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>menu</span>
+            </button>
+          ) : (
+            /* Show dynamic Back Arrow on ALL other sub-pages */
+            <button 
+              onClick={() => setActiveScreen('mission-control')}
+              className="bg-transparent border-none cursor-pointer flex items-center justify-center" 
+              style={{ color: '#ecc151', padding: 0, outline: 'none' }} 
+              type="button"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '26px', fontWeight: 'bold' }}>arrow_back</span>
+            </button>
+          )}
         </div>
-        <div className="w-10 h-10 rounded-full border-2 overflow-hidden flex items-center justify-center font-black text-xs" style={{ borderColor: '#ecc151', backgroundColor: '#0e3c2f', color: '#ecc151' }}>
-          DH
+        
+        {/* Center Side: Universal Branding Header */}
+        <div style={{ display: 'flex', flexDirection: 'column', items: 'center', textAlign: 'center', flex: 1 }}>
+          <h1 style={{ color: '#ecc151', fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.05em', fontSize: '24px', lineHeight: '1', margin: 0 }}>CADDYKEE</h1>
+          <span style={{ fontSize: '9px', fontWeight: '700', color: 'rgba(190, 237, 217, 0.6)', textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: '4px', whiteSpace: 'nowrap' }}>SYSTEM OPERATIONAL</span>
+        </div>
+        
+        {/* Right Side: Logged In User Avatar Profile Badge */}
+        <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontStyle: 'italic', fontWeight: '900', fontSize: '11px', boxSizing: 'border-box' }}>
+            DH
+          </div>
         </div>
       </header>
 
       {/* SCROLLABLE MAIN CANVAS */}
       <main className="px-6 pt-4 max-w-xl mx-auto w-full box-border" style={{ display: 'flex', flexDirection: 'column' }}>
         
-        {/* VIEW A: MISSION CONTROL */}
+        {/* VIEW A: MISSION CONTROL (LANDING PAGE) */}
         {activeScreen === 'mission-control' && (
           <div style={{ textAlign: 'left' }}>
             <p className="font-bold uppercase tracking-[0.2em] text-[10px] mb-1" style={{ color: '#ecc151', opacity: 0.8, margin: '0 0 4px 0' }}>Welcome Back, Player</p>
@@ -75,46 +98,98 @@ function App() {
             </div>
           </div>
         )}
+
+        {/* VIEW B: LIVE SCORING VIEW */}
+        {activeScreen === 'live-scoring' && (
+          <div className="w-full flex flex-col gap-6 text-left">
+            <div className="flex justify-between items-end w-full">
+              <div>
+                <h2 className="text-3xl font-black italic uppercase tracking-tighter leading-none m-0" style={{ color: '#ecc151' }}>CYPRESS POINT</h2>
+                <p className="text-[10px] font-bold uppercase tracking-widest mt-1.5 m-0" style={{ color: 'rgba(190, 237, 217, 0.6)' }}>Hole 12 • Par 4 • Stroke Index 5</p>
+              </div>
+            </div>
+
+            {/* TAB CAPABILITY SWITCH */}
+            <div className="flex p-1 rounded-full border w-full box-border" style={{ backgroundColor: '#002117', borderColor: 'rgba(236,193,81,0.1)' }}>
+              <button className="flex-1 py-2.5 rounded-full font-black italic uppercase text-[11px] tracking-widest border-none cursor-pointer" style={{ backgroundColor: '#ecc151', color: '#3e2e00' }} type="button">
+                SCORING
+              </button>
+              <button className="flex-1 py-2.5 rounded-full font-black italic uppercase text-[11px] tracking-widest border-none cursor-pointer bg-transparent" style={{ color: 'rgba(190, 237, 217, 0.6)' }} type="button">
+                STANDINGS
+              </button>
+            </div>
+
+            {/* HIGH-FIDELITY SCORING ROWS */}
+            <div className="w-full flex flex-col gap-3">
+              {['Jordan Lisko', 'Sarah Chen', 'Marcus Vane'].map((name, idx) => {
+                const key = name.split(' ')[0].toLowerCase();
+                const overUnder = idx === 0 ? '+2 OVER' : idx === 1 ? 'E (EVEN)' : '-1 UNDER';
+                return (
+                  <div key={name} className="glass-caddy rounded-full p-2.5 flex items-center justify-between shadow-xl w-full box-border">
+                    <div className="flex flex-col ml-5">
+                      <span className="font-black italic uppercase tracking-tighter text-base leading-none" style={{ color: '#beedd9' }}>{name}</span>
+                      <span className="text-[9px] font-bold uppercase tracking-widest mt-1" style={{ color: '#a3d0be' }}>{overUnder}</span>
+                    </div>
+                    <div className="flex items-center gap-3 rounded-full p-1 border" style={{ backgroundColor: 'rgba(0,23,16,0.6)', borderColor: 'rgba(236,193,81,0.1)' }}>
+                      <button onClick={() => updateScore(key, -1)} className="w-9 h-9 flex items-center justify-center rounded-full border-none cursor-pointer font-black text-lg" style={{ backgroundColor: '#0e3c2f', color: '#ecc151' }} type="button">-</button>
+                      <span className="font-black italic text-xl px-1 w-8 text-center" style={{ color: '#ecc151' }}>{scores[key] || 4}</span>
+                      <button onClick={() => updateScore(key, 1)} className="w-9 h-9 flex items-center justify-center rounded-full border-none cursor-pointer font-black text-lg shadow-md" style={{ backgroundColor: '#ecc151', color: '#3e2e00' }} type="button">+</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </main>
 
-      {/* 3. ROCK-SOLID INLINE FOOTER NAVIGATION SYSTEM */}
+      {/* 3. PERSISTENT FIXED BOTTOM NAV PILL */}
       <div style={{ position: 'fixed', bottom: '24px', left: '16px', right: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
-        <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px ' + '50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
+        <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
           
           <button 
             onClick={() => setActiveScreen('mission-control')} 
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, h: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: activeScreen === 'mission-control' ? '#ecc151' : 'rgba(190, 237, 217, 0.6)' }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: activeScreen === 'mission-control' ? '#ecc151' : 'rgba(190, 237, 217, 0.6)' }}
             type="button"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>sports_golf</span>
             <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Game On</span>
           </button>
           
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, h: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: 'rgba(190, 237, 217, 0.6)' }} type="button">
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: 'rgba(190, 237, 217, 0.6)' }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>explore</span>
             <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>GPS</span>
           </button>
 
-          {/* THE SEAMLESS KEE TRIGGER BUTTON DEAD CENTER */}
+          {/* THE SEAMLESS KEE TRIGGER BUTTON - FEATURING YOUR OFFICIAL SKELETON KEY LOGIC LOGO */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <button 
               onClick={() => setIsKeeOpen(true)} 
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-16px)', width: '70px' }}
               type="button"
             >
-              <div style={{ padding: '12px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 20px rgba(236,193,81,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>graphic_eq</span>
+              <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 20px rgba(236,193,81,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '6px', boxSizing: 'border-box' }}>
+                <img 
+                  src="/src/assets/logo.png" 
+                  alt="KEE" 
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  onError={(e) => {
+                    /* Technical Fallback if image path moves */
+                    e.target.style.display = 'none';
+                    e.target.parentNode.innerHTML = '<span class="material-symbols-outlined" style="color:#ecc151;font-size:28px;">graphic_eq</span>';
+                  }}
+                />
               </div>
               <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>KEE</span>
             </button>
           </div>
 
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, h: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: 'rgba(190, 237, 217, 0.6)' }} type="button">
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: 'rgba(190, 237, 217, 0.6)' }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>analytics</span>
             <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Stats</span>
           </button>
           
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, h: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: 'rgba(190, 237, 217, 0.6)' }} type="button">
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: 'rgba(190, 237, 217, 0.6)' }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>more_horiz</span>
             <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Menu</span>
           </button>
@@ -132,7 +207,7 @@ function App() {
             <button onClick={() => setIsKeeOpen(false)} style={{ backgroundColor: '#001710', color: '#beedd9', border: 'none', padding: '8px 12px', borderRadius: '20px', cursor: 'pointer' }} type="button">Close</button>
           </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <p style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900', animation: 'pulse 1.5s infinite' }}>Listening...</p>
+            <p style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900' }}>Listening...</p>
           </div>
         </div>
       </div>
