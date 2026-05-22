@@ -2,31 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: 'Inter', sans-serif;
-  background-color: #001710;
-  color: #beedd9;
-  min-height: 100dvh;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #001710;
+    color: #beedd9;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
 }
 
-.bg-mission-gradient {
-  background: radial-gradient(circle at center, #0e3c2f 0%, #001710 100%);
-}
+@layer utilities {
+  .bg-mission-gradient {
+    background: radial-gradient(circle at center, #0e3c2f 0%, #001710 100%);
+  }
 
-.glass-caddy {
-  background: rgba(14, 60, 47, 0.4);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(236, 193, 81, 0.1);
-}
+  .glass-caddy {
+    background: rgba(14, 60, 47, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(236, 193, 81, 0.15);
+  }
 
-.wave-bar {
-  width: 4px;
-  background: #ecc151;
-  border-radius: 2px;
-  animation: voiceWave 1.2s ease-in-out infinite;
+  .wave-bar {
+    width: 4px;
+    background: #ecc151;
+    border-radius: 2px;
+    animation: voiceWave 1.2s ease-in-out infinite;
+  }
 }
 
 @keyframes voiceWave {
