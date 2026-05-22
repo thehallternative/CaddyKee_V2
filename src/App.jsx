@@ -22,7 +22,7 @@ function App() {
       
       {/* PERSISTENT HEADER AREA */}
       <header className="sticky top-0 z-40 bg-transparent px-8 py-6 flex justify-between items-center backdrop-blur-md">
-        <button className="hover:opacity-80 active:scale-95 transition-all text-[#ecc151]">
+        <button className="hover:opacity-80 active:scale-95 transition-all text-[#ecc151]" type="button">
           <span className="material-symbols-outlined text-2xl">menu</span>
         </button>
         <div className="flex flex-col items-center">
@@ -50,6 +50,7 @@ function App() {
               <button 
                 onClick={() => setActiveScreen('live-scoring')} 
                 className="group flex flex-col justify-between p-8 rounded-xl bg-[#ecc151] text-[#3e2e00] h-64 text-left transition-all duration-300 active:scale-95 shadow-[0_10px_30px_rgba(236,193,81,0.2)]"
+                type="button"
               >
                 <div className="flex justify-between items-start w-full">
                   <span className="material-symbols-outlined text-4xl">trophy</span>
@@ -62,7 +63,7 @@ function App() {
               </button>
 
               {/* Player Intelligence Module */}
-              <button className="group flex flex-col justify-between p-8 rounded-xl bg-[#ecc151] text-[#3e2e00] h-64 text-left transition-all duration-300 active:scale-95 opacity-50 cursor-not-allowed">
+              <button className="group flex flex-col justify-between p-8 rounded-xl bg-[#ecc151] text-[#3e2e00] h-64 text-left transition-all duration-300 active:scale-95 opacity-50 cursor-not-allowed" type="button">
                 <div className="flex justify-between items-start w-full">
                   <span className="material-symbols-outlined text-4xl">group</span>
                   <span className="font-black italic text-xs tracking-widest opacity-40">MC-02</span>
@@ -87,6 +88,7 @@ function App() {
               <button 
                 onClick={() => setActiveScreen('mission-control')} 
                 className="text-xs font-bold bg-[#0e3c2f] text-[#ecc151] px-4 py-2 rounded-full uppercase tracking-wider border border-[#ecc151]/20 active:scale-95 transition-transform"
+                type="button"
               >
                 Exit Round
               </button>
@@ -94,10 +96,10 @@ function App() {
 
             {/* TAB CAPABILITY SIMULATION */}
             <div className="flex gap-2 bg-[#002117] p-1.5 rounded-full border border-[#ecc151]/10">
-              <button className="flex-1 py-3 px-6 rounded-full font-black italic uppercase text-xs tracking-widest bg-[#ecc151] text-[#3e2e00]">
+              <button className="flex-1 py-3 px-6 rounded-full font-black italic uppercase text-xs tracking-widest bg-[#ecc151] text-[#3e2e00]" type="button">
                 SCORING
               </button>
-              <button className="flex-1 py-3 px-6 rounded-full font-black italic uppercase text-xs tracking-widest text-[#beedd9]/60 opacity-60">
+              <button className="flex-1 py-3 px-6 rounded-full font-black italic uppercase text-xs tracking-widest text-[#beedd9]/60 opacity-60" type="button">
                 STANDINGS
               </button>
             </div>
@@ -111,9 +113,9 @@ function App() {
                   <span className="text-[10px] font-bold uppercase tracking-widest mt-1 text-[#a3d0be]">+2 OVER</span>
                 </div>
                 <div className="flex items-center gap-3 bg-[#001710]/50 rounded-full p-1 border border-[#ecc151]/10">
-                  <button onClick={() => updateScore('jordan', -1)} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#0e3c2f] text-[#ecc151] font-black text-xl active:scale-90 transition-transform">-</button>
+                  <button onClick={() => updateScore('jordan', -1)} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#0e3c2f] text-[#ecc151] font-black text-xl active:scale-90 transition-transform" type="button">-</button>
                   <span className="font-black italic text-2xl px-2 w-10 text-center text-[#ecc151]">{scores.jordan}</span>
-                  <button onClick={() => updateScore('jordan', 1)} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#ecc151] text-[#3e2e00] font-black text-xl active:scale-90 transition-transform shadow-[0_0_15px_rgba(236,193,81,0.3)]">+</button>
+                  <button onClick={() => updateScore('jordan', 1)} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#ecc151] text-[#3e2e00] font-black text-xl active:scale-90 transition-transform shadow-[0_0_15px_rgba(236,193,81,0.3)]" type="button">+</button>
                 </div>
               </div>
 
@@ -124,9 +126,9 @@ function App() {
                   <span className="text-[10px] font-bold text-[#a3d0be] uppercase tracking-widest mt-1">E (EVEN)</span>
                 </div>
                 <div className="flex items-center gap-3 bg-[#001710]/50 rounded-full p-1 border border-[#ecc151]/10">
-                  <button onClick={() => updateScore('sarah', -1)} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#0e3c2f] text-[#ecc151] font-black text-xl active:scale-90 transition-transform">-</button>
+                  <button onClick={() => updateScore('sarah', -1)} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#0e3c2f] text-[#ecc151] font-black text-xl active:scale-90 transition-transform" type="button">-</button>
                   <span className="font-black italic text-2xl px-2 w-10 text-center text-[#ecc151]">{scores.sarah}</span>
-                  <button onClick={() => updateScore('sarah', 1)} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#ecc151] text-[#3e2e00] font-black text-xl active:scale-90 transition-transform shadow-[0_0_15px_rgba(236,193,81,0.3)]">+</button>
+                  <button onClick={() => updateScore('sarah', 1)} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#ecc151] text-[#3e2e00] font-black text-xl active:scale-90 transition-transform shadow-[0_0_15px_rgba(236,193,81,0.3)]" type="button">+</button>
                 </div>
               </div>
 
@@ -137,9 +139,9 @@ function App() {
                   <span className="text-[10px] font-bold text-[#a3d0be] uppercase tracking-widest mt-1">-1 UNDER</span>
                 </div>
                 <div className="flex items-center gap-3 bg-[#001710]/50 rounded-full p-1 border border-[#ecc151]/10">
-                  <button onClick={() => updateScore('marcus', -1)} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#0e3c2f] text-[#ecc151] font-black text-xl active:scale-90 transition-transform">-</button>
+                  <button onClick={() => updateScore('marcus', -1)} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#0e3c2f] text-[#ecc151] font-black text-xl active:scale-90 transition-transform" type="button">-</button>
                   <span className="font-black italic text-2xl px-2 w-10 text-center text-[#ecc151]">{scores.marcus}</span>
-                  <button onClick={() => updateScore('marcus', 1)} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#ecc151] text-[#3e2e00] font-black text-xl active:scale-90 transition-transform shadow-[0_0_15px_rgba(236,193,81,0.3)]">+</button>
+                  <button onClick={() => updateScore('marcus', 1)} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#ecc151] text-[#3e2e00] font-black text-xl active:scale-90 transition-transform shadow-[0_0_15px_rgba(236,193,81,0.3)]" type="button">+</button>
                 </div>
               </div>
             </div>
@@ -167,12 +169,13 @@ function App() {
         <button 
           onClick={() => setActiveScreen('mission-control')} 
           className={`flex flex-col items-center justify-center flex-1 transition-all active:scale-90 duration-300 ${activeScreen === 'mission-control' ? 'text-[#ecc151]' : 'text-[#beedd9] opacity-60'}`}
+          type="button"
         >
           <span className="material-symbols-outlined mb-1">sports_golf</span>
           <span className="text-[10px] font-semibold uppercase tracking-widest">Game On</span>
         </button>
         
-        <button className="flex flex-col items-center justify-center text-[#beedd9] opacity-60 flex-1">
+        <button className="flex flex-col items-center justify-center text-[#beedd9] opacity-60 flex-1" type="button">
           <span className="material-symbols-outlined mb-1">explore</span>
           <span className="text-[10px] font-semibold uppercase tracking-widest">GPS</span>
         </button>
@@ -182,6 +185,7 @@ function App() {
           <button 
             onClick={() => setIsKeeOpen(true)} 
             className="flex flex-col items-center justify-center text-[#ecc151] -translate-y-6 scale-110 transition-all duration-300 active:scale-100"
+            type="button"
           >
             <div className="bg-[#0e3c2f] p-4 rounded-full shadow-[0_0_25px_rgba(236,193,81,0.6)] border-2 border-[#ecc151] relative">
               <span className="material-symbols-outlined text-4xl animate-pulse">graphic_eq</span>
@@ -190,12 +194,12 @@ function App() {
           </button>
         </div>
 
-        <button className="flex flex-col items-center justify-center text-[#beedd9] opacity-60 flex-1">
+        <button className="flex flex-col items-center justify-center text-[#beedd9] opacity-60 flex-1" type="button">
           <span className="material-symbols-outlined mb-1">analytics</span>
           <span className="text-[10px] font-semibold uppercase tracking-widest">Stats</span>
         </button>
         
-        <button className="flex flex-col items-center justify-center text-[#beedd9] opacity-60 flex-1">
+        <button className="flex flex-col items-center justify-center text-[#beedd9] opacity-60 flex-1" type="button">
           <span className="material-symbols-outlined mb-1">more_horiz</span>
           <span className="text-[10px] font-semibold uppercase tracking-widest">Menu</span>
         </button>
@@ -228,6 +232,7 @@ function App() {
             <button 
               onClick={() => setIsKeeOpen(false)} 
               className="w-12 h-12 rounded-full bg-[#001710] flex items-center justify-center text-[#beedd9] hover:text-[#ecc151] transition-colors"
+              type="button"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
@@ -241,12 +246,12 @@ function App() {
               {/* High-Fidelity Waveforms */}
               <div className="voice-wave justify-center flex items-center gap-1 h-10">
                 <div className="wave-bar"></div>
-                <div className="wave-bar [animation-delay:0.1s]"></div>
-                <div className="wave-bar [animation-delay:0.2s]"></div>
-                <div className="wave-bar [animation-delay:0.3s]"></div>
-                <div className="wave-bar [animation-delay:0.4s]"></div>
-                <div className="wave-bar [animation-delay:0.2s]"></div>
-                <div className="wave-bar [animation-delay:0.1s]"></div>
+                <div className="wave-bar style={{animationDelay:'0.1s'}}"></div>
+                <div className="wave-bar style={{animationDelay:'0.2s'}}"></div>
+                <div className="wave-bar style={{animationDelay:'0.3s'}}"></div>
+                <div className="wave-bar style={{animationDelay:'0.4s'}}"></div>
+                <div className="wave-bar style={{animationDelay:'0.2s'}}"></div>
+                <div className="wave-bar style={{animationDelay:'0.1s'}}"></div>
               </div>
             </div>
 
@@ -254,11 +259,11 @@ function App() {
             <div className="w-full max-w-md space-y-4">
               <p className="text-xs font-bold text-[#c0c8c3] uppercase tracking-widest opacity-60">Operational Context Prompts</p>
               <div className="grid grid-cols-1 gap-3">
-                <button className="w-full p-4 bg-[#001710] border border-[#414845]/20 rounded-2xl text-left hover:border-[#ecc151]/40 transition-all flex items-center justify-between group">
+                <button className="w-full p-4 bg-[#001710] border border-[#414845]/20 rounded-2xl text-left hover:border-[#ecc151]/40 transition-all flex items-center justify-between group" type="button">
                   <span className="text-sm font-semibold text-[#beedd9] italic">"What's the wind doing on the 12th hole look?"</span>
                   <span className="material-symbols-outlined text-sm text-[#ecc151] opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
                 </button>
-                <button className="w-full p-4 bg-[#001710] border border-[#414845]/20 rounded-2xl text-left hover:border-[#ecc151]/40 transition-all flex items-center justify-between group">
+                <button className="w-full p-4 bg-[#001710] border border-[#414845]/20 rounded-2xl text-left hover:border-[#ecc151]/40 transition-all flex items-center justify-between group" type="button">
                   <span className="text-sm font-semibold text-[#beedd9] italic">"Kee, calculate total skins pool layout value right now."</span>
                   <span className="material-symbols-outlined text-sm text-[#ecc151] opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
                 </button>
