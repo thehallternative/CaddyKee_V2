@@ -246,12 +246,12 @@ function App() {
               {/* High-Fidelity Waveforms */}
               <div className="voice-wave justify-center flex items-center gap-1 h-10">
                 <div className="wave-bar"></div>
-                <div className="wave-bar style={{animationDelay:'0.1s'}}"></div>
-                <div className="wave-bar style={{animationDelay:'0.2s'}}"></div>
-                <div className="wave-bar style={{animationDelay:'0.3s'}}"></div>
-                <div className="wave-bar style={{animationDelay:'0.4s'}}"></div>
-                <div className="wave-bar style={{animationDelay:'0.2s'}}"></div>
-                <div className="wave-bar style={{animationDelay:'0.1s'}}"></div>
+                <div className="wave-bar"></div>
+                <div className="wave-bar"></div>
+                <div className="wave-bar"></div>
+                <div className="wave-bar"></div>
+                <div className="wave-bar"></div>
+                <div className="wave-bar"></div>
               </div>
             </div>
 
