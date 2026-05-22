@@ -21,31 +21,35 @@ function App() {
   return (
     <div style={{ backgroundColor: '#001710', minHeight: '100vh', position: 'relative', fontFamily: 'sans-serif', overflowX: 'hidden', paddingBottom: '140px', boxSizing: 'border-box' }}>
       
-      {/* 1. REFINED MINIMALIST TOP HEADER */}
+      {/* 1. PERSISTENT TOP APP BAR WITH PERFECTLY BALANCED SYMMETRIC BADGES */}
       <header style={{ width: '100%', padding: '24px 24px 16px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
         
-        {/* Left Anchor: Dynamic Nav State (Home Icon vs Back Arrow) */}
+        {/* Left Anchor Badge: Match scale & border styling of the right avatar */}
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
           {activeScreen === 'mission-control' ? (
-            <button 
-              style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
-              type="button"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '24px', background: 'none' }}>home</span>
-            </button>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
+              <button 
+                style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
+                type="button"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', background: 'none', fontWeight: 'bold' }}>home</span>
+              </button>
+            </div>
           ) : (
-            <button 
-              onClick={() => setActiveScreen('mission-control')}
-              style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
-              type="button"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '26px', fontWeight: 'bold', background: 'none' }}>arrow_back</span>
-            </button>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
+              <button 
+                onClick={() => setActiveScreen('mission-control')}
+                style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
+                type="button"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: '900', background: 'none' }}>arrow_back</span>
+              </button>
+            </div>
           )}
         </div>
         
-        {/* Center Anchor: Logo Return Target */}
-        <div style={{ display: 'flex', flexDirection: 'column', items: 'center', textAlign: 'center', flex: 1 }}>
+        {/* Center Title Anchor */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: 1 }}>
           <button
             onClick={() => setActiveScreen('mission-control')}
             style={{ background: 'none', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', outline: 'none', padding: 0 }}
@@ -55,7 +59,7 @@ function App() {
           </button>
         </div>
         
-        {/* Right Anchor: Profile Avatar Badge */}
+        {/* Right Anchor Badge: Persistent User profile avatar */}
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontStyle: 'italic', fontWeight: '900', fontSize: '11px', boxSizing: 'border-box' }}>
             DH
@@ -63,10 +67,10 @@ function App() {
         </div>
       </header>
 
-      {/* 2. MAIN SCROLLABLE VIEWS CANVAS */}
+      {/* 2. MAIN APP COMPONENT CANVAS */}
       <main className="px-6 pt-4 max-w-xl mx-auto w-full box-border" style={{ display: 'flex', flexDirection: 'column' }}>
         
-        {/* VIEW A: MISSION CONTROL (LANDING DASHBOARD) */}
+        {/* VIEW A: MISSION CONTROL */}
         {activeScreen === 'mission-control' && (
           <div style={{ textAlign: 'left' }}>
             <p className="font-bold uppercase tracking-[0.2em] text-[10px] mb-1" style={{ color: '#ecc151', opacity: 0.8, margin: '0 0 4px 0' }}>Welcome Back, Player</p>
@@ -147,63 +151,71 @@ function App() {
         )}
       </main>
 
-      {/* 3. PERSISTENT FLOATING BOTTOM NAV PILL WITH SOLID GOLD CONTRAST */}
+      {/* 3. HIGH-FIDELITY persistent FLOATING APPLICATION HUD */}
       <div style={{ position: 'fixed', bottom: '24px', left: '16px', right: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
-        <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
+        <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 12px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
           
-          {/* Button 1: Game On (Always Solid Gold Highlight) */}
+          {/* Slot 1: Game On */}
           <button 
             onClick={() => setActiveScreen('mission-control')} 
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }}
             type="button"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>sports_golf</span>
-            <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Game On</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: 'bold' }}>sports_golf</span>
+            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Game On</span>
           </button>
           
-          {/* Button 2: My Bag (Always Solid Gold Highlight with Native Golf Bag SVG) */}
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
-            <svg style={{ width: '22px', height: '22px' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8.5 7.5L7 9.5V21.5C7 22.05 7.45 22.5 8 22.5H12C12.55 22.5 13 22.05 13 21.5V9.5L11.5 7.5H8.5Z" fill="#ecc151" stroke="#ecc151" strokeWidth="1" strokeLinejoin="round"/>
-              <path d="M10 7.5V1.5M7.5 5.5L8.5 2.5M12.5 5.5L11.5 2.5" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M7 11.5H13M7 16.5H13" stroke="#0e3c2f" strokeWidth="1.2" strokeLinecap="round"/>
-              <path d="M13 11.5C14.5 11.5 16 13 16 14.5C16 16 14.5 17.5 13 17.5" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round"/>
+          {/* Slot 2: My Bag (Complete customized vector mapping of an authentic standing golf bag with club sets) */}
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', padding: 0 }} type="button">
+            <svg style={{ width: '24px', height: '24px' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Exposed Driver & Iron Club Set Heads */}
+              <path d="M9 6C8.5 4.5 8 2.5 9 1.5C9.8 0.7 11 1.2 11.5 2.5" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
+              <path d="M11 6C11.5 4.5 12 3 13.5 2.2C14.8 1.5 15.5 2.5 15 4" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
+              <path d="M13.5 6C14.2 4.8 15.2 3.8 16.8 4C18 4.2 17.8 5.5 16.5 6" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
+              {/* Main Structural Bag Body Cylindrical Shell */}
+              <path d="M8.5 6.5H14.5L13.5 22.5H9.5L8.5 6.5Z" fill="#0e3c2f" stroke="#ecc151" strokeWidth="1.5" strokeLinejoin="round"/>
+              {/* Dual Ergonomic Backpack Shoulder Straps Harness */}
+              <path d="M8.5 9C6.5 9.5 5.5 11 5.5 12.5C5.5 14.5 7 15.5 8.8 15.8" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
+              {/* External Storage Pocket Compartments and Brand Lines */}
+              <path d="M10 10.5H13M9.5 15H13.5" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
+              <path d="M11.5 6.5V22.5" stroke="#ecc151" strokeWidth="0.8" strokeDasharray="2 2"/>
             </svg>
-            <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>My Bag</span>
+            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>My Bag</span>
           </button>
 
-          {/* Button 3: KEE (Center Key Trigger) */}
+          {/* Slot 3: KEE (UP-SCALED GLOWING INTEL ACTUATOR HUD) */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <button 
               onClick={() => setIsKeeOpen(true)} 
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-16px)', width: '70px' }}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-20px)', width: '76px' }}
               type="button"
             >
-              <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 20px rgba(236,193,81,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '2px', boxSizing: 'border-box' }}>
+              {/* Increased overall footprint scale from 56px to 64px for enhanced profile emphasis */}
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 25px rgba(236,193,81,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '3px', boxSizing: 'border-box' }}>
                 <img 
                   src={caddyKeeLogo} 
                   alt="KEE" 
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                   onError={(e) => {
                     e.target.style.display = 'none';
-                    e.target.parentNode.innerHTML = '<span class="material-symbols-outlined" style="color:#ecc151;font-size:26px;">graphic_eq</span>';
+                    e.target.parentNode.innerHTML = '<span class="material-symbols-outlined" style="color:#ecc151;font-size:30px;">graphic_eq</span>';
                   }}
                 />
               </div>
-              <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>KEE</span>
+              <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.07em', marginTop: '5px' }}>KEE</span>
             </button>
           </div>
 
-          {/* Button 4: Clubhouse (Always Solid Gold Highlight) */}
+          {/* Slot 4: Clubhouse */}
           <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>meeting_room</span>
-            <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px', whiteSpace: 'nowrap' }}>Clubhouse</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: 'bold' }}>meeting_room</span>
+            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px', whiteSpace: 'nowrap' }}>Clubhouse</span>
           </button>
           
-          {/* Button 5: Menu (Always Solid Gold Highlight) */}
+          {/* Slot 5: Menu */}
           <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>more_horiz</span>
-            <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Menu</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: 'bold' }}>more_horiz</span>
+            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Menu</span>
           </button>
 
         </nav>
