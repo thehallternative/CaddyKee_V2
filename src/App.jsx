@@ -22,44 +22,40 @@ function App() {
     <div style={{ backgroundColor: '#001710', minHeight: '100vh', position: 'relative', fontFamily: 'sans-serif', overflowX: 'hidden', paddingBottom: '140px', boxSizing: 'border-box' }}>
       
       {/* 1. REFINED MINIMALIST TOP HEADER */}
-      <header style={{ width: '100%', padding: '20px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+      <header style={{ width: '100%', padding: '24px 24px 16px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
         
-        {/* Left Anchor: Dynamic Nav State (Home Icon vs Back Arrow) with Transparent Backgrounds */}
+        {/* Left Anchor: Dynamic Nav State with Absolutely Forced Borderless Transparency */}
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
           {activeScreen === 'mission-control' ? (
-            /* Home Screen Icon with Completely Transparent Background */
             <button 
-              className="bg-transparent border-none cursor-pointer flex items-center justify-center" 
-              style={{ color: '#ecc151', padding: 0, outline: 'none', background: 'none' }} 
+              style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', itemsCenter: 'center', justifyContent: 'center', cursor: 'pointer' }} 
               type="button"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>home</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '24px', background: 'none' }}>home</span>
             </button>
           ) : (
-            /* Sub-screen Functional Back Arrow with Completely Transparent Background */
             <button 
               onClick={() => setActiveScreen('mission-control')}
-              className="bg-transparent border-none cursor-pointer flex items-center justify-center" 
-              style={{ color: '#ecc151', padding: 0, outline: 'none', background: 'none' }} 
+              style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', itemsCenter: 'center', justifyContent: 'center', cursor: 'pointer' }} 
               type="button"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '26px', fontWeight: 'bold' }}>arrow_back</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '26px', fontWeight: 'bold', background: 'none' }}>arrow_back</span>
             </button>
           )}
         </div>
         
-        {/* Center Anchor: Active Navigation Title Link */}
+        {/* Center Anchor: Active Navigation Reset Title Link */}
         <div style={{ display: 'flex', flexDirection: 'column', items: 'center', textAlign: 'center', flex: 1 }}>
           <button
             onClick={() => setActiveScreen('mission-control')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: 0 }}
+            style={{ background: 'none', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', outline: 'none', padding: 0 }}
             type="button"
           >
             <h1 style={{ color: '#ecc151', fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.05em', fontSize: '26px', lineHeight: '1', margin: 0 }}>CADDYKEE</h1>
           </button>
         </div>
         
-        {/* Right Anchor: Profile Avatar Profile Badge */}
+        {/* Right Anchor: Persistent Logged-In User Profile Avatar */}
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontStyle: 'italic', fontWeight: '900', fontSize: '11px', boxSizing: 'border-box' }}>
             DH
@@ -67,10 +63,10 @@ function App() {
         </div>
       </header>
 
-      {/* 2. SCROLLABLE CANVAS ZONE */}
+      {/* 2. SCROLLABLE CONTENT AREA */}
       <main className="px-6 pt-4 max-w-xl mx-auto w-full box-border" style={{ display: 'flex', flexDirection: 'column' }}>
         
-        {/* VIEW A: MISSION CONTROL (LANDING PAGE) */}
+        {/* VIEW A: MISSION CONTROL (LANDING DASHBOARD) */}
         {activeScreen === 'mission-control' && (
           <div style={{ textAlign: 'left' }}>
             <p className="font-bold uppercase tracking-[0.2em] text-[10px] mb-1" style={{ color: '#ecc151', opacity: 0.8, margin: '0 0 4px 0' }}>Welcome Back, Player</p>
@@ -151,10 +147,11 @@ function App() {
         )}
       </main>
 
-      {/* 3. PERSISTENT FIXED BOTTOM NAV PILL */}
+      {/* 3. PERSISTENT FLOATING HUD NAV PILL */}
       <div style={{ position: 'fixed', bottom: '24px', left: '16px', right: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
         <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
           
+          {/* Button 1: Game On */}
           <button 
             onClick={() => setActiveScreen('mission-control')} 
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: activeScreen === 'mission-control' ? '#ecc151' : 'rgba(190, 237, 217, 0.6)' }}
@@ -164,12 +161,13 @@ function App() {
             <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Game On</span>
           </button>
           
+          {/* Button 2: My Bag */}
           <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: 'rgba(190, 237, 217, 0.6)' }} type="button">
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>explore</span>
-            <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>GPS</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>backpack</span>
+            <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>My Bag</span>
           </button>
 
-          {/* MASTER LOGO ACTUATOR CONTAINER */}
+          {/* Button 3: KEE (Center Logo Target) */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <button 
               onClick={() => setIsKeeOpen(true)} 
@@ -191,11 +189,13 @@ function App() {
             </button>
           </div>
 
+          {/* Button 4: The Clubhouse */}
           <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: 'rgba(190, 237, 217, 0.6)' }} type="button">
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>analytics</span>
-            <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Stats</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>meeting_room</span>
+            <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px', whiteSpace: 'nowrap' }}>Clubhouse</span>
           </button>
           
+          {/* Button 5: Menu */}
           <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: 'rgba(190, 237, 217, 0.6)' }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>more_horiz</span>
             <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Menu</span>
@@ -209,11 +209,11 @@ function App() {
         <div onClick={() => setIsKeeOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', opacity: isKeeOpen ? 1 : 0, transition: 'opacity 0.5s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '48px', borderTop: '1px solid rgba(236,193,81,0.2)', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', backgroundColor: '#00251b', boxShadow: '0 -10px 30px rgba(0,0,0,0.5)', transition: 'transform 0.5s ease-out', transform: isKeeOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(65,72,69,0.3)', margin: '20px auto 4px auto' }}></div>
-          <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifycontent: 'space-between', borderBottom: '1px solid rgba(65,72,69,0.1)' }}>
+          <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(65,72,69,0.1)' }}>
             <h3 style={{ margin: 0, color: '#beedd9', fontStyle: 'italic', fontWeight: '900' }}>KEE</h3>
             <button onClick={() => setIsKeeOpen(false)} style={{ backgroundColor: '#001710', color: '#beedd9', border: 'none', padding: '8px 12px', borderRadius: '20px', cursor: 'pointer' }} type="button">Close</button>
           </div>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifycontent: 'center' }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <p style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900' }}>Listening...</p>
           </div>
         </div>
