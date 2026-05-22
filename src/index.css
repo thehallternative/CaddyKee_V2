@@ -14,12 +14,33 @@
 }
 
 @layer utilities {
+  /* High-fidelity color utilities injected directly */
+  .bg-primary {
+    background-color: #ecc151 !important;
+  }
+  .text-primary {
+    color: #ecc151 !important;
+  }
+  .text-on-primary {
+    color: #3e2e00 !important;
+  }
+  .bg-surface-container-highest {
+    background-color: #0e3c2f !important;
+  }
+  .bg-surface-container-low {
+    background-color: #002117 !important;
+  }
+  .border-primary-10 {
+    border-color: rgba(236, 193, 81, 0.1) !important;
+  }
+
+  /* Premium Design Gradients & Blur panels */
   .bg-mission-gradient {
-    background: radial-gradient(circle at center, #0e3c2f 0%, #001710 100%);
+    background: radial-gradient(circle at center, #0e3c2f 0%, #001710 100%) !important;
   }
 
   .glass-caddy {
-    background: rgba(14, 60, 47, 0.6);
+    background: rgba(14, 60, 47, 0.4) !important;
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid rgba(236, 193, 81, 0.15);
