@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-/* Explicitly import the asset so the build tool tracks and bundles it for production */
 import caddyKeeLogo from './assets/logo.png';
 
 function App() {
@@ -22,20 +21,26 @@ function App() {
   return (
     <div style={{ backgroundColor: '#001710', minHeight: '100vh', position: 'relative', fontFamily: 'sans-serif', overflowX: 'hidden', paddingBottom: '140px', boxSizing: 'border-box' }}>
       
-      {/* 1. TOP HEADER NAVIGATION ZONE */}
-      <header style={{ width: '100%', padding: '16px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+      {/* 1. REFINED MINIMALIST TOP HEADER */}
+      <header style={{ width: '100%', padding: '20px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
         
-        {/* Left Anchor: Dynamic Nav State */}
+        {/* Left Anchor: Dynamic Nav State (Home Icon vs Back Arrow) with Transparent Backgrounds */}
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
           {activeScreen === 'mission-control' ? (
-            <button className="bg-transparent border-none cursor-pointer flex items-center justify-center" style={{ color: '#ecc151', padding: 0, outline: 'none' }} type="button">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>menu</span>
+            /* Home Screen Icon with Completely Transparent Background */
+            <button 
+              className="bg-transparent border-none cursor-pointer flex items-center justify-center" 
+              style={{ color: '#ecc151', padding: 0, outline: 'none', background: 'none' }} 
+              type="button"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>home</span>
             </button>
           ) : (
+            /* Sub-screen Functional Back Arrow with Completely Transparent Background */
             <button 
               onClick={() => setActiveScreen('mission-control')}
               className="bg-transparent border-none cursor-pointer flex items-center justify-center" 
-              style={{ color: '#ecc151', padding: 0, outline: 'none' }} 
+              style={{ color: '#ecc151', padding: 0, outline: 'none', background: 'none' }} 
               type="button"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '26px', fontWeight: 'bold' }}>arrow_back</span>
@@ -43,13 +48,18 @@ function App() {
           )}
         </div>
         
-        {/* Center Anchor: Brand Stack */}
+        {/* Center Anchor: Active Navigation Title Link */}
         <div style={{ display: 'flex', flexDirection: 'column', items: 'center', textAlign: 'center', flex: 1 }}>
-          <h1 style={{ color: '#ecc151', fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.05em', fontSize: '24px', lineHeight: '1', margin: 0 }}>CADDYKEE</h1>
-          <span style={{ fontSize: '9px', fontWeight: '700', color: 'rgba(190, 237, 217, 0.6)', textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: '4px', whiteSpace: 'nowrap' }}>SYSTEM OPERATIONAL</span>
+          <button
+            onClick={() => setActiveScreen('mission-control')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: 0 }}
+            type="button"
+          >
+            <h1 style={{ color: '#ecc151', fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.05em', fontSize: '26px', lineHeight: '1', margin: 0 }}>CADDYKEE</h1>
+          </button>
         </div>
         
-        {/* Right Anchor: Logged-in Profile Avatar */}
+        {/* Right Anchor: Profile Avatar Profile Badge */}
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontStyle: 'italic', fontWeight: '900', fontSize: '11px', boxSizing: 'border-box' }}>
             DH
@@ -57,10 +67,10 @@ function App() {
         </div>
       </header>
 
-      {/* 2. MAIN SCROLLABLE APP VIEWS */}
+      {/* 2. SCROLLABLE CANVAS ZONE */}
       <main className="px-6 pt-4 max-w-xl mx-auto w-full box-border" style={{ display: 'flex', flexDirection: 'column' }}>
         
-        {/* VIEW A: MISSION CONTROL */}
+        {/* VIEW A: MISSION CONTROL (LANDING PAGE) */}
         {activeScreen === 'mission-control' && (
           <div style={{ textAlign: 'left' }}>
             <p className="font-bold uppercase tracking-[0.2em] text-[10px] mb-1" style={{ color: '#ecc151', opacity: 0.8, margin: '0 0 4px 0' }}>Welcome Back, Player</p>
@@ -141,7 +151,7 @@ function App() {
         )}
       </main>
 
-      {/* 3. FLOATING NAVIGATION BAR */}
+      {/* 3. PERSISTENT FIXED BOTTOM NAV PILL */}
       <div style={{ position: 'fixed', bottom: '24px', left: '16px', right: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
         <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
           
@@ -159,7 +169,7 @@ function App() {
             <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>GPS</span>
           </button>
 
-          {/* SKELETON KEY BRAND LOGO ACTUATOR CONTAINER */}
+          {/* MASTER LOGO ACTUATOR CONTAINER */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <button 
               onClick={() => setIsKeeOpen(true)} 
@@ -199,11 +209,11 @@ function App() {
         <div onClick={() => setIsKeeOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', opacity: isKeeOpen ? 1 : 0, transition: 'opacity 0.5s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '48px', borderTop: '1px solid rgba(236,193,81,0.2)', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', backgroundColor: '#00251b', boxShadow: '0 -10px 30px rgba(0,0,0,0.5)', transition: 'transform 0.5s ease-out', transform: isKeeOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(65,72,69,0.3)', margin: '20px auto 4px auto' }}></div>
-          <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(65,72,69,0.1)' }}>
+          <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifycontent: 'space-between', borderBottom: '1px solid rgba(65,72,69,0.1)' }}>
             <h3 style={{ margin: 0, color: '#beedd9', fontStyle: 'italic', fontWeight: '900' }}>KEE</h3>
             <button onClick={() => setIsKeeOpen(false)} style={{ backgroundColor: '#001710', color: '#beedd9', border: 'none', padding: '8px 12px', borderRadius: '20px', cursor: 'pointer' }} type="button">Close</button>
           </div>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifycontent: 'center' }}>
             <p style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900' }}>Listening...</p>
           </div>
         </div>
