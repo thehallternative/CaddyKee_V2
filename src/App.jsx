@@ -199,35 +199,34 @@ function App() {
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Game On</span>
           </button>
           
-          {/* Button 2: My Bag - HIGH FIDELITY STAND BAG OVERHAUL */}
+          {/* Button 2: My Bag - PRECISE STAND BAG ASSET TRACE */}
           <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', padding: 0 }} type="button">
-            <svg style={{ width: '25px', height: '25px' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Individual Wood/Iron Shafts & Heads Extended From Cuff */}
-              <path d="M9.5 5.5C9.2 3.8 9.5 1.8 10.5 1.2C11.5 0.5 12.5 1.5 12.5 3" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
-              <path d="M11.5 5.5C12 3.8 13 2.5 14.5 2C15.8 1.5 16.5 2.5 15.8 4" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
-              <path d="M13.2 5.5C13.8 4.2 15 3.2 16.2 3.5C17.2 3.8 17 5 15.8 5.5" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
-              {/* Stand Mechanism Deployable Extended Legs */}
-              <path d="M7 10L3.5 21.5" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M12.5 11L15.5 21" stroke="#ecc151" strokeWidth="1" strokeLinecap="round" opacity="0.6"/>
-              {/* Premium Asymmetric Slanted Caddy Bag Core */}
-              <path d="M8 5.5H14L12.5 22.5H8.5L8 5.5Z" fill="#0e3c2f" stroke="#ecc151" strokeWidth="1.5" strokeLinejoin="round"/>
-              {/* Padded Cross-Body Shoulder Straps Assembly */}
-              <path d="M8 8.5C5.5 9 4.5 11 4.5 13C4.5 15 6 16.5 8 16.5" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
-              {/* Hardware Structural Rings & Pocket Utility Zippers */}
-              <circle cx="11.2" cy="5.5" r="3" stroke="#ecc151" strokeWidth="1" fill="#0e3c2f" opacity="0.1"/>
-              <path d="M9.5 11.5H12.5M9 16.5H12" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
+            <svg style={{ width: '25px', height: '25px' }} viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Three detailed angled golf clubs extending out of the top cylinder opening */}
+              <path d="M19 14.5C18.2 11.2 18.7 7.2 20.8 6C22.8 4.6 24.8 6.6 24.8 9.7" stroke="#ecc151" strokeWidth="2.5" strokeLinecap="round"/>
+              <path d="M23 14.5C24 11.2 26 8.5 29 7.5C31.6 6.5 33 8.5 31.6 11.5" stroke="#ecc151" strokeWidth="2.5" strokeLinecap="round"/>
+              <path d="M26.5 14.5C27.7 11.9 30.1 9.9 32.5 10.5C34.5 11.1 34.1 13.5 31.6 14.5" stroke="#ecc151" strokeWidth="2.5" strokeLinecap="round"/>
+              {/* Deployable Dual Stand Stabilization Legs Structure */}
+              <path d="M16 23.5L9 36" stroke="#ecc151" strokeWidth="3.2" strokeLinecap="round"/>
+              <path d="M25.5 25L31.5 35" stroke="#ecc151" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+              {/* Main Slanted Standing Carry Bag Container Hull */}
+              <path d="M17.5 14.5H29.5L26.5 38.5H18.5L17.5 14.5Z" fill="#0e3c2f" stroke="#ecc151" strokeWidth="3" strokeLinejoin="round"/>
+              {/* Padded Contoured Backpack Shoulder Carrying Harness Straps */}
+              <path d="M17.5 20.5C12.5 21.5 10.5 25.5 10.5 29.5C10.5 33.5 13.5 36.5 17.5 36.5" stroke="#ecc151" strokeWidth="2.5" strokeLinecap="round"/>
+              {/* Structural Dual Zip Pocket Seams */}
+              <path d="M20.5 24.5H26.5M19.5 32.5H25.5" stroke="#ecc151" strokeWidth="2.5" strokeLinecap="round"/>
             </svg>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>My Bag</span>
           </button>
 
-          {/* Button 3: KEE (PROMINENT UP-SCALED COMMAND ACTUATOR) */}
+          {/* Button 3: KEE (MAXI-SCALE CENTRAL EMBLEM ACTUATOR) */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <button 
               onClick={() => setIsKeeOpen(true)} 
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-20px)', width: '76px' }}
               type="button"
             >
-              {/* Expanded housing structure up to 66px footprint for maximum visual authority */}
+              {/* Enhanced core profile layout expanded outwards to full 66px footprint */}
               <div style={{ width: '66px', height: '66px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 25px rgba(236,193,81,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '3px', boxSizing: 'border-box' }}>
                 <img 
                   src={caddyKeeLogo} 
