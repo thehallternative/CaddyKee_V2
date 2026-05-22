@@ -19,12 +19,12 @@ function App() {
   };
 
   return (
-    <div style={{ backgroundColor: '#001710', minHeight: '100vh', position: 'relative', fontFamily: 'sans-serif', overflowX: 'hidden', paddingBottom: '140px', boxSizing: 'border-box' }}>
+    <div style={{ backgroundColor: '#001710', minHeight: '100vh', position: 'relative', fontFamily: 'sans-serif', overflowX: 'hidden', paddingBottom: '160px', boxSizing: 'border-box' }}>
       
-      {/* 1. PERSISTENT TOP APP BAR WITH PERFECTLY BALANCED SYMMETRIC BADGES */}
+      {/* 1. SYMMETRIC FIXED TOP HEADER */}
       <header style={{ width: '100%', padding: '24px 24px 16px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
         
-        {/* Left Anchor Badge: Match scale & border styling of the right avatar */}
+        {/* Left Anchor Circular Badge */}
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
           {activeScreen === 'mission-control' ? (
             <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
@@ -32,7 +32,7 @@ function App() {
                 style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
                 type="button"
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px', background: 'none', fontWeight: 'bold' }}>home</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: 'bold' }}>home</span>
               </button>
             </div>
           ) : (
@@ -42,13 +42,13 @@ function App() {
                 style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
                 type="button"
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: '900', background: 'none' }}>arrow_back</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: '900' }}>arrow_back</span>
               </button>
             </div>
           )}
         </div>
         
-        {/* Center Title Anchor */}
+        {/* Center Title Logo Anchor */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: 1 }}>
           <button
             onClick={() => setActiveScreen('mission-control')}
@@ -59,7 +59,7 @@ function App() {
           </button>
         </div>
         
-        {/* Right Anchor Badge: Persistent User profile avatar */}
+        {/* Right Anchor Circular Badge */}
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontStyle: 'italic', fontWeight: '900', fontSize: '11px', boxSizing: 'border-box' }}>
             DH
@@ -67,44 +67,78 @@ function App() {
         </div>
       </header>
 
-      {/* 2. MAIN APP COMPONENT CANVAS */}
+      {/* 2. SCROLLABLE CANVAS ZONE */}
       <main className="px-6 pt-4 max-w-xl mx-auto w-full box-border" style={{ display: 'flex', flexDirection: 'column' }}>
         
-        {/* VIEW A: MISSION CONTROL */}
+        {/* VIEW A: MISSION CONTROL (LANDING DASHBOARD) */}
         {activeScreen === 'mission-control' && (
-          <div style={{ textAlign: 'left' }}>
-            <p className="font-bold uppercase tracking-[0.2em] text-[10px] mb-1" style={{ color: '#ecc151', opacity: 0.8, margin: '0 0 4px 0' }}>Welcome Back, Player</p>
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter" style={{ color: '#ecc151', margin: '0 0 24px 0' }}>MISSION CONTROL</h2>
+          <div style={{ textAlign: 'center', width: '100%' }}>
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter" style={{ color: '#ecc151', margin: '10px 0 28px 0' }}>MISSION CONTROL</h2>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* 4-MODULE INTELLIGENCE GRID */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+              
+              {/* 1. Round Intelligence */}
               <button 
                 onClick={() => setActiveScreen('live-scoring')} 
-                style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'between', height: '180px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }}
                 type="button"
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', width: '100%' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '30px' }}>trophy</span>
-                  <span style={{ fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', fontSize: '10px', tracking: '0.1em', opacity: 0.5 }}>MC-01</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>trophy</span>
+                  <span style={{ fontWeight: '900', fontStyle: 'italic', fontSize: '10px', opacity: 0.5 }}>MC-01</span>
                 </div>
                 <div style={{ marginTop: 'auto' }}>
-                  <h3 style={{ fontSize: '24px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', margin: 0, leading: '1' }}>Round Intelligence</h3>
-                  <p style={{ fontWeight: '500', fontSize: '12px', margin: '6px 0 0 0', opacity: 0.8 }}>Start a round with a foursome or track active side-wagers</p>
+                  <h3 style={{ fontSize: '22px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', margin: 0, lineheight: '1' }}>Round Intelligence</h3>
+                  <p style={{ fontWeight: '600', fontSize: '12px', margin: '4px 0 0 0', opacity: 0.85 }}>Initialize live match telemetry or configure multi-group tournaments</p>
                 </div>
               </button>
 
+              {/* 2. Player Intelligence */}
               <button 
-                style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'between', height: '180px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', opacity: 0.4, cursor: 'not-allowed', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }}
                 type="button"
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', width: '100%' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '30px' }}>group</span>
-                  <span style={{ fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', fontSize: '10px', tracking: '0.1em', opacity: 0.5 }}>MC-02</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>group</span>
+                  <span style={{ fontWeight: '900', fontStyle: 'italic', fontSize: '10px', opacity: 0.5 }}>MC-02</span>
                 </div>
                 <div style={{ marginTop: 'auto' }}>
-                  <h3 style={{ fontSize: '24px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', margin: 0, leading: '1' }}>Player Management</h3>
-                  <p style={{ fontWeight: '500', fontSize: '12px', margin: '6px 0 0 0', opacity: 0.8 }}>Add players, build tournament fields, and audit handicaps</p>
+                  <h3 style={{ fontSize: '22px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', margin: 0, lineheight: '1' }}>Player Intelligence</h3>
+                  <p style={{ fontWeight: '600', fontSize: '12px', margin: '4px 0 0 0', opacity: 0.85 }}>Manage playing roster profiles, indexes, and historical squads</p>
                 </div>
               </button>
+
+              {/* 3. Course Intelligence */}
+              <button 
+                style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }}
+                type="button"
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', width: '100%' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>map</span>
+                  <span style={{ fontWeight: '900', fontStyle: 'italic', fontSize: '10px', opacity: 0.5 }}>MC-03</span>
+                </div>
+                <div style={{ marginTop: 'auto' }}>
+                  <h3 style={{ fontSize: '22px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', margin: 0, lineheight: '1' }}>Course Intelligence</h3>
+                  <p style={{ fontWeight: '600', fontSize: '12px', margin: '4px 0 0 0', opacity: 0.85 }}>Audit local scorecard data, stroke indexing, and structural coordinates</p>
+                </div>
+              </button>
+
+              {/* 4. Game Intelligence */}
+              <button 
+                style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }}
+                type="button"
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', width: '100%' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>gavel</span>
+                  <span style={{ fontWeight: '900', fontStyle: 'italic', fontSize: '10px', opacity: 0.5 }}>MC-04</span>
+                </div>
+                <div style={{ marginTop: 'auto' }}>
+                  <h3 style={{ fontSize: '22px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', margin: 0, lineheight: '1' }}>Game Intelligence</h3>
+                  <p style={{ fontWeight: '600', fontSize: '12px', margin: '4px 0 0 0', opacity: 0.85 }}>Build wager calculations, automate presses, and customize rules formats</p>
+                </div>
+              </button>
+
             </div>
           </div>
         )}
@@ -151,11 +185,11 @@ function App() {
         )}
       </main>
 
-      {/* 3. HIGH-FIDELITY persistent FLOATING APPLICATION HUD */}
+      {/* 3. PERSISTENT FLOATING HUD NAVIGATION PILL */}
       <div style={{ position: 'fixed', bottom: '24px', left: '16px', right: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
         <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 12px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
           
-          {/* Slot 1: Game On */}
+          {/* Button 1: Game On */}
           <button 
             onClick={() => setActiveScreen('mission-control')} 
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }}
@@ -165,40 +199,43 @@ function App() {
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Game On</span>
           </button>
           
-          {/* Slot 2: My Bag (Complete customized vector mapping of an authentic standing golf bag with club sets) */}
+          {/* Button 2: My Bag - HIGH FIDELITY STAND BAG OVERHAUL */}
           <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', padding: 0 }} type="button">
-            <svg style={{ width: '24px', height: '24px' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Exposed Driver & Iron Club Set Heads */}
-              <path d="M9 6C8.5 4.5 8 2.5 9 1.5C9.8 0.7 11 1.2 11.5 2.5" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
-              <path d="M11 6C11.5 4.5 12 3 13.5 2.2C14.8 1.5 15.5 2.5 15 4" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
-              <path d="M13.5 6C14.2 4.8 15.2 3.8 16.8 4C18 4.2 17.8 5.5 16.5 6" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
-              {/* Main Structural Bag Body Cylindrical Shell */}
-              <path d="M8.5 6.5H14.5L13.5 22.5H9.5L8.5 6.5Z" fill="#0e3c2f" stroke="#ecc151" strokeWidth="1.5" strokeLinejoin="round"/>
-              {/* Dual Ergonomic Backpack Shoulder Straps Harness */}
-              <path d="M8.5 9C6.5 9.5 5.5 11 5.5 12.5C5.5 14.5 7 15.5 8.8 15.8" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
-              {/* External Storage Pocket Compartments and Brand Lines */}
-              <path d="M10 10.5H13M9.5 15H13.5" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
-              <path d="M11.5 6.5V22.5" stroke="#ecc151" strokeWidth="0.8" strokeDasharray="2 2"/>
+            <svg style={{ width: '25px', height: '25px' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Individual Wood/Iron Shafts & Heads Extended From Cuff */}
+              <path d="M9.5 5.5C9.2 3.8 9.5 1.8 10.5 1.2C11.5 0.5 12.5 1.5 12.5 3" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
+              <path d="M11.5 5.5C12 3.8 13 2.5 14.5 2C15.8 1.5 16.5 2.5 15.8 4" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
+              <path d="M13.2 5.5C13.8 4.2 15 3.2 16.2 3.5C17.2 3.8 17 5 15.8 5.5" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
+              {/* Stand Mechanism Deployable Extended Legs */}
+              <path d="M7 10L3.5 21.5" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M12.5 11L15.5 21" stroke="#ecc151" strokeWidth="1" strokeLinecap="round" opacity="0.6"/>
+              {/* Premium Asymmetric Slanted Caddy Bag Core */}
+              <path d="M8 5.5H14L12.5 22.5H8.5L8 5.5Z" fill="#0e3c2f" stroke="#ecc151" strokeWidth="1.5" strokeLinejoin="round"/>
+              {/* Padded Cross-Body Shoulder Straps Assembly */}
+              <path d="M8 8.5C5.5 9 4.5 11 4.5 13C4.5 15 6 16.5 8 16.5" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
+              {/* Hardware Structural Rings & Pocket Utility Zippers */}
+              <circle cx="11.2" cy="5.5" r="3" stroke="#ecc151" strokeWidth="1" fill="#0e3c2f" opacity="0.1"/>
+              <path d="M9.5 11.5H12.5M9 16.5H12" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
             </svg>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>My Bag</span>
           </button>
 
-          {/* Slot 3: KEE (UP-SCALED GLOWING INTEL ACTUATOR HUD) */}
+          {/* Button 3: KEE (PROMINENT UP-SCALED COMMAND ACTUATOR) */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <button 
               onClick={() => setIsKeeOpen(true)} 
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-20px)', width: '76px' }}
               type="button"
             >
-              {/* Increased overall footprint scale from 56px to 64px for enhanced profile emphasis */}
-              <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 25px rgba(236,193,81,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '3px', boxSizing: 'border-box' }}>
+              {/* Expanded housing structure up to 66px footprint for maximum visual authority */}
+              <div style={{ width: '66px', height: '66px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 25px rgba(236,193,81,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '3px', boxSizing: 'border-box' }}>
                 <img 
                   src={caddyKeeLogo} 
                   alt="KEE" 
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                   onError={(e) => {
                     e.target.style.display = 'none';
-                    e.target.parentNode.innerHTML = '<span class="material-symbols-outlined" style="color:#ecc151;font-size:30px;">graphic_eq</span>';
+                    e.target.parentNode.innerHTML = '<span class="material-symbols-outlined" style="color:#ecc151;font-size:32px;">graphic_eq</span>';
                   }}
                 />
               </div>
@@ -206,13 +243,13 @@ function App() {
             </button>
           </div>
 
-          {/* Slot 4: Clubhouse */}
+          {/* Button 4: Clubhouse */}
           <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: 'bold' }}>meeting_room</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px', whiteSpace: 'nowrap' }}>Clubhouse</span>
           </button>
           
-          {/* Slot 5: Menu */}
+          {/* Button 5: Menu */}
           <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: 'bold' }}>more_horiz</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Menu</span>
