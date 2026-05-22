@@ -24,11 +24,11 @@ function App() {
       {/* 1. REFINED MINIMALIST TOP HEADER */}
       <header style={{ width: '100%', padding: '24px 24px 16px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
         
-        {/* Left Anchor: Dynamic Nav State with Absolutely Forced Borderless Transparency */}
+        {/* Left Anchor: Dynamic Nav State (Home Icon vs Back Arrow) */}
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
           {activeScreen === 'mission-control' ? (
             <button 
-              style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', itemsCenter: 'center', justifyContent: 'center', cursor: 'pointer' }} 
+              style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
               type="button"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '24px', background: 'none' }}>home</span>
@@ -36,7 +36,7 @@ function App() {
           ) : (
             <button 
               onClick={() => setActiveScreen('mission-control')}
-              style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', itemsCenter: 'center', justifyContent: 'center', cursor: 'pointer' }} 
+              style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
               type="button"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '26px', fontWeight: 'bold', background: 'none' }}>arrow_back</span>
@@ -44,7 +44,7 @@ function App() {
           )}
         </div>
         
-        {/* Center Anchor: Active Navigation Reset Title Link */}
+        {/* Center Anchor: Logo Return Target */}
         <div style={{ display: 'flex', flexDirection: 'column', items: 'center', textAlign: 'center', flex: 1 }}>
           <button
             onClick={() => setActiveScreen('mission-control')}
@@ -55,7 +55,7 @@ function App() {
           </button>
         </div>
         
-        {/* Right Anchor: Persistent Logged-In User Profile Avatar */}
+        {/* Right Anchor: Profile Avatar Badge */}
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontStyle: 'italic', fontWeight: '900', fontSize: '11px', boxSizing: 'border-box' }}>
             DH
@@ -63,7 +63,7 @@ function App() {
         </div>
       </header>
 
-      {/* 2. SCROLLABLE CONTENT AREA */}
+      {/* 2. MAIN SCROLLABLE VIEWS CANVAS */}
       <main className="px-6 pt-4 max-w-xl mx-auto w-full box-border" style={{ display: 'flex', flexDirection: 'column' }}>
         
         {/* VIEW A: MISSION CONTROL (LANDING DASHBOARD) */}
@@ -147,27 +147,32 @@ function App() {
         )}
       </main>
 
-      {/* 3. PERSISTENT FLOATING HUD NAV PILL */}
+      {/* 3. PERSISTENT FLOATING BOTTOM NAV PILL WITH SOLID GOLD CONTRAST */}
       <div style={{ position: 'fixed', bottom: '24px', left: '16px', right: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
         <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
           
-          {/* Button 1: Game On */}
+          {/* Button 1: Game On (Always Solid Gold Highlight) */}
           <button 
             onClick={() => setActiveScreen('mission-control')} 
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: activeScreen === 'mission-control' ? '#ecc151' : 'rgba(190, 237, 217, 0.6)' }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }}
             type="button"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>sports_golf</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>sports_golf</span>
             <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Game On</span>
           </button>
           
-          {/* Button 2: My Bag */}
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: 'rgba(190, 237, 217, 0.6)' }} type="button">
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>backpack</span>
+          {/* Button 2: My Bag (Always Solid Gold Highlight with Native Golf Bag SVG) */}
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
+            <svg style={{ width: '22px', height: '22px' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8.5 7.5L7 9.5V21.5C7 22.05 7.45 22.5 8 22.5H12C12.55 22.5 13 22.05 13 21.5V9.5L11.5 7.5H8.5Z" fill="#ecc151" stroke="#ecc151" strokeWidth="1" strokeLinejoin="round"/>
+              <path d="M10 7.5V1.5M7.5 5.5L8.5 2.5M12.5 5.5L11.5 2.5" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M7 11.5H13M7 16.5H13" stroke="#0e3c2f" strokeWidth="1.2" strokeLinecap="round"/>
+              <path d="M13 11.5C14.5 11.5 16 13 16 14.5C16 16 14.5 17.5 13 17.5" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
             <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>My Bag</span>
           </button>
 
-          {/* Button 3: KEE (Center Logo Target) */}
+          {/* Button 3: KEE (Center Key Trigger) */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <button 
               onClick={() => setIsKeeOpen(true)} 
@@ -189,15 +194,15 @@ function App() {
             </button>
           </div>
 
-          {/* Button 4: The Clubhouse */}
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: 'rgba(190, 237, 217, 0.6)' }} type="button">
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>meeting_room</span>
+          {/* Button 4: Clubhouse (Always Solid Gold Highlight) */}
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
+            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>meeting_room</span>
             <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px', whiteSpace: 'nowrap' }}>Clubhouse</span>
           </button>
           
-          {/* Button 5: Menu */}
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: 'rgba(190, 237, 217, 0.6)' }} type="button">
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>more_horiz</span>
+          {/* Button 5: Menu (Always Solid Gold Highlight) */}
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
+            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>more_horiz</span>
             <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Menu</span>
           </button>
 
