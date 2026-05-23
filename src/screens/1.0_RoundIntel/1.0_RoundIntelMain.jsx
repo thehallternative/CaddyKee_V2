@@ -11,9 +11,12 @@ function RoundIntelMain({ onNavigate }) {
   const [historyMatches, setHistoryMatches] = useState([]);
 
   // 🎛️ SWIPE GESTURE STATE TRACKER
-  const [activeSwipeId, setActiveSwipeId] = useState(null); // Tracks which card is open
+  const [activeSwipeId, setActiveSwipeId] = useState(null); 
   const [touchStart, setTouchStart] = useState(0);
   const [touchDelta, setTouchDelta] = useState(0);
+
+  // 🎚️ CUSTOM PREMIUM MODAL DETONATOR STATES
+  const [deleteTargetMatch, setDeleteTargetMatch] = useState(null); 
 
   const fetchMatches = async () => {
     try {
@@ -65,19 +68,17 @@ function RoundIntelMain({ onNavigate }) {
     }
   }, [isScheduledOpen]);
 
-  // 🗑️ TELEMETRY CASCADING DESTRUCTION ENGINE
+  // 🗑️ NATIVE CASCADING DESTRUCTION ENGINE (RLS BYPASS RE-ALIGNED)
   const executeMatchPurge = async (matchId) => {
     try {
       setLoading(true);
+      setDeleteTargetMatch(null); 
       
-      // 1. Wipe dependent wagers
-      await supabase.from('active_wagers').delete().eq('match_id', matchId);
-      
-      // 2. Wipe dependent player rosters
-      await supabase.from('match_players').delete().eq('match_id', matchId);
-      
-      // 3. Clear master match record frame
-      const { error } = await supabase.from('matches').delete().eq('id', matchId);
+      // PostgreSQL handles children automatically now that RLS policies are deployed
+      const { error } = await supabase
+        .from('matches')
+        .delete()
+        .eq('id', matchId);
       
       if (error) throw error;
       
@@ -92,7 +93,6 @@ function RoundIntelMain({ onNavigate }) {
   };
 
   const handleLaunchMatch = (match) => {
-    // If a card has an open swipe action, clicking resets it instead of navigating
     if (activeSwipeId === match.id && touchDelta !== 0) {
       setActiveSwipeId(null);
       setTouchDelta(0);
@@ -109,7 +109,7 @@ function RoundIntelMain({ onNavigate }) {
     onNavigate('live-game', payload);
   };
 
-  // 🕹️ MOBILE TOUCH INTERACTION EVENTS HANDLERS
+  // 🕹️ MOBILE TOUCH INTERACTION EVENT HANDLERS
   const handleTouchStart = (e, id) => {
     setTouchStart(e.targetTouches[0].clientX);
     if (activeSwipeId !== id) {
@@ -123,21 +123,19 @@ function RoundIntelMain({ onNavigate }) {
     const currentX = e.targetTouches[0].clientX;
     const currentDelta = currentX - touchStart;
     
-    // Set boundaries to prevent over-swiping on mobile
     if (currentDelta > 85) setTouchDelta(85);
     else if (currentDelta < -85) setTouchDelta(-85);
     else setTouchDelta(currentDelta);
   };
 
   const handleTouchEnd = () => {
-    // Lock-in check on release: must exceed 65px threshold or reset back to center
     if (touchDelta < -65) {
-      setTouchDelta(-80); // Snap completely left to lock open delete
+      setTouchDelta(-80); 
     } else if (touchDelta > 65) {
-      setTouchDelta(80);  // Snap completely right to lock open edit
+      setTouchDelta(80);  
     } else {
       setActiveSwipeId(null);
-      setTouchDelta(0);   // Return home
+      setTouchDelta(0);   
     }
   };
 
@@ -151,7 +149,6 @@ function RoundIntelMain({ onNavigate }) {
     }
     return matchList.map(match => {
       const isSwiped = activeSwipeId === match.id;
-      // Fluid runtime matrix style transform calculation
       const cardTransform = isSwiped ? `translateX(${touchDelta}px)` : 'translateX(0px)';
 
       return (
@@ -173,11 +170,7 @@ function RoundIntelMain({ onNavigate }) {
 
           {/* ❌ UNDERLAY LAYER B: HIGH-CONTRAST DESTRUCTIVE RED TRASH MODULE */}
           <div 
-            onClick={() => {
-              if (window.confirm(`PERMANENT DELETION: Purge "${match.match_name}"?`)) {
-                executeMatchPurge(match.id);
-              }
-            }}
+            onClick={() => setDeleteTargetMatch(match)}
             style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '100px', backgroundColor: '#eb5e55', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '20px', boxSizing: 'border-box', fontWeight: '900', fontStyle: 'italic', fontSize: '12px', zIndex: 1, cursor: 'pointer', opacity: isSwiped && touchDelta < 0 ? 1 : 0, transition: 'opacity 0.1s' }}
           >
             DELETE
@@ -242,6 +235,7 @@ function RoundIntelMain({ onNavigate }) {
         </button>
       </div>
 
+      {/* REACT RENDERING SLIDE-UP THREE-TAB DRAWER */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 70, pointerEvents: isScheduledOpen ? 'auto' : 'none', display: 'block' }}>
         <div onClick={() => { setIsScheduledOpen(false); setActiveSwipeId(null); setTouchDelta(0); }} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isScheduledOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
         
@@ -281,6 +275,43 @@ function RoundIntelMain({ onNavigate }) {
           </div>
         </div>
       </div>
+
+      {/* 🏛️ PREMIUM INTEGRATED CADDY AESTHETIC DELETION DIALOG */}
+      {deleteTargetMatch && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', boxSizing: 'border-box' }}>
+          <div onClick={() => setDeleteTargetMatch(null)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} />
+          
+          <div style={{ position: 'relative', width: '100%', maxWidth: '360px', backgroundColor: '#0b2e24', border: '2px solid #eb5e55', borderRadius: '32px', padding: '32px 24px', boxSizing: 'border-box', boxShadow: '0 25px 50px rgba(0,0,0,0.6)', textAlign: 'center' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'rgba(235,94,85,0.1)', border: '1px solid #eb5e55', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#eb5e55', fontWeight: '900', fontSize: '24px' }}>
+              ✕
+            </div>
+            
+            <h3 style={{ fontSize: '20px', fontWeight: '900', fontStyle: 'italic', color: '#beedd9', margin: '0 0 8px 0', textTransform: 'uppercase', tracking: '-0.02em' }}>
+              Confirm Deletion
+            </h3>
+            <p style={{ fontSize: '13px', fontWeight: '500', color: 'rgba(190,237,217,0.7)', margin: '0 0 28px 0', lineHeight: '1.4' }}>
+              Are you sure you want to completely purge <span style={{ color: '#ecc151', fontWeight: '700' }}>{deleteTargetMatch.match_name}</span>? All child wager entries and financial rosters will be deleted permanently.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button 
+                onClick={() => executeMatchPurge(deleteTargetMatch.id)}
+                style={{ width: '100%', padding: '16px 0', borderRadius: '30px', border: 'none', backgroundColor: '#eb5e55', color: '#ffffff', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', fontSize: '12px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(235,94,85,0.3)' }}
+                type="button"
+              >
+                Permanently Delete
+              </button>
+              <button 
+                onClick={() => setDeleteTargetMatch(null)}
+                style={{ width: '100%', padding: '16px 0', borderRadius: '30px', border: '1px solid rgba(190,237,217,0.2)', backgroundColor: 'transparent', color: '#beedd9', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', fontSize: '11px', cursor: 'pointer' }}
+                type="button"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
