@@ -46,20 +46,21 @@ function App() {
   };
 
   // Custom Human-Readable Screen Header Title Formatter
-  const getScreenTitleString = () => {
+  const getScreenSubTitleString = () => {
+    if (activeScreen === 'mission-control') return 'WELCOME';
     if (activeScreen === 'player-intel') return 'PLAYER INTELLIGENCE';
     if (activeScreen === 'edit-player') return 'EDIT PROFILE';
     if (activeScreen === 'create-player') return 'CREATE PLAYER';
     if (activeScreen === 'round-intel') return 'ROUND INTELLIGENCE';
     if (activeScreen === 'create-match') return 'CREATE MATCH';
     if (activeScreen === 'live-game') return currentMatchContext.matchName || 'LIVE SCORECARD';
-    return 'MISSION CONTROL';
+    return '';
   };
 
   return (
     <div style={{ backgroundColor: '#001710', minHeight: '100vh', position: 'relative', fontFamily: 'sans-serif', overflowX: 'hidden', paddingBottom: '140px', boxSizing: 'border-box' }}>
       
-      {/* 👑 CORE MASTER APP HEADER BAR - STANDARD FOR ALL SCREENS */}
+      {/* 👑 MASTER APP STACKED HEADER BAR - STABLE IDENTIFIER FOR ALL VIEWS */}
       <header style={{ width: '100%', padding: '24px 24px 16px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
@@ -75,10 +76,14 @@ function App() {
           </div>
         </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: 1, minWidth: 0 }}>
-          <h1 style={{ color: '#ecc151', fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.04em', fontSize: '20px', lineHeight: '1.1', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
-            {getScreenTitleString()}
+        {/* 🎨 STACKED BRAND DESIGN: CaddyKee App Identity locked above clean contextual subtitle string */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: 1, minWidth: 0, gap: '2px' }}>
+          <h1 style={{ color: '#ecc151', fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.05em', fontSize: '24px', lineHeight: '1', margin: 0 }}>
+            CADDYKEE
           </h1>
+          <span style={{ color: '#beedd9', fontSize: '10px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', tracking: '0.05em', opacity: 0.8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
+            {getScreenSubTitleString()}
+          </span>
         </div>
         
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
@@ -95,7 +100,7 @@ function App() {
       {/* CORE ROUTING ENGINE INJECTION */}
       <main className="px-6 pt-4 max-w-xl mx-auto w-full box-border" style={{ display: 'flex', flexDirection: 'column' }}>
         {activeScreen === 'mission-control' && (
-          <MissionControl onNavigate={(screen) => handleScreenNavigation(screen)} />
+          <MissionControl matchContext={currentMatchContext} onNavigate={(screen) => handleScreenNavigation(screen)} />
         )}
         {activeScreen === 'round-intel' && (
           <RoundIntelMain onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
@@ -123,21 +128,23 @@ function App() {
         )}
       </main>
 
-      {/* 🧭 PERFECTLY REALIGNED HUD NAVIGATION PILL FRAME */}
+      {/* 🧭 PILL CONTEXT HUD FOOTER NAV - FULL ALIGNMENT PILL FIXED */}
       <div style={{ position: 'fixed', bottom: '24px', left: '16px', right: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
         <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 8px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
           
-          <button onClick={() => handleScreenNavigation('mission-control')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: activeScreen === 'mission-control' ? '#ecc151' : '#beedd9', opacity: activeScreen === 'mission-control' ? 1 : 0.6, padding: 0 }} type="button">
+          {/* Mapped Action Pillar 1: Rounds Setup */}
+          <button onClick={() => handleScreenNavigation('round-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: activeScreen === 'round-intel' ? '#ecc151' : '#beedd9', opacity: activeScreen === 'round-intel' ? 1 : 0.6, padding: 0 }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>sports_golf</span>
-            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Game On</span>
+            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Rounds</span>
           </button>
           
+          {/* Mapped Action Pillar 2: Roster Profiles */}
           <button onClick={() => handleScreenNavigation('player-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: ['player-intel', 'edit-player', 'create-player'].includes(activeScreen) ? '#ecc151' : '#beedd9', opacity: ['player-intel', 'edit-player', 'create-player'].includes(activeScreen) ? 1 : 0.6, padding: 0 }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>group</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Players</span>
           </button>
 
-          {/* Core Master Kee Voice Drawer Activation Center Anchor */}
+          {/* KEE VOICE TARGET CONTROL MODAL INTERFACE TRIGGER */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <button onClick={() => setIsKeeOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-20px)', width: '76px', padding: 0 }} type="button">
               <div style={{ width: '66px', height: '66px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 25px rgba(236,193,81,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '3px', boxSizing: 'border-box' }}>
@@ -147,26 +154,28 @@ function App() {
             </button>
           </div>
 
+          {/* Mapped Action Pillar 4: Courses Intel Map Sheets Link Dummy Setup */}
           <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: '#beedd9', opacity: 0.6, padding: 0 }} type="button">
-            <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>meeting_room</span>
-            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Clubhouse</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>map</span>
+            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Courses</span>
           </button>
           
+          {/* Mapped Action Pillar 5: Games Rulesets Engine Matrix Link Dummy Setup */}
           <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: '#beedd9', opacity: 0.6, padding: 0 }} type="button">
-            <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>more_horiz</span>
-            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Menu</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>swords</span>
+            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Games</span>
           </button>
 
         </nav>
       </div>
 
-      {/* GLOBAL KEE VOICE DRAWER COMPONENT PORTAL */}
+      {/* GLOBAL KEE VOICE INTELLIGENCE OVERLAY DRAWER CHASSIS */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 130, pointerEvents: isKeeOpen ? 'auto' : 'none', display: 'block' }}>
         <div onClick={() => setIsKeeOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isKeeOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '12vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', backgroundColor: '#00251b', boxShadow: '0 -20px 100px rgba(0,0,0,0.8)', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isKeeOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(236,193,81,0.2)', margin: '16px auto 4px auto', flex: 'none' }} />
           
-          <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(65,72,69,0.1)', flex: 'none' }}>
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(65,72,69,0.1)', flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '44px', height: '44px', backgroundColor: 'rgba(236,193,81,0.1)', border: '1px solid #ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', borderRadius: '50%' }}>💬</div>
               <div>
