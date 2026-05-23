@@ -11,26 +11,10 @@ function RoundIntelMain({ onNavigate }) {
         ROUND INTELLIGENCE
       </h2>
 
-      {/* THREE ACTION COMMAND MODULES */}
+      {/* THREE ACTION COMMAND MODULES - STRIPPED & RE-ORDERED */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
         
-        {/* Module A: Create Tournament */}
-        <button 
-          onClick={() => onNavigate('create-tournament')} 
-          style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }}
-          type="button"
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', width: '100%' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>trophy</span>
-            <span style={{ fontWeight: '900', fontStyle: 'italic', fontSize: '10px', opacity: 0.5 }}>MC-01.A</span>
-          </div>
-          <div style={{ marginTop: 'auto' }}>
-            <h3 style={{ fontSize: '22px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', margin: 0, lineHeight: '1' }}>Create Tournament</h3>
-            <p style={{ fontWeight: '600', fontSize: '12px', margin: '4px 0 0 0', opacity: 0.85 }}>Configure dates, registration fields, and team logic parameters</p>
-          </div>
-        </button>
-
-        {/* Module B: Create Match */}
+        {/* 1. Create Match (Now First & Primary) */}
         <button 
           onClick={() => onNavigate('create-match')} 
           style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }}
@@ -38,7 +22,6 @@ function RoundIntelMain({ onNavigate }) {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', width: '100%' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>groups</span>
-            <span style={{ fontWeight: '900', fontStyle: 'italic', fontSize: '10px', opacity: 0.5 }}>MC-01.B</span>
           </div>
           <div style={{ marginTop: 'auto' }}>
             <h3 style={{ fontSize: '22px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', margin: 0, lineHeight: '1' }}>Create Match</h3>
@@ -46,7 +29,7 @@ function RoundIntelMain({ onNavigate }) {
           </div>
         </button>
 
-        {/* Module C: Scheduled Games Drawer Trigger */}
+        {/* 2. Scheduled Games (Now Second) */}
         <button 
           onClick={() => setIsScheduledOpen(true)}
           style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }}
@@ -54,7 +37,6 @@ function RoundIntelMain({ onNavigate }) {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', width: '100%' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>map</span>
-            <span style={{ fontWeight: '900', fontStyle: 'italic', fontSize: '10px', opacity: 0.5 }}>MC-01.C</span>
           </div>
           <div style={{ marginTop: 'auto' }}>
             <h3 style={{ fontSize: '22px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', margin: 0, lineHeight: '1' }}>Scheduled Games</h3>
@@ -62,16 +44,28 @@ function RoundIntelMain({ onNavigate }) {
           </div>
         </button>
 
+        {/* 3. Create Tournament (Now Third) */}
+        <button 
+          onClick={() => onNavigate('create-tournament')} 
+          style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }}
+          type="button"
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', width: '100%' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>trophy</span>
+          </div>
+          <div style={{ marginTop: 'auto' }}>
+            <h3 style={{ fontSize: '22px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', margin: 0, lineHeight: '1' }}>Create Tournament</h3>
+            <p style={{ fontWeight: '600', fontSize: '12px', margin: '4px 0 0 0', opacity: 0.85 }}>Configure dates, registration fields, and team logic parameters</p>
+          </div>
+        </button>
+
       </div>
 
       {/* REACT RENDERING SLIDE-UP DRAWER FOR SCHEDULED GAMES */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 70, pointerEvents: isScheduledOpen ? 'auto' : 'none', display: 'block' }}>
-        {/* Dimmed Overlay Backdrop */}
         <div onClick={() => setIsScheduledOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isScheduledOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
         
-        {/* Drawer Body Container Frame */}
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '10vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', backgroundColor: '#00251b', boxShadow: '0 -20px 100px rgba(0,0,0,0.8)', transition: 'transform 0.4s ease-out', transform: isScheduledOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}>
-          
           <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(236,193,81,0.2)', margin: '16px auto 4px auto' }}></div>
           
           <div style={{ padding: '16px 32px 8px 32px', textAlign: 'left' }}>
@@ -80,12 +74,11 @@ function RoundIntelMain({ onNavigate }) {
                 <span style={{ color: '#ecc151', fontWeight: '700', textTransform: 'uppercase', tracking: '0.1em', fontSize: '10px' }}>Your Schedule</span>
                 <h3 style={{ fontSize: '32px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', color: '#ecc151', margin: '4px 0 0 0', letterSpacing: '-0.02em' }}>ROUND INTEL</h3>
               </div>
-              <button onClick={() => setIsScheduledOpen(false)} style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.2)', flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', cursor: 'pointer' }} type="button">
+              <button onClick={() => setIsScheduledOpen(false)} style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.2)', flex: 'none', display: 'flex', alignItems: 'center', justifycontent: 'center', color: '#ecc151', cursor: 'pointer' }} type="button">
                 <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
               </button>
             </div>
 
-            {/* SEGMENTED TAB HUB OVERRIDE */}
             <div style={{ display: 'flex', padding: '2px', borderRadius: '30px', backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)' }}>
               <button 
                 onClick={() => setActiveTab('current')} 
@@ -104,12 +97,11 @@ function RoundIntelMain({ onNavigate }) {
             </div>
           </div>
 
-          {/* DYNAMIC SCROLLABLE LIST VIEWS */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 32px 40px 32px', boxSizing: 'border-box' }}>
             {activeTab === 'current' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
                 <div style={{ padding: '20px', borderRadius: '16px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <span style={{ fontSize: '10px', fontWeight: '700', color: '#ecc151', textTransform: 'uppercase', tracking: '0.05em' }}>Tournament • Sat, Oct 12</span>
                     <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '18px' }}>event</span>
                   </div>
@@ -117,7 +109,7 @@ function RoundIntelMain({ onNavigate }) {
                   <p style={{ fontSize: '13px', color: 'rgba(190,237,217,0.7)', margin: '4px 0 0 0', fontWeight: '500' }}>Cypress Point Club</p>
                 </div>
                 <div style={{ padding: '20px', borderRadius: '16px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <span style={{ fontSize: '10px', fontWeight: '700', color: '#ecc151', textTransform: 'uppercase', tracking: '0.05em' }}>Foursome • Wed, Oct 16</span>
                     <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '18px' }}>groups</span>
                   </div>
@@ -128,7 +120,7 @@ function RoundIntelMain({ onNavigate }) {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
                 <div style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'rgba(14,60,47,0.4)', border: '1px solid rgba(236,193,81,0.05)', opacity: 0.8 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <span style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(190,237,217,0.5)', textTransform: 'uppercase' }}>Completed • Sept 28</span>
                     <span style={{ backgroundColor: 'rgba(236,193,81,0.15)', color: '#ecc151', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '900', fontStyle: 'italic' }}>RESULT: +2</span>
                   </div>
@@ -136,7 +128,7 @@ function RoundIntelMain({ onNavigate }) {
                   <p style={{ fontSize: '13px', color: 'rgba(190,237,217,0.5)', margin: '4px 0 0 0' }}>Spyglass Hill Golf Course</p>
                 </div>
                 <div style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'rgba(14,60,47,0.4)', border: '1px solid rgba(236,193,81,0.05)', opacity: 0.8 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <span style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(190,237,217,0.5)', textTransform: 'uppercase' }}>Completed • Sept 21</span>
                     <span style={{ backgroundColor: 'rgba(236,193,81,0.15)', color: '#ecc151', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '900', fontStyle: 'italic' }}>38 PTS</span>
                   </div>
@@ -146,7 +138,6 @@ function RoundIntelMain({ onNavigate }) {
               </div>
             )}
           </div>
-
         </div>
       </div>
 
