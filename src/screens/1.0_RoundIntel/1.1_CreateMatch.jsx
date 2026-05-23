@@ -274,16 +274,7 @@ function CreateMatch({ onNavigate }) {
   });
 
   return (
-    <div style={{ textAlign: 'left', width: '100%', boxSizing: 'border-box' }}>
-      
-      <header style={{ marginBottom: '40px' }}>
-        <p style={{ fontSize: '10px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.2em', margin: '0 0 8px 0', fontFamily: 'sans-serif' }}>
-          MATCH CONFIGURATION PROTOCOL
-        </p>
-        <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white m-0">
-          CREATE MATCH
-        </h1>
-      </header>
+    <div style={{ textAlign: 'left', width: '100%', boxSizing: 'border-box', paddingTop: '12px' }}>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
@@ -356,7 +347,7 @@ function CreateMatch({ onNavigate }) {
             </div>
             <div style={{ backgroundColor: '#0e3c2f', padding: '20px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)' }}>
               <span style={{ fontSize: '9px', fontWeight: '700', color: 'rgba(190,237,217,0.5)', display: 'block', marginBottom: '4px' }}>TEE TIME</span>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#beedd9' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', itemsCenter: 'center', color: '#beedd9' }}>
                 <input 
                   type="time" 
                   value={teeTime} 
@@ -377,7 +368,6 @@ function CreateMatch({ onNavigate }) {
             {[1, 2, 3, 4].map(slotIdx => {
               const player = selectedPlayers[slotIdx];
               
-              // 🎛️ SMART INITIAL EXTRATION DECK FOR MEMBERS & QUICK GUESTS
               const resolvedInitials = player 
                 ? (player.nickname ? player.nickname.substring(0, 2).toUpperCase() : player.display_name.substring(0, 2).toUpperCase())
                 : '';
@@ -494,7 +484,7 @@ function CreateMatch({ onNavigate }) {
                     <div>
                       <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '900', color: '#beedd9', tracking: '0.05em' }}>LONE WOLF POT</h4>
                     </div>
-                    <div onClick={toggleLoneWolf} style={{ width: '44px', height: '24px', borderRadius: '12px', backgroundColor: games.wolf.loneWolf ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box' }}>
+                    <div onClick={toggleLoneWolf} style={{ width: '44px', height: '24px', borderRadius: '12px', backgroundColor: games.wolf.loneWolf ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box' }} type="button">
                       <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: games.wolf.loneWolf ? '#3e2e00' : '#414845', transform: games.wolf.loneWolf ? 'translateX(20px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
                     </div>
                   </div>
@@ -546,7 +536,7 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* 🏆 RENAME DISPATCH TRIGGER: START ROUND */}
+        {/* START ROUND BUTTON */}
         <div style={{ paddingTop: '28px', paddingBottom: '20px' }}>
           <button 
             onClick={handleInitializeMatch}
