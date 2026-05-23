@@ -79,7 +79,7 @@ function CreatePlayer({ onNavigate }) {
         calculatedHcp = -calculatedHcp;
       }
 
-      // 💊 DATABASE ALIGNMENT FIX: Omit "display_name" from payloads entirely so Postgres calculates it automatically
+      // 💊 FIXED: display_name omitted completely so Postgres Generated Column processes it dynamically without error
       const insertPayload = {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
@@ -116,7 +116,7 @@ function CreatePlayer({ onNavigate }) {
   return (
     <div style={{ textAlign: 'left', width: '100%', position: 'relative', boxSizing: 'border-box' }}>
       
-      {/* HEADER MASTER ACTION BAR - Fixed Redundant UI Removed Cleanly */}
+      {/* HEADER MASTER ACTION BAR */}
       <header style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '80px', marginBottom: '24px' }}>
         <h1 style={{ color: '#ecc151', margin: 0, fontSize: '24px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', tracking: '-0.02em' }}>
           CREATE PLAYER
@@ -135,7 +135,7 @@ function CreatePlayer({ onNavigate }) {
           <p style={{ margin: 0, fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.2em', color: '#a3d0be' }}>Identity Profile</p>
         </section>
 
-        {/* SECTION 2: VERTICALLY STACKED HIGH-READABILITY GENERAL FIELDS */}
+        {/* SECTION 2: VERTICALLY STACKED INFORMATION INPUTS */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
@@ -168,7 +168,7 @@ function CreatePlayer({ onNavigate }) {
             <input type="tel" value={phone} placeholder="+1 (555) 000-0000" onChange={(e) => setPhone(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
 
-          {/* DYNAMIC SECURITY ROLE SELECTION OVERLAY TRIGGER */}
+          {/* DYNAMIC ROLE DRAWER SHEET TRIGGER */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#ecc151', tracking: '0.05em', paddingLeft: '4px' }}>PLAYER SECURITY ROLE TIER</label>
             <div 
@@ -316,12 +316,11 @@ function CreatePlayer({ onNavigate }) {
         {/* PRIMARY DEPLOYMENT SAVE ENGINE CONTAINER */}
         <div style={{ marginTop: '20px' }}>
           <button 
-            onClick={createPlayerSubmit}
-            disabled={saving}
-            style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 20px 40px rgba(236,193,81,0.2)', opacity: saving ? 0.6 : 1 }}
+            onClick={handleCreatePlayerSubmit}
+            style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 20px 40px rgba(236,193,81,0.15)' }}
             type="button"
           >
-            <span>💾</span> {saving ? 'SAVING...' : 'SAVE NEW PLAYER'}
+            <span>💾</span> SAVE NEW PLAYER
           </button>
         </div>
 
