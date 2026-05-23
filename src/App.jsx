@@ -4,6 +4,7 @@ import MissionControl from './screens/0.0_MissionControl';
 import RoundIntelMain from './screens/1.0_RoundIntel/1.0_RoundIntelMain'; 
 import CreateMatch from './screens/1.0_RoundIntel/1.1_CreateMatch'; 
 import LiveGameMain from './screens/1.0_RoundIntel/1.2_LiveGameMain';
+import PlayerIntelMain from './screens/3.0_PlayerIntel/3.0_PlayerIntelMain';
 
 function App() {
   const [isKeeOpen, setIsKeeOpen] = useState(false);
@@ -33,8 +34,10 @@ function App() {
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
             <button 
               onClick={() => {
-                if (activeScreen === 'live-game') handleScreenNavigation('create-match');
+                if (activeScreen === 'live-game') handleScreenNavigation('round-intel');
                 else if (activeScreen === 'create-match') handleScreenNavigation('round-intel');
+                else if (activeScreen === 'round-intel') handleScreenNavigation('mission-control');
+                else if (activeScreen === 'player-intel') handleScreenNavigation('mission-control');
                 else handleScreenNavigation('mission-control');
               }}
               style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
@@ -84,6 +87,9 @@ function App() {
             onNavigate={(screen) => handleScreenNavigation(screen)} 
           />
         )}
+        {activeScreen === 'player-intel' && (
+          <PlayerIntelMain onNavigate={(screen) => handleScreenNavigation(screen)} />
+        )}
       </main>
 
       {/* PERSISTENT NAVIGATION HUD PILL */}
@@ -94,7 +100,7 @@ function App() {
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Game On</span>
           </button>
           
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', padding: 0 }} type="button">
+          <button onClick={() => handleScreenNavigation('player-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', padding: 0 }} type="button">
             <svg style={{ width: '24px', height: '24px' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M14.5 5.5C15 4 16.5 2.8 18 2.2C19.2 1.8 19.8 2.5 19.2 3.8L17.5 6.5" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M12.5 5.5C12.8 3.5 14 1.8 15.5 1.2C16.8 0.8 17.5 1.8 16.8 3.2L15 6" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -104,7 +110,7 @@ function App() {
               <path d="M11 11.5L16.5 22" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round"/>
               <path d="M11 14.5L7.5 22" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>My Bag</span>
+            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Players</span>
           </button>
 
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
