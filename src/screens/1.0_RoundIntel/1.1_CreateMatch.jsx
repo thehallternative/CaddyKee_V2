@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 
 function CreateMatch({ onNavigate }) {
-  // 💾 STANDARDIZED PICKER STATES MATRIX FOR DATABASE NORMALIZATION
+  // 💾 STANDARDIZED PICKER & LIVE DATABASE COUPLING STATES
   const [matchName, setMatchName] = useState('');
-  const [selectedCourse, setSelectedCourse] = useState('Augusta National');
   
+  // Pattern 1 Course Data Map Streams
+  const [coursesList, setCoursesList] = useState([]);
+  const [selectedCourseId, setSelectedCourseId] = useState('');
+  const [loadingCourses, setLoadingCourses] = useState(true);
+
   // Initialize with standard current formats so pickers aren't empty on mount
   const [teeDate, setTeeDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [teeTime, setTeeTime] = useState('08:30'); 
@@ -15,6 +19,32 @@ function CreateMatch({ onNavigate }) {
     wolf: { active: false, expanded: false, multiplier: 2, loneWolf: false },
     match: { active: true, expanded: false, hcpScale: 100, tieBreaker: 'SUDDEN DEATH' }
   });
+
+  // 📡 ASYNC MOUNT TELEMETRY LOAD (PATTERN 1)
+  useEffect(() => {
+    async function streamCourseMapRegistry() {
+      try {
+        setLoadingCourses(true);
+        const { data, error } = await supabase
+          .from('course_map')
+          .select('id, course_name, location_city')
+          .eq('is_active', true)
+          .order('course_name', { ascending: true });
+
+        if (error) throw error;
+        
+        setCoursesList(data || []);
+        if (data && data.length > 0) {
+          setSelectedCourseId(data[0].id);
+        }
+      } catch (err) {
+        console.error('Failed to query course_map channels:', err.message);
+      } finally {
+        setLoadingCourses(false);
+      }
+    }
+    streamCourseMapRegistry();
+  }, []);
 
   const handleGameToggle = (gameId) => {
     setGames(prev => ({
@@ -65,13 +95,17 @@ function CreateMatch({ onNavigate }) {
       // Clean time input string to include standard seconds matrix format for PostgreSQL compatibility
       const sanitizedTime = teeTime.length === 5 ? `${teeTime}:00` : teeTime;
 
+      // Map course ID back to string name parameters for target matches schema insertion row
+      const targetCourseObj = coursesList.find(c => c.id === selectedCourseId);
+      const targetCourseName = targetCourseObj ? targetCourseObj.course_name : 'Unknown Course';
+
       // 1. Dispatch clean, sanitized structural variables to your live Supabase database
       const { data: newMatch, error: matchError } = await supabase
         .from('matches')
         .insert([
           {
             match_name: matchName || 'Saturday Skins Challenge',
-            course_name: selectedCourse,
+            course_name: targetCourseName,
             tee_date: teeDate,       // Outputs clean 'YYYY-MM-DD'
             tee_time: sanitizedTime  // Outputs clean 'HH:MM:SS'
           }
@@ -102,7 +136,7 @@ function CreateMatch({ onNavigate }) {
       onNavigate('live-game', {
         matchId: newMatch.id,
         matchName: matchName || 'Saturday Skins Challenge',
-        courseName: selectedCourse,
+        courseName: targetCourseName,
         activeGames: activeGameKeys
       });
 
@@ -142,7 +176,7 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* PILLAR 2: WHERE */}
+        {/* PILLAR 2: WHERE (LIVE RE-ENGINEERED TO DATA DROPDOWN) */}
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', padding: '0 8px' }}>
             <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em' }}>WHERE</span>
@@ -152,12 +186,23 @@ function CreateMatch({ onNavigate }) {
               <span className="material-symbols-outlined" style={{ fontSize: '30px' }}>map</span>
             </div>
             <div style={{ flex: 1 }}>
-              <input 
-                type="text" 
-                value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-                style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', color: '#beedd9', fontSize: '20px', fontWeight: '900', padding: 0 }}
-              />
+              {loadingCourses ? (
+                <span style={{ color: 'rgba(190, 237, 217, 0.4)', fontStyle: 'italic', fontWeight: '900', fontSize: '16px' }}>
+                  Streaming live club registries...
+                </span>
+              ) : (
+                <select
+                  value={selectedCourseId}
+                  onChange={(e) => setSelectedCourseId(e.target.value)}
+                  style={{ width: '100%', bg: 'transparent', backgroundColor: 'transparent', border: 'none', outline: 'none', color: '#beedd9', fontSize: '18px', fontWeight: '900', padding: 0, cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none' }}
+                >
+                  {coursesList.map((course) => (
+                    <option key={course.id} value={course.id} style={{ backgroundColor: '#00251b', color: '#beedd9' }}>
+                      {course.course_name.toUpperCase()} <span style={{ fontSize: '12px', color: 'rgba(236,193,81,0.6)' }}>({course.location_city})</span>
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           </div>
         </section>
@@ -168,7 +213,6 @@ function CreateMatch({ onNavigate }) {
             WHEN
           </span>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {/* Pop-out Calendar Picker */}
             <div style={{ backgroundColor: '#0e3c2f', padding: '20px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)' }}>
               <span style={{ fontSize: '9px', fontWeight: '700', color: 'rgba(190,237,217,0.5)', display: 'block', marginBottom: '4px' }}>TEE DATE</span>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#beedd9' }}>
@@ -180,7 +224,6 @@ function CreateMatch({ onNavigate }) {
                 />
               </div>
             </div>
-            {/* Pop-out Time Picker */}
             <div style={{ backgroundColor: '#0e3c2f', padding: '20px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)' }}>
               <span style={{ fontSize: '9px', fontWeight: '700', color: 'rgba(190,237,217,0.5)', display: 'block', marginBottom: '4px' }}>TEE TIME</span>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#beedd9' }}>
