@@ -5,10 +5,11 @@ function CreateMatch({ onNavigate }) {
   // 💾 STANDARDIZED PICKER & LIVE DATABASE COUPLING STATES
   const [matchName, setMatchName] = useState('');
   
-  // Pattern 1 Course Data Map Streams
+  // Custom Mobile UI Sliding Drawer Layer Matrix
   const [coursesList, setCoursesList] = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [loadingCourses, setLoadingCourses] = useState(true);
+  const [isCourseDrawerOpen, setIsCourseDrawerOpen] = useState(false);
 
   // Initialize with standard current formats so pickers aren't empty on mount
   const [teeDate, setTeeDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -89,6 +90,9 @@ function CreateMatch({ onNavigate }) {
     }));
   };
 
+  // Find Currently Active Selected Course Object Profile safely
+  const currentSelectedCourse = coursesList.find(c => c.id === selectedCourseId);
+
   // 🚀 ACTIVE PAYLOAD DATA EMISSION
   const handleInitializeMatch = async () => {
     try {
@@ -96,8 +100,7 @@ function CreateMatch({ onNavigate }) {
       const sanitizedTime = teeTime.length === 5 ? `${teeTime}:00` : teeTime;
 
       // Map course ID back to string name parameters for target matches schema insertion row
-      const targetCourseObj = coursesList.find(c => c.id === selectedCourseId);
-      const targetCourseName = targetCourseObj ? targetCourseObj.course_name : 'Unknown Course';
+      const targetCourseName = currentSelectedCourse ? currentSelectedCourse.course_name : 'Unknown Course';
 
       // 1. Dispatch clean, sanitized structural variables to your live Supabase database
       const { data: newMatch, error: matchError } = await supabase
@@ -106,8 +109,8 @@ function CreateMatch({ onNavigate }) {
           {
             match_name: matchName || 'Saturday Skins Challenge',
             course_name: targetCourseName,
-            tee_date: teeDate,       // Outputs clean 'YYYY-MM-DD'
-            tee_time: sanitizedTime  // Outputs clean 'HH:MM:SS'
+            tee_date: teeDate,       
+            tee_time: sanitizedTime  
           }
         ])
         .select()
@@ -176,38 +179,42 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* PILLAR 2: WHERE (LIVE RE-ENGINEERED TO DATA DROPDOWN) */}
+        {/* PILLAR 2: WHERE (PREMIUM SLIDING DRAWER TRIGGER LINK) */}
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', padding: '0 8px' }}>
             <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em' }}>WHERE</span>
           </div>
-          <div style={{ backgroundColor: '#0e3c2f', padding: '24px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div 
+            onClick={() => { if (!loadingCourses && coursesList.length > 0) setIsCourseDrawerOpen(true); }}
+            style={{ backgroundColor: '#0e3c2f', padding: '24px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer' }}
+          >
             <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: '#00251b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', flex: 'none' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '30px' }}>map</span>
             </div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, position: 'relative' }}>
               {loadingCourses ? (
                 <span style={{ color: 'rgba(190, 237, 217, 0.4)', fontStyle: 'italic', fontWeight: '900', fontSize: '16px' }}>
                   Streaming live club registries...
                 </span>
               ) : (
-                <select
-                  value={selectedCourseId}
-                  onChange={(e) => setSelectedCourseId(e.target.value)}
-                  style={{ width: '100%', bg: 'transparent', backgroundColor: 'transparent', border: 'none', outline: 'none', color: '#beedd9', fontSize: '18px', fontWeight: '900', padding: 0, cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none' }}
-                >
-                  {coursesList.map((course) => (
-                    <option key={course.id} value={course.id} style={{ backgroundColor: '#00251b', color: '#beedd9' }}>
-                      {course.course_name.toUpperCase()} <span style={{ fontSize: '12px', color: 'rgba(236,193,81,0.6)' }}>({course.location_city})</span>
-                    </option>
-                  ))}
-                </select>
+                <div style={{ display: 'flex', flexDirection: 'column', paddingRight: '20px' }}>
+                  <span style={{ color: '#beedd9', fontSize: '18px', fontWeight: '900', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+                    {currentSelectedCourse ? currentSelectedCourse.course_name : 'Select a Course'}
+                  </span>
+                  <span style={{ color: '#ecc151', fontSize: '11px', fontWeight: '900', marginTop: '4px', letterSpacing: '0.05em' }}>
+                    {currentSelectedCourse ? `(${currentSelectedCourse.location_city})` : 'Tap to select'}
+                  </span>
+                </div>
               )}
+              {/* Custom Caret Arrow to indicate clickability */}
+              <span className="material-symbols-outlined" style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', color: '#ecc151', fontSize: '20px', opacity: 0.6 }}>
+                unfold_more
+              </span>
             </div>
           </div>
         </section>
 
-        {/* PILLAR 3: WHEN (FLUID PICKER SYSTEMS DEPLOYED) */}
+        {/* PILLAR 3: WHEN */}
         <section>
           <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em', display: 'block', marginBottom: '12px', paddingLeft: '8px' }}>
             WHEN
@@ -403,6 +410,70 @@ function CreateMatch({ onNavigate }) {
         </div>
 
       </div>
+
+      {/* ========================================================================= */}
+      {/* 💎 HIGH-FIDELITY MOBILE COURSE SLIDING DRAWER SYSTEM                      */}
+      {/* ========================================================================= */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: isCourseDrawerOpen ? 'auto' : 'none', display: 'block' }}>
+        
+        {/* Dark Backdrop Mask Filter */}
+        <div 
+          onClick={() => setIsCourseDrawerOpen(false)} 
+          style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isCourseDrawerOpen ? 1 : 0, transition: 'opacity 0.4s ease-out', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} 
+        />
+        
+        {/* Sliding Sheet Panel */}
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '15vh', borderTop: '1px solid rgba(236,193,81,0.25)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', boxShadow: '0 -15px 40px rgba(0,0,0,0.6)', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isCourseDrawerOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          
+          {/* Top Notch Bar Graphic */}
+          <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto', flex: 'none' }} />
+          
+          {/* Header Dashboard Title */}
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 'none' }}>
+            <div>
+              <p style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.15em', margin: '0 0 2px 0', textTransform: 'uppercase' }}>SELECT VENUE GEOMETRY</p>
+              <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic', uppercase: 'text' }}>AVAILABLE CLUBS</h3>
+            </div>
+            <button 
+              onClick={() => setIsCourseDrawerOpen(false)} 
+              style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', textTransform: 'uppercase' }} 
+              type="button"
+            >
+              Cancel
+            </button>
+          </div>
+
+          {/* Dynamic Scroll Matrix Stack Rows */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 60px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {coursesList.map((course) => {
+              const isSelected = course.id === selectedCourseId;
+              return (
+                <div 
+                  key={course.id}
+                  onClick={() => { setSelectedCourseId(course.id); setIsCourseDrawerOpen(false); }}
+                  style={{ backgroundColor: isSelected ? '#0e3c2f' : '#001d14', border: isSelected ? '1px solid #ecc151' : '1px solid rgba(236,193,81,0.04)', padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingRight: '12px' }}>
+                    <span style={{ color: isSelected ? '#white' : '#beedd9', fontSize: '16px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.02em' }}>
+                      {course.course_name}
+                    </span>
+                    <span style={{ color: isSelected ? '#ecc151' : 'rgba(190,237,217,0.4)', fontSize: '12px', fontWeight: '700' }}>
+                      {course.location_city}
+                    </span>
+                  </div>
+                  
+                  {/* Radio Confirmation Light Indicator */}
+                  <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: isSelected ? '2px solid #ecc151' : '2px solid rgba(236,193,81,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', boxSizing: 'border-box' }}>
+                    {isSelected && <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ecc151' }} />}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      </div>
+
     </div>
   );
 }
