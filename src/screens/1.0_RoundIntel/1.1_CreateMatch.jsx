@@ -22,6 +22,7 @@ function CreateMatch({ onNavigate }) {
   const [isAddingGuest, setIsAddingGuest] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [guestHandicap, setGuestHandicap] = useState('0.0');
+  const [isPlusHandicap, setIsPlusHandicap] = useState(false); // 💊 True if plus index (+), saves as negative float
 
   // Dynamic 4-Slot Active Player Board State Matrix
   const [selectedPlayers, setSelectedPlayers] = useState({
@@ -40,6 +41,16 @@ function CreateMatch({ onNavigate }) {
     wolf: { active: false, expanded: false, multiplier: 2, loneWolf: false },
     match: { active: true, expanded: false, hcpScale: 100, tieBreaker: 'SUDDEN DEATH' }
   });
+
+  // 🧮 Smart Display Parser for Plus & Standard Handicaps
+  const formatHandicapDisplay = (val) => {
+    if (val === null || val === undefined) return '0.0';
+    const num = parseFloat(val);
+    if (num < 0) {
+      return `+${Math.abs(num).toFixed(1)}`;
+    }
+    return num.toFixed(1);
+  };
 
   // 📡 ASYNC MOUNT TELEMETRY LOAD (COURSES & PROFILES)
   useEffect(() => {
@@ -94,6 +105,7 @@ function CreateMatch({ onNavigate }) {
     setIsAddingGuest(false);
     setGuestName('');
     setGuestHandicap('0.0');
+    setIsPlusHandicap(false);
     setIsPlayerDrawerOpen(true);
   };
 
@@ -111,12 +123,19 @@ function CreateMatch({ onNavigate }) {
     e.preventDefault();
     if (!guestName.trim()) return;
 
+    let finalHcpValue = guestHandicap ? parseFloat(guestHandicap) : 0.0;
+    
+    // 🧮 Plus Math Conversion Rule: Store + as negative float value
+    if (isPlusHandicap && finalHcpValue > 0) {
+      finalHcpValue = -finalHcpValue;
+    }
+
     const pseudoGuestProfile = {
-      id: null, // Signals transactional layer to process this as a guest string name fallback
+      id: null, 
       is_guest: true,
       display_name: guestName.trim().toUpperCase(),
       nickname: 'GUEST',
-      handicap_index: guestHandicap ? parseFloat(guestHandicap) : 0.0
+      handicap_index: finalHcpValue
     };
 
     setSelectedPlayers(prev => ({
@@ -175,10 +194,7 @@ function CreateMatch({ onNavigate }) {
   // 🚀 ATOMIC COMPOUND TRANSACTION TELEMETRY EMISSION
   const handleInitializeMatch = async () => {
     try {
-      // Clean time input string to include standard seconds matrix format for PostgreSQL compatibility
       const sanitizedTime = teeTime.length === 5 ? `${teeTime}:00` : teeTime;
-
-      // Map course ID back to string name parameters for target matches schema insertion row
       const targetCourseName = currentSelectedCourse ? currentSelectedCourse.course_name : 'Unknown Course';
 
       // TRANSACTION STEP 1: Insert Core Matches Header Log Item
@@ -197,7 +213,7 @@ function CreateMatch({ onNavigate }) {
 
       if (matchError) throw matchError;
 
-      // TRANSACTION STEP 2: Loop and generate active side-wager relational entries inside active_wagers
+      // TRANSACTION STEP 2: Loop and generate active side-wager entries
       const activeGameKeys = Object.keys(games).filter(g => games[g].active);
       
       if (activeGameKeys.length > 0) {
@@ -221,8 +237,8 @@ function CreateMatch({ onNavigate }) {
           const p = selectedPlayers[slotKey];
           return {
             match_id: newMatch.id,
-            profile_id: p.id, // Will save cleanly as NULL if it's a guest profile object
-            guest_display_name: p.id ? null : p.display_name, // Saves unique moniker if profile_id is missing
+            profile_id: p.id, 
+            guest_display_name: p.id ? null : p.display_name, 
             player_position: parseInt(slotKey),
             handicap_at_match_time: p.handicap_index || 0.0
           };
@@ -236,7 +252,7 @@ function CreateMatch({ onNavigate }) {
         if (rosterError) throw rosterError;
       }
 
-      // TRANSACTION STEP 4: Fast Handoff Context payload step over to the Universal Scoring Chassis screen
+      // TRANSACTION STEP 4: Fast Handoff Context payload step over to scoring view layout chassis
       onNavigate('live-game', {
         matchId: newMatch.id,
         matchName: matchName || 'Saturday Skins Challenge',
@@ -352,7 +368,7 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* PILLAR 4: WHO (INTEGRATED ACTIVE SQUAD BOARD SELECTION GRAPHICS) */}
+        {/* PILLAR 4: WHO */}
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', padding: '0 8px' }}>
             <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em' }}>WHO</span>
@@ -375,7 +391,7 @@ function CreateMatch({ onNavigate }) {
                         {player.nickname ? player.nickname : player.display_name.split(' ')[0]}
                       </span>
                       <span style={{ fontSize: '8px', fontWeight: '900', color: '#ecc151', marginTop: '4px' }}>
-                        HCP: {player.handicap_index !== null ? player.handicap_index : '0.0'}
+                        HCP: {formatHandicapDisplay(player.handicap_index)}
                       </span>
                     </>
                   ) : (
@@ -524,7 +540,7 @@ function CreateMatch({ onNavigate }) {
         <div style={{ paddingTop: '28px', paddingBottom: '20px' }}>
           <button 
             onClick={handleInitializeMatch}
-            style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '10px', boxShadow: '0 20px 40px rgba(236,193,81,0.15)' }}
+            style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 20px 40px rgba(236,193,81,0.15)' }}
             type="button"
           >
             <span className="material-symbols-outlined" style={{ fontWeight: 'bold' }}>power_settings_new</span>
@@ -538,25 +554,35 @@ function CreateMatch({ onNavigate }) {
       {/* 💎 DRAWER A: HIGH-FIDELITY MOBILE COURSE SLIDING DRAWER SYSTEM             */}
       {/* ========================================================================= */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: isCourseDrawerOpen ? 'auto' : 'none', display: 'block' }}>
+        
+        {/* Dark Backdrop Mask Filter */}
         <div 
           onClick={() => setIsCourseDrawerOpen(false)} 
           style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isCourseDrawerOpen ? 1 : 0, transition: 'opacity 0.4s ease-out', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} 
         />
+        
+        {/* Sliding Sheet Panel */}
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '15vh', borderTop: '1px solid rgba(236,193,81,0.25)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', boxShadow: '0 -15px 40px rgba(0,0,0,0.6)', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isCourseDrawerOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          
+          {/* Top Notch Bar Graphic */}
           <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto', flex: 'none' }} />
+          
+          {/* Header Dashboard Title */}
           <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 'none' }}>
             <div>
               <p style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.15em', margin: '0 0 2px 0', textTransform: 'uppercase' }}>SELECT VENUE GEOMETRY</p>
-              <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>AVAILABLE CLUBS</h3>
+              <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic', uppercase: 'text' }}>AVAILABLE CLUBS</h3>
             </div>
             <button 
               onClick={() => setIsCourseDrawerOpen(false)} 
-              style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }} 
+              style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', textTransform: 'uppercase' }} 
               type="button"
             >
               Cancel
             </button>
           </div>
+
+          {/* Dynamic Scroll Matrix Stack Rows */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 60px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {coursesList.map((course) => {
               const isSelected = course.id === selectedCourseId;
@@ -574,6 +600,8 @@ function CreateMatch({ onNavigate }) {
                       {course.location_city}
                     </span>
                   </div>
+                  
+                  {/* Radio Confirmation Light Indicator */}
                   <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: isSelected ? '2px solid #ecc151' : '2px solid rgba(236,193,81,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', boxSizing: 'border-box' }}>
                     {isSelected && <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ecc151' }} />}
                   </div>
@@ -581,11 +609,12 @@ function CreateMatch({ onNavigate }) {
               );
             })}
           </div>
+
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 💎 DRAWER B: HIGH-FIDELITY SEARCH DRAWER + ACCOUNTABLE QUICK GUEST PACK  */}
+      {/* 💎 DRAWER B: VERTICALLY-OPTIMIZED SEARCH DRAWER + PLUS HCP TOGGLE MODULE  */}
       {/* ========================================================================= */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 110, pointerEvents: isPlayerDrawerOpen ? 'auto' : 'none', display: 'block' }}>
         <div 
@@ -596,7 +625,8 @@ function CreateMatch({ onNavigate }) {
           
           <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto', flex: 'none' }} />
           
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', flexDirection: 'column', gap: '14px', flex: 'none' }}>
+          {/* Vertical Stack Toolbar Area to Prevent Button Cutoff Clipping */}
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', flexDirection: 'column', gap: '12px', flex: 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <p style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.15em', margin: '0 0 2px 0', textTransform: 'uppercase' }}>ROSTER SQUAD MUTATION</p>
@@ -611,36 +641,36 @@ function CreateMatch({ onNavigate }) {
               </button>
             </div>
             
-            {/* Top Toolbar Action Core: Live Search + Quick Guest Deck Toggle */}
-            <div style={{ display: 'flex', gap: '12px', itemsCenter: 'center' }}>
-              <div style={{ flex: 1, backgroundColor: '#001710', padding: '14px 18px', rounded: '12px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '20px' }}>search</span>
-                <input 
-                  type="text"
-                  placeholder="Search community profiles..."
-                  value={searchFilter}
-                  onChange={(e) => setSearchFilter(e.target.value)}
-                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#beedd9', fontWeight: '700', fontSize: '15px', padding: 0 }}
-                />
-              </div>
-              
-              <button
-                type="button"
-                onClick={() => setIsAddingGuest(!isAddingGuest)}
-                style={{ backgroundColor: isAddingGuest ? '#ecc151' : '#0e3c2f', color: isAddingGuest ? '#3e2e00' : '#ecc151', border: '1px solid rgba(236,193,81,0.1)', padding: '0 18px', borderRadius: '12px', height: '48px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whitespace: 'nowrap', textTransform: 'uppercase', transition: 'all 0.2s' }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{isAddingGuest ? 'close' : 'person_add'}</span>
-                {isAddingGuest ? 'Cancel' : 'Quick Guest'}
-              </button>
+            {/* 100% Full-Width Clean Profile Search Row Input */}
+            <div style={{ backgroundColor: '#001710', padding: '14px 18px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '20px' }}>search</span>
+              <input 
+                type="text"
+                placeholder="Search community profiles..."
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#beedd9', fontWeight: '700', fontSize: '15px', padding: 0 }}
+              />
             </div>
 
-            {/* 🏎️ INLINE QUICK GUEST ACCELERATION CARD */}
+            {/* Vertically Stacked Wide Quick Guest Navigation Bar Row */}
+            <button
+              type="button"
+              onClick={() => setIsAddingGuest(!isAddingGuest)}
+              style={{ width: '100%', backgroundColor: isAddingGuest ? '#ecc151' : '#0e3c2f', color: isAddingGuest ? '#3e2e00' : '#ecc151', border: '1px solid rgba(236,193,81,0.08)', padding: '14px 0', borderRadius: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textTransform: 'uppercase', transition: 'all 0.2s' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{isAddingGuest ? 'close_to_line' : 'person_add'}</span>
+              {isAddingGuest ? 'Collapse Guest Console' : '+ Create Quick Anonymous Guest'}
+            </button>
+
+            {/* 🏎️ RESTRUCTURED HIGH-FIDELITY INLINE GUEST ENTRY DECK WITH PILL TOGGLE CHASSIS */}
             {isAddingGuest && (
               <form 
                 onSubmit={handleCreateQuickGuest}
-                style={{ backgroundColor: '#001710', border: '1px solid #ecc151', padding: '20px', borderRadius: '16px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '14px', animation: 'fadeIn 0.2s ease-out' }}
+                style={{ backgroundColor: '#001710', border: '1px solid #ecc151', padding: '20px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeIn 0.2s ease-out' }}
               >
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '14px' }}>
+                  {/* Guest Handle Row */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.05em' }}>GUEST NAME / MONIKER</span>
                     <input 
@@ -652,24 +682,47 @@ function CreateMatch({ onNavigate }) {
                       style={{ backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: 'white', fontSize: '14px', fontWeight: '700', outline: 'none' }}
                     />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.05em' }}>HANDICAP</span>
-                    <input 
-                      type="number" 
-                      step="0.1" 
-                      placeholder="0.0"
-                      value={guestHandicap}
-                      onChange={(e) => setGuestHandicap(e.target.value)}
-                      style={{ backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: 'white', fontSize: '14px', fontWeight: '700', outline: 'none', textalign: 'center' }}
-                    />
+
+                  {/* Dynamic Handicap Entry Deck Row + Connected Pill Toggle */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', alignItems: 'end' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.05em' }}>
+                        {isPlusHandicap ? 'PLUS HANDICAP INDEX (+)' : 'STANDARD HANDICAP INDEX'}
+                      </span>
+                      <input 
+                        type="number" 
+                        step="0.1" 
+                        placeholder="0.0"
+                        value={guestHandicap}
+                        onChange={(e) => setGuestHandicap(e.target.value)}
+                        style={{ backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: isPlusHandicap ? '#ecc151' : 'white', fontSize: '14px', fontWeight: '900', outline: 'none' }}
+                      />
+                    </div>
+
+                    {/* 💊 THE PLUS HCP PILL TOGGLE ENGINE */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <span style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', letterSpacing: '0.05em' }}>INDEX VARIANT</span>
+                      <div 
+                        onClick={() => setIsPlusHandicap(!isPlusHandicap)}
+                        style={{ height: '45px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', display: 'flex', padding: '3px', boxSizing: 'border-box', cursor: 'pointer' }}
+                      >
+                        <div style={{ flex: 1, backgroundColor: !isPlusHandicap ? '#00251b' : 'transparent', color: !isPlusHandicap ? '#beedd9' : 'rgba(190,237,217,0.3)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900', transition: 'all 0.15s' }}>
+                          STD
+                        </div>
+                        <div style={{ flex: 1, backgroundColor: isPlusHandicap ? '#ecc151' : 'transparent', color: isPlusHandicap ? '#3e2e00' : 'rgba(236,193,81,0.4)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900', transition: 'all 0.15s' }}>
+                          PLUS (+)
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
+
                 <button
                   type="submit"
-                  style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '10px', padding: '14px 0', fontSize: '13px', fontWeight: '900', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '6px' }}
+                  style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '10px', padding: '14px 0', fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '4px' }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: 'bold' }}>check_circle</span>
-                  Inject Accountable Guest Into Slot {activeTargetSlot}
+                  Inject {isPlusHandicap ? `+${guestHandicap}` : guestHandicap} Guest Into Slot {activeTargetSlot}
                 </button>
               </form>
             )}
@@ -678,7 +731,6 @@ function CreateMatch({ onNavigate }) {
           {/* Member Profile Selection Rows Stack */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 60px 24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {filteredProfiles.map((profile) => {
-              // Duplicate Prevention check against existing card assignments
               const isAlreadyDrafted = Object.values(selectedPlayers).some(slot => slot?.id === profile.id);
               return (
                 <div 
@@ -696,7 +748,7 @@ function CreateMatch({ onNavigate }) {
                       )}
                     </span>
                     <span style={{ color: 'rgba(190,237,217,0.4)', fontSize: '11px', fontWeight: '700' }}>
-                      GLOBAL HANDICAP REGISTER: {profile.handicap_index !== null ? profile.handicap_index : '0.0'}
+                      GLOBAL HANDICAP REGISTER: {formatHandicapDisplay(profile.handicap_index)}
                     </span>
                   </div>
                   <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '18px', opacity: isAlreadyDrafted ? 0.2 : 0.6 }}>
