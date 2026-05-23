@@ -5,6 +5,7 @@ import RoundIntelMain from './screens/1.0_RoundIntel/1.0_RoundIntelMain';
 import CreateMatch from './screens/1.0_RoundIntel/1.1_CreateMatch'; 
 import LiveGameMain from './screens/1.0_RoundIntel/1.2_LiveGameMain';
 import PlayerIntelMain from './screens/3.0_PlayerIntel/3.0_PlayerIntelMain';
+import EditPlayer from './screens/3.0_PlayerIntel/3.1_EditPlayer';
 
 function App() {
   const [isKeeOpen, setIsKeeOpen] = useState(false);
@@ -18,9 +19,16 @@ function App() {
     activeGames: ['match_play'] // Dynamic chassis baseline default
   });
 
+  // 📝 INDIVIDUAL PLAYER SELECTION DATA DATA SLOT FOR PROFILES
+  const [editingPlayerId, setEditingPlayerId] = useState(null);
+
   const handleScreenNavigation = (targetScreen, contextPayload = null) => {
     if (contextPayload) {
-      setCurrentMatchContext(contextPayload);
+      if (targetScreen === 'edit-player' && contextPayload.playerId) {
+        setEditingPlayerId(contextPayload.playerId);
+      } else {
+        setCurrentMatchContext(contextPayload);
+      }
     }
     setActiveScreen(targetScreen);
   };
@@ -38,6 +46,7 @@ function App() {
                 else if (activeScreen === 'create-match') handleScreenNavigation('round-intel');
                 else if (activeScreen === 'round-intel') handleScreenNavigation('mission-control');
                 else if (activeScreen === 'player-intel') handleScreenNavigation('mission-control');
+                else if (activeScreen === 'edit-player') handleScreenNavigation('player-intel');
                 else handleScreenNavigation('mission-control');
               }}
               style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
@@ -88,7 +97,10 @@ function App() {
           />
         )}
         {activeScreen === 'player-intel' && (
-          <PlayerIntelMain onNavigate={(screen) => handleScreenNavigation(screen)} />
+          <PlayerIntelMain onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
+        )}
+        {activeScreen === 'edit-player' && (
+          <EditPlayer playerId={editingPlayerId} onNavigate={(screen) => handleScreenNavigation(screen)} />
         )}
       </main>
 
