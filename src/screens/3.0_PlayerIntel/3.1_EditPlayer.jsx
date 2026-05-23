@@ -35,7 +35,7 @@ function EditPlayer({ playerId, onNavigate }) {
   const [homeCourseId, setHomeCourseId] = useState('');
   const [isCoursePickerOpen, setIsCoursePickerOpen] = useState(false);
   const [isRolePickerOpen, setIsRolePickerOpen] = useState(false);
-  const [isGenderPickerOpen, setIsGenderPickerOpen] = useState(false); // Custom sliding sheet toggle for gender
+  const [isGenderPickerOpen, setIsGenderPickerOpen] = useState(false); 
 
   // Dynamic Label Resolvers for Custom UI Popouts
   const roleLabels = {
@@ -79,7 +79,7 @@ function EditPlayer({ playerId, onNavigate }) {
         if (data) {
           setFirstName(data.first_name || '');
           setLastName(data.last_name || '');
-          setNickname(data.nickname || ''); // Retains natural casing as saved in DB
+          setNickname(data.nickname || ''); 
           setEmail(data.email || '');
           setPhone(data.phone || '');
           setPlayerRole(data.role || 'player');
@@ -130,7 +130,7 @@ function EditPlayer({ playerId, onNavigate }) {
       const updatedPayload = {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
-        nickname: nickname.trim() ? nickname.trim() : null, // 💊 CASE FIXED: Removed .toUpperCase() to stop cap forcing
+        nickname: nickname.trim() ? nickname.trim() : null, 
         email: email.trim() || null,
         phone: phone.trim() || null,
         role: playerRole, 
@@ -170,21 +170,14 @@ function EditPlayer({ playerId, onNavigate }) {
   }
 
   return (
-    <div style={{ textAlign: 'left', width: '100%', position: 'relative', boxSizing: 'border-box' }}>
-      
-      {/* HEADER MASTER PANEL */}
-      <header style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '80px', marginBottom: '24px' }}>
-        <h1 style={{ color: '#ecc151', margin: 0, fontSize: '24px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', tracking: '-0.02em' }}>
-          EDIT PROFILE
-        </h1>
-      </header>
+    <div style={{ textAlign: 'left', width: '100%', position: 'relative', boxSizing: 'border-box', paddingTop: '12px' }}>
 
       <main style={{ display: 'flex', flexDirection: 'column', gap: '40px', paddingBottom: '60px' }}>
         
         {/* SECTION 1: IDENTITY AVATAR BLOCK */}
-        <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', textAlign: 'center' }}>
+        <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifycontent: 'center', gap: '12px', textAlign: 'center' }}>
           <div style={{ position: 'relative', margin: '0 auto', width: '120px', height: '120px' }}>
-            <div style={{ width: '100%', height: '100%', borderRadius: '24px', backgroundColor: '#0e3c2f', border: '2px solid rgba(236,193,81,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '38px', textTransform: 'uppercase' }}>
+            <div style={{ width: '100%', height: '100%', borderRadius: '24px', backgroundColor: '#0e3c2f', border: '2px solid rgba(236,193,81,0.3)', display: 'flex', alignItems: 'center', justifycontent: 'center', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '38px', textTransform: 'uppercase' }}>
               {(firstName.substring(0,1) + lastName.substring(0,1)) || 'P'}
             </div>
           </div>
@@ -229,7 +222,7 @@ function EditPlayer({ playerId, onNavigate }) {
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#ecc151', tracking: '0.05em', paddingLeft: '4px' }}>PLAYER SECURITY ROLE TIER</label>
             <div 
               onClick={() => setIsRolePickerOpen(true)}
-              style={{ backgroundColor: 'rgba(14, 60, 47, 0.5)', border: '1px solid rgba(236,193,81,0.2)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+              style={{ backgroundColor: 'rgba(14, 60, 47, 0.5)', border: '1px solid rgba(236,193,81,0.2)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', display: 'flex', justifycontent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
             >
               <span>{roleLabels[playerRole]}</span>
               <span style={{ color: '#ecc151', opacity: 0.7 }}>🎛️</span>
@@ -246,7 +239,7 @@ function EditPlayer({ playerId, onNavigate }) {
           </div>
 
           <div style={{ backgroundColor: '#0e3c2f', padding: '24px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center' }}>
               <div>
                 <p style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: '#beedd9' }}>Manual Index Lock</p>
                 <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#a3d0be', textTransform: 'uppercase' }}>Override system metrics</p>
@@ -270,8 +263,8 @@ function EditPlayer({ playerId, onNavigate }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '11px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', tracking: '0.05em' }}>INDEX VARIANT</span>
                 <div onClick={() => setIsPlusHcp(!isPlusHcp)} style={{ height: '50px', backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '10px', display: 'flex', padding: '4px', boxSizing: 'border-box', cursor: 'pointer' }}>
-                  <div style={{ flex: 1, backgroundColor: !isPlusHcp ? '#0e3c2f' : 'transparent', color: !isPlusHcp ? '#beedd9' : 'rgba(190,237,217,0.2)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900' }}>STD</div>
-                  <div style={{ flex: 1, backgroundColor: isPlusHcp ? '#ecc151' : 'transparent', color: isPlusHcp ? '#3e2e00' : 'rgba(190,237,217,0.2)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900' }}>PLUS (+)</div>
+                  <div style={{ flex: 1, backgroundColor: !isPlusHcp ? '#0e3c2f' : 'transparent', color: !isPlusHcp ? '#beedd9' : 'rgba(190,237,217,0.2)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifycontent: 'center', fontSize: '12px', fontWeight: '900' }}>STD</div>
+                  <div style={{ flex: 1, backgroundColor: isPlusHcp ? '#ecc151' : 'transparent', color: isPlusHcp ? '#3e2e00' : 'rgba(190,237,217,0.2)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifycontent: 'center', fontSize: '12px', fontWeight: '900' }}>PLUS (+)</div>
                 </div>
               </div>
             </div>
@@ -298,19 +291,19 @@ function EditPlayer({ playerId, onNavigate }) {
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
           </div>
 
-          {/* 💎 1. RE-STYLED GENDER SELECTION MODULE SLIDING DRAWER TRIGGER */}
+          {/* RE-STYLED GENDER SELECTION MODULE SLIDING DRAWER TRIGGER */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>GENDER SPEC</label>
             <div 
               onClick={() => setIsGenderPickerOpen(true)}
-              style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+              style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', display: 'flex', justifycontent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
             >
               <span>{gender}</span>
               <span style={{ color: '#ecc151', opacity: 0.7 }}>🧭</span>
             </div>
           </div>
 
-          <div style={{ backgroundColor: 'rgba(14,60,47,0.2)', padding: '18px 20px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ backgroundColor: 'rgba(14,60,47,0.2)', padding: '18px 20px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', justifycontent: 'space-between', alignItems: 'center' }}>
             <div>
               <p style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: '#beedd9' }}>Professional Status</p>
               <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#a3d0be', textTransform: 'uppercase' }}>Registered PGA Pro Status</p>
@@ -341,7 +334,7 @@ function EditPlayer({ playerId, onNavigate }) {
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>HOME COURSE SELECTION</label>
             <div 
               onClick={() => setIsCoursePickerOpen(true)}
-              style={{ position: 'relative', cursor: 'pointer', backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: '#beedd9', fontWeight: '700', fontSize: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              style={{ position: 'relative', cursor: 'pointer', backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: '#beedd9', fontWeight: '700', fontSize: '16px', display: 'flex', justifycontent: 'space-between', alignItems: 'center' }}
             >
               <span style={{ textTransform: 'uppercase' }}>{currentHomeCourseName}</span>
               <span style={{ color: '#ecc151' }}>📍</span>
@@ -373,7 +366,7 @@ function EditPlayer({ playerId, onNavigate }) {
           <button 
             onClick={handleUpdateProfileSubmit}
             disabled={saving}
-            style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 20px 40px rgba(236,193,81,0.15)', opacity: saving ? 0.6 : 1 }}
+            style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '10px', boxShadow: '0 20px 40px rgba(236,193,81,0.15)', opacity: saving ? 0.6 : 1 }}
             type="button"
           >
             <span>💾</span>
@@ -390,14 +383,14 @@ function EditPlayer({ playerId, onNavigate }) {
         <div onClick={() => setIsCoursePickerOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isCoursePickerOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '25vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isCoursePickerOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto' }} />
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifycontent: 'space-between' }}>
             <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>SELECT HOME CLUB</h3>
             <button onClick={() => setIsCoursePickerOpen(false)} style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }} type="button">Close</button>
           </div>
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 60px 24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div onClick={() => { setHomeCourseId(''); setIsCoursePickerOpen(false); }} style={{ backgroundColor: '#001d14', border: '1px solid rgba(236,193,81,0.04)', padding: '16px 20px', borderRadius: '14px', color: '#eb5e55', fontWeight: '800', cursor: 'pointer', fontStyle: 'italic' }}>[ CLEAR ASSIGNED CLUB ]</div>
             {coursesList.map((course) => (
-              <div key={course.id} onClick={() => { setHomeCourseId(course.id); setIsCoursePickerOpen(false); }} style={{ backgroundColor: '#001d14', border: '1px solid rgba(236,193,81,0.04)', padding: '16px 20px', borderRadius: '14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={course.id} onClick={() => { setHomeCourseId(course.id); setIsCoursePickerOpen(false); }} style={{ backgroundColor: '#001d14', border: '1px solid rgba(236,193,81,0.04)', padding: '16px 20px', borderRadius: '14px', cursor: 'pointer', display: 'flex', justifycontent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: '#beedd9', fontWeight: '900', textTransform: 'uppercase' }}>{course.course_name}</span>
                 <span style={{ color: '#ecc151', fontSize: '11px', fontWeight: '700' }}>{course.location_city}</span>
               </div>
@@ -413,7 +406,7 @@ function EditPlayer({ playerId, onNavigate }) {
         <div onClick={() => setIsRolePickerOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isRolePickerOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '40vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isRolePickerOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto' }} />
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifycontent: 'space-between' }}>
             <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>SELECT SECURITY ROLE</h3>
             <button onClick={() => setIsRolePickerOpen(false)} style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }} type="button">Close</button>
           </div>
@@ -422,7 +415,7 @@ function EditPlayer({ playerId, onNavigate }) {
               <div 
                 key={roleKey} 
                 onClick={() => { setPlayerRole(roleKey); setIsRolePickerOpen(false); }} 
-                style={{ backgroundColor: playerRole === roleKey ? '#0e3c2f' : '#001d14', border: playerRole === roleKey ? '1px solid #ecc151' : '1px solid rgba(236,193,81,0.04)', padding: '20px', borderRadius: '14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                style={{ backgroundColor: playerRole === roleKey ? '#0e3c2f' : '#001d14', border: playerRole === roleKey ? '1px solid #ecc151' : '1px solid rgba(236,193,81,0.04)', padding: '20px', borderRadius: '14px', cursor: 'pointer', display: 'flex', justifycontent: 'space-between', alignItems: 'center' }}
               >
                 <span style={{ color: playerRole === roleKey ? 'white' : '#beedd9', fontWeight: '900', fontSize: '15px' }}>{roleLabels[roleKey]}</span>
                 {playerRole === roleKey && <span style={{ color: '#ecc151' }}>✓</span>}
@@ -433,13 +426,13 @@ function EditPlayer({ playerId, onNavigate }) {
       </div>
 
       {/* ========================================================================= */}
-      {/* 💎 1. DRAWER C: CUSTOM PREMIUM GENDER SELECTOR SLIDING SHEET LAYER           */}
+      {/* 💎 DRAWER C: CUSTOM PREMIUM GENDER SELECTOR SLIDING SHEET LAYER           */}
       {/* ========================================================================= */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: isGenderPickerOpen ? 'auto' : 'none', display: 'block' }}>
         <div onClick={() => setIsGenderPickerOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isGenderPickerOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '45vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isGenderPickerOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto' }} />
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifycontent: 'space-between' }}>
             <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>SELECT GENDER VARIANT</h3>
             <button onClick={() => setIsGenderPickerOpen(false)} style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }} type="button">Close</button>
           </div>
@@ -448,7 +441,7 @@ function EditPlayer({ playerId, onNavigate }) {
               <div 
                 key={variant} 
                 onClick={() => { setGender(variant); setIsGenderPickerOpen(false); }} 
-                style={{ backgroundColor: gender === variant ? '#0e3c2f' : '#001d14', border: gender === variant ? '1px solid #ecc151' : '1px solid rgba(236,193,81,0.04)', padding: '20px', borderRadius: '14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                style={{ backgroundColor: gender === variant ? '#0e3c2f' : '#001d14', border: gender === variant ? '1px solid #ecc151' : '1px solid rgba(236,193,81,0.04)', padding: '20px', borderRadius: '14px', cursor: 'pointer', display: 'flex', justifycontent: 'space-between', alignItems: 'center' }}
               >
                 <span style={{ color: gender === variant ? 'white' : '#beedd9', fontWeight: '900', fontSize: '15px' }}>{variant}</span>
                 {gender === variant && <span style={{ color: '#ecc151' }}>✓</span>}
