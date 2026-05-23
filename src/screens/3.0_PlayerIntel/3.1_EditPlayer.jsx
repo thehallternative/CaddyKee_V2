@@ -12,7 +12,7 @@ function EditPlayer({ playerId, onNavigate }) {
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [playerRole, setPlayerRole] = useState('player'); // New dynamic role tier tracking state
+  const [playerRole, setPlayerRole] = useState('player'); 
   
   // 🎚️ HANDICAP CORE ENGINE INTERFACES
   const [handicapIndex, setHandicapIndex] = useState('0.0');
@@ -25,23 +25,51 @@ function EditPlayer({ playerId, onNavigate }) {
   const [gender, setGender] = useState('Prefer Not to Say');
   const [isPro, setIsPro] = useState(false);
   const [preferredTeeBox, setPreferredTeeBox] = useState('BLUE');
-  const [homeCourseId, setHomeCourseId] = useState('');
   
   // 🏥 EMERGENCY HEALTH & SAFETY PARAMETERS
   const [emergencyName, setEmergencyName] = useState('');
   const [emergencyPhone, setEmergencyPhone] = useState('');
 
-  // 📡 DATABASE READ: INITIAL RECONCILIATION TARGET INGESTION
+  // 🧭 COURSES REGISTRY LOOKUPS & HOME COURSE PICKER SELECTIONS
+  const [coursesList, setCoursesList] = useState([]);
+  const [homeCourseId, setHomeCourseId] = useState('');
+  const [isCoursePickerOpen, setIsCoursePickerOpen] = useState(false);
+  const [isRolePickerOpen, setIsRolePickerOpen] = useState(false);
+
+  // Dynamic Label Resolvers for Roles Custom UI Popouts
+  const roleLabels = {
+    player: 'Viewer (Standard Roster Profile)',
+    scorer: 'Scorer (Can Edit Assigned Match Data Rows)',
+    admin: 'Admin (Full System Infrastructure Permissions)'
+  };
+
+  // Find Selected Home Course Name string target cleanly
+  const currentHomeCourseName = coursesList.find(c => c.id === homeCourseId)?.course_name || 'SELECT HOME COURSE';
+
+  // 📡 DATABASE READ: INITIAL MULTI-TABLE TARGET INGESTION
   useEffect(() => {
     if (!playerId) {
       setLoading(false);
       return;
     }
 
-    const fetchPlayerProfile = async () => {
+    const fetchProfileAndCoursesData = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
+        
+        // 1. Fetch System Course Maps Registry Options
+        const { data: courseData, error: courseErr } = await supabase
+          .from('course_map')
+          .select('id, course_name, location_city')
+          .eq('is_active', true)
+          .order('course_name', { ascending: true });
+
+        if (!courseErr && courseData) {
+          setCoursesList(courseData);
+        }
+
+        // 2. Fetch Active Target Player Identity Row Profile
+        const { data: data, error: error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', playerId)
@@ -75,18 +103,17 @@ function EditPlayer({ playerId, onNavigate }) {
           }
         }
       } catch (err) {
-        console.error('Failed to ingest player profile telemetry:', err.message);
+        console.error('Failed to ingest player template attributes:', err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPlayerProfile();
+    fetchProfileAndCoursesData();
   }, [playerId]);
 
   // 💾 DATABASE WRITE: COMMIT TRANSACTION SAVES
-  const handleUpdateProfileSubmit = async (e) => {
-    if (e) e.preventDefault();
+  const handleUpdateProfileSubmit = async () => {
     if (!firstName.trim()) {
       alert('First Name field cannot remain blank.');
       return;
@@ -100,7 +127,6 @@ function EditPlayer({ playerId, onNavigate }) {
         calculatedHcp = -calculatedHcp;
       }
 
-      // 💊 DATABASE ALIGNMENT FIX: Omit "display_name" entirely so the generated back-end column updates automatically
       const updatedPayload = {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
@@ -115,7 +141,7 @@ function EditPlayer({ playerId, onNavigate }) {
         gender: gender,
         is_pro: isPro,
         tee_box: preferredTeeBox,
-        home_course_id: homeCourseId.trim() || null,
+        home_course_id: homeCourseId || null, // Write back updated database record key
         emergency_contact_name: emergencyName.trim() || null,
         emergency_contact_phone: emergencyPhone.trim() || null
       };
@@ -129,7 +155,7 @@ function EditPlayer({ playerId, onNavigate }) {
       
       onNavigate('player-intel'); 
     } catch (err) {
-      alert(`Profile compilation save blocked: ${err.message}`);
+      alert(`Profile update error: ${err.message}`);
     } finally {
       setSaving(false);
     }
@@ -146,16 +172,16 @@ function EditPlayer({ playerId, onNavigate }) {
   return (
     <div style={{ textAlign: 'left', width: '100%', position: 'relative', boxSizing: 'border-box' }}>
       
-      {/* HEADER MASTER ACTION BAR - Redundant Buttons Removed Cleanly */}
+      {/* HEADER MASTER PANEL */}
       <header style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '80px', marginBottom: '24px' }}>
         <h1 style={{ color: '#ecc151', margin: 0, fontSize: '24px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', tracking: '-0.02em' }}>
           EDIT PROFILE
         </h1>
       </header>
 
-      <main style={{ display: 'flex', flexDirection: 'column', gap: '40px', paddingBottom: '40px' }}>
+      <main style={{ display: 'flex', flexDirection: 'column', gap: '40px', paddingBottom: '60px' }}>
         
-        {/* SECTION 1: AVATAR DISPLAY PLACEHOLDER */}
+        {/* SECTION 1: IDENTITY AVATAR BLOCK */}
         <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', textAlign: 'center' }}>
           <div style={{ position: 'relative', margin: '0 auto', width: '120px', height: '120px' }}>
             <div style={{ width: '100%', height: '100%', borderRadius: '24px', backgroundColor: '#0e3c2f', border: '2px solid rgba(236,193,81,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '38px', textTransform: 'uppercase' }}>
@@ -165,7 +191,7 @@ function EditPlayer({ playerId, onNavigate }) {
           <p style={{ margin: 0, fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.2em', color: '#a3d0be' }}>Identity Symbol</p>
         </section>
 
-        {/* SECTION 2: HIGH-READABILITY GENERAL FIELDS */}
+        {/* SECTION 2: VERTICALLY STACKED GENERAL INFORMATION INTEL */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
@@ -173,15 +199,14 @@ function EditPlayer({ playerId, onNavigate }) {
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>FIRST NAME</label>
-              <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>LAST NAME</label>
-              <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>FIRST NAME</label>
+            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>LAST NAME</label>
+            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -199,22 +224,20 @@ function EditPlayer({ playerId, onNavigate }) {
             <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
 
-          {/* 🎚️ SECURITY tier CONFIGURATOR SELECTION MATRIX (REQUIREMENT 4) */}
+          {/* 💎 1. RE-STYLED PREMIUM UI OVERLAY BLOCK FOR SECURITY TIER SELECTION */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#ecc151', tracking: '0.05em', paddingLeft: '4px' }}>PLAYER SECURITY ROLE TIER</label>
-            <select 
-              value={playerRole} 
-              onChange={(e) => setPlayerRole(e.target.value)} 
-              style={{ backgroundColor: 'rgba(14, 60, 47, 0.6)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', outline: 'none', appearance: 'none', WebkitAppearance: 'none' }}
+            <div 
+              onClick={() => setIsRolePickerOpen(true)}
+              style={{ backgroundColor: 'rgba(14, 60, 47, 0.5)', border: '1px solid rgba(236,193,81,0.2)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
             >
-              <option value="player">Viewer (Standard Roster Profile)</option>
-              <option value="scorer">Scorer (Can Edit Assigned Match Data Rows)</option>
-              <option value="admin">Admin (Full System Infrastructure Permissions)</option>
-            </select>
+              <span>{roleLabels[playerRole]}</span>
+              <span style={{ color: '#ecc151', opacity: 0.7 }}>🎛️</span>
+            </div>
           </div>
         </section>
 
-        {/* SECTION 3: HANDICAP CONFIGURATIONS */}
+        {/* SECTION 3: HANDICAP MANAGEMENT CONFIGS */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
@@ -261,13 +284,13 @@ function EditPlayer({ playerId, onNavigate }) {
             )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em' }}>EXTERNAL HANDICAP RECORD ID (GHIN)</label>
-              <input type="text" value={externalHandicapId} placeholder="G-8829-441" onChange={(e) => setExternalHandicapId(e.target.value)} style={{ backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '14px', color: 'white', fontSize: '16px', fontWeight: '700', outline: 'none' }} />
+              <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em' }}>EXTERNAL HANDICAP ID (GHIN)</label>
+              <input type="text" value={externalHandicapId} placeholder="G-8829-441" onChange={(e) => setExternalHandicapId(e.target.value)} style={{ backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: 'white', fontSize: '16px', fontWeight: '700', outline: 'none' }} />
             </div>
           </div>
         </section>
 
-        {/* SECTION 4: COURSE PREFERENCES */}
+        {/* SECTION 4: PREFERENCES & DYNAMIC VENUE SELECTOR */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
@@ -311,13 +334,20 @@ function EditPlayer({ playerId, onNavigate }) {
             </div>
           </div>
 
+          {/* 💎 3. CONNECTED DYNAMIC VENUE SELECTOR INTERACTION ELEMENT */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>HOME COURSE REGISTER KEY</label>
-            <input type="text" value={homeCourseId} onChange={(e) => setHomeCourseId(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', outline: 'none' }} />
+            <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>HOME COURSE SELECTION</label>
+            <div 
+              onClick={() => setIsCoursePickerOpen(true)}
+              style={{ position: 'relative', cursor: 'pointer', backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: '#beedd9', fontWeight: '700', fontSize: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+            >
+              <span style={{ textTransform: 'uppercase' }}>{currentHomeCourseName}</span>
+              <span style={{ color: '#ecc151' }}>📍</span>
+            </div>
           </div>
         </section>
 
-        {/* SECTION 5: EMERGENCY CONTACTS */}
+        {/* SECTION 5: VERTICALLY STACKED HIGH-READABILITY EMERGENCY SAFETY INFO (REQUIREMENT 2) */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
@@ -325,32 +355,80 @@ function EditPlayer({ playerId, onNavigate }) {
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>EMERGENCY NAME</label>
-              <input type="text" value={emergencyName} onChange={(e) => setEmergencyName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', outline: 'none' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>EMERGENCY PHONE</label>
-              <input type="tel" value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', outline: 'none' }} />
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>EMERGENCY CONTACT NAME</label>
+            <input type="text" value={emergencyName} onChange={(e) => setEmergencyName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>EMERGENCY PHONE NUMBER</label>
+            <input type="tel" value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
         </section>
 
-        {/* 💾 HIGH-DENSITY PRIMARY DEPLOYMENT SAVE ENGINE (STOCKED AT BOTTOM FOR VERIFICATION) */}
-        <div style={{ marginTop: '20px', paddingTop: '10px' }}>
+        {/* 💾 HIGH-DENSITY NATIVE BOTTOM COMMIT ENGINE */}
+        <div style={{ marginTop: '20px' }}>
           <button 
             onClick={handleUpdateProfileSubmit}
             disabled={saving}
             style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 20px 40px rgba(236,193,81,0.15)', opacity: saving ? 0.6 : 1 }}
             type="button"
           >
-            <span className="material-symbols-outlined" style={{ fontWeight: 'bold' }}>check_circle</span>
+            <span>💾</span>
             {saving ? 'COMPILING SCHEMAS...' : 'COMMIT PROFILE CHANGES'}
           </button>
         </div>
 
       </main>
+
+      {/* ========================================================================= */}
+      {/* 💎 DRAWER A: HIGH-FIDELITY VENUE PICKER SHEET LAYER                         */}
+      {/* ========================================================================= */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: isCoursePickerOpen ? 'auto' : 'none', display: 'block' }}>
+        <div onClick={() => setIsCoursePickerOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isCoursePickerOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)' }} />
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '25vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isCoursePickerOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto' }} />
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>SELECT HOME CLUB</h3>
+            <button onClick={() => setIsCoursePickerOpen(false)} style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }} type="button">Close</button>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 60px 24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div onClick={() => { setHomeCourseId(''); setIsCoursePickerOpen(false); }} style={{ backgroundColor: '#001d14', border: '1px solid rgba(236,193,81,0.04)', padding: '16px 20px', borderRadius: '14px', color: '#eb5e55', fontWeight: '800', cursor: 'pointer', fontStyle: 'italic' }}>[ CLEAR ASSIGNED CLUB ]</div>
+            {coursesList.map((course) => (
+              <div key={course.id} onClick={() => { setHomeCourseId(course.id); setIsCoursePickerOpen(false); }} style={{ backgroundColor: '#001d14', border: '1px solid rgba(236,193,81,0.04)', padding: '16px 20px', borderRadius: '14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#beedd9', fontWeight: '900', textTransform: 'uppercase' }}>{course.course_name}</span>
+                <span style={{ color: '#ecc151', fontSize: '11px', fontWeight: '700' }}>{course.location_city}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 💎 DRAWER B: HIGH-FIDELITY SECURITY ROLE TIER PICKER SHEET LAYER           */}
+      {/* ========================================================================= */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: isRolePickerOpen ? 'auto' : 'none', display: 'block' }}>
+        <div onClick={() => setIsRolePickerOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isRolePickerOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)' }} />
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '40vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isRolePickerOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto' }} />
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>SELECT SECURITY ROLE</h3>
+            <button onClick={() => setIsRolePickerOpen(false)} style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }} type="button">Close</button>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 60px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {Object.keys(roleLabels).map((roleKey) => (
+              <div 
+                key={roleKey} 
+                onClick={() => { setPlayerRole(roleKey); setIsRolePickerOpen(false); }} 
+                style={{ backgroundColor: playerRole === roleKey ? '#0e3c2f' : '#001d14', border: playerRole === roleKey ? '1px solid #ecc151' : '1px solid rgba(236,193,81,0.04)', padding: '20px', borderRadius: '14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <span style={{ color: playerRole === roleKey ? 'white' : '#beedd9', fontWeight: '900', fontSize: '15px' }}>{roleLabels[roleKey]}</span>
+                {playerRole === roleKey && <span style={{ color: '#ecc151' }}>✓</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
     </div>
   );
