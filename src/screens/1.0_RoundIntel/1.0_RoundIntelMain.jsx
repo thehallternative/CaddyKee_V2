@@ -1,20 +1,102 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../supabaseClient'; // Stepping out of 1.0_RoundIntel/ and screens/ to src/
 
 function RoundIntelMain({ onNavigate }) {
   const [activeTab, setActiveTab] = useState('current');
   const [isScheduledOpen, setIsScheduledOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
+  // 🗄️ MATCH TELEMETRY ARRAYS
+  const [currentMatches, setCurrentMatches] = useState([]);
+  const [historyMatches, setHistoryMatches] = useState([]);
+
+  // 📡 FETCH RECENT MATCHES FROM SUPABASE
+  useEffect(() => {
+    if (!isScheduledOpen) return;
+
+    const fetchMatches = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch all matches to split into Current vs History
+        const { data: matches, error } = await supabase
+          .from('matches')
+          .select(`
+            id,
+            match_name,
+            course_name,
+            tee_date,
+            tee_time,
+            active_wagers ( game_type )
+          `)
+          .order('tee_date', { ascending: false });
+
+        if (error) throw error;
+
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        const current = [];
+        const history = [];
+
+        (matches || []).forEach(match => {
+          // Extract active game types array from the joined active_wagers table
+          const gameTypes = match.active_wagers?.map(w => w.game_type) || ['match_play'];
+          
+          const matchPayload = {
+            id: match.id,
+            match_name: match.match_name,
+            course_name: match.course_name,
+            tee_date: match.tee_date,
+            gameTypes: gameTypes
+          };
+
+          // Simple split: Today or future matches go to Current; Past dates go to History
+          if (match.tee_date >= todayStr) {
+            current.push(matchPayload);
+          } else {
+            history.push(matchPayload);
+          }
+        });
+
+        setCurrentMatches(current);
+        setHistoryMatches(history);
+      } catch (err) {
+        console.error('Error fetching schedules:', err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMatches();
+  }, [isScheduledOpen]);
+
+  // 🚀 TRANSPORTER HANDOFF TRIGGER
+  const handleLaunchMatch = (match) => {
+    setIsScheduledOpen(false);
+    
+    // Construct the payload exactly as App.jsx expects it
+    const payload = {
+      matchId: match.id,
+      matchName: match.match_name,
+      courseName: match.course_name,
+      activeGames: match.gameTypes
+    };
+    
+    onNavigate('live-game', payload);
+  };
 
   return (
     <div style={{ textAlign: 'center', width: '100%' }}>
+      
       {/* Centered Component Header */}
       <h2 className="text-4xl font-black italic uppercase tracking-tighter" style={{ color: '#ecc151', margin: '10px 0 28px 0' }}>
         ROUND INTELLIGENCE
       </h2>
 
-      {/* THREE ACTION COMMAND MODULES - STRIPPED & RE-ORDERED */}
+      {/* THREE ACTION COMMAND MODULES */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
         
-        {/* 1. Create Match (Now First & Primary) */}
+        {/* 1. Create Match */}
         <button 
           onClick={() => onNavigate('create-match')} 
           style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }}
@@ -29,7 +111,7 @@ function RoundIntelMain({ onNavigate }) {
           </div>
         </button>
 
-        {/* 2. Scheduled Games (Now Second) */}
+        {/* 2. Scheduled Games */}
         <button 
           onClick={() => setIsScheduledOpen(true)}
           style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }}
@@ -44,7 +126,7 @@ function RoundIntelMain({ onNavigate }) {
           </div>
         </button>
 
-        {/* 3. Create Tournament (Now Third) */}
+        {/* 3. Create Tournament */}
         <button 
           onClick={() => onNavigate('create-tournament')} 
           style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }}
@@ -74,7 +156,7 @@ function RoundIntelMain({ onNavigate }) {
                 <span style={{ color: '#ecc151', fontWeight: '700', textTransform: 'uppercase', tracking: '0.1em', fontSize: '10px' }}>Your Schedule</span>
                 <h3 style={{ fontSize: '32px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', color: '#ecc151', margin: '4px 0 0 0', letterSpacing: '-0.02em' }}>ROUND INTEL</h3>
               </div>
-              <button onClick={() => setIsScheduledOpen(false)} style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.2)', flex: 'none', display: 'flex', alignItems: 'center', justifycontent: 'center', color: '#ecc151', cursor: 'pointer' }} type="button">
+              <button onClick={() => setIsScheduledOpen(false)} style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.2)', flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', cursor: 'pointer' }} type="button">
                 <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
               </button>
             </div>
@@ -98,43 +180,63 @@ function RoundIntelMain({ onNavigate }) {
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 32px 40px 32px', boxSizing: 'border-box' }}>
-            {activeTab === 'current' ? (
+            {loading ? (
+              <div style={{ color: '#beedd9', textAlign: 'center', fontWeight: '900', fontStyle: 'italic', padding: '20px' }}>
+                LOADING LEDGERS FROM CACHE...
+              </div>
+            ) : activeTab === 'current' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
-                <div style={{ padding: '20px', borderRadius: '16px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)' }}>
-                  <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '10px', fontWeight: '700', color: '#ecc151', textTransform: 'uppercase', tracking: '0.05em' }}>Tournament • Sat, Oct 12</span>
-                    <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '18px' }}>event</span>
-                  </div>
-                  <h4 style={{ fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', color: '#beedd9', margin: 0 }}>Saturday Morning Skin</h4>
-                  <p style={{ fontSize: '13px', color: 'rgba(190,237,217,0.7)', margin: '4px 0 0 0', fontWeight: '500' }}>Cypress Point Club</p>
-                </div>
-                <div style={{ padding: '20px', borderRadius: '16px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)' }}>
-                  <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '10px', fontWeight: '700', color: '#ecc151', textTransform: 'uppercase', tracking: '0.05em' }}>Foursome • Wed, Oct 16</span>
-                    <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '18px' }}>groups</span>
-                  </div>
-                  <h4 style={{ fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', color: '#beedd9', margin: 0 }}>Quarterly Invitational</h4>
-                  <p style={{ fontSize: '13px', color: 'rgba(190,237,217,0.7)', margin: '4px 0 0 0', fontWeight: '500' }}>Pebble Beach Golf Links</p>
-                </div>
+                {currentMatches.length === 0 ? (
+                  <p style={{ color: 'rgba(190,237,217,0.5)', textAlign: 'center', fontStyle: 'italic', fontSize: '13px' }}>No active or upcoming matches found</p>
+                ) : (
+                  currentMatches.map(match => (
+                    <div 
+                      key={match.id} 
+                      onClick={() => handleLaunchMatch(match)}
+                      style={{ padding: '20px', borderRadius: '16px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', cursor: 'pointer' }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: '700', color: '#ecc151', textTransform: 'uppercase', tracking: '0.05em' }}>
+                          LIVE / UPCOMING • {match.tee_date}
+                        </span>
+                        <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '18px' }}>play_circle</span>
+                      </div>
+                      <h4 style={{ fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', color: '#beedd9', margin: 0 }}>
+                        {match.match_name}
+                      </h4>
+                      <p style={{ fontSize: '13px', color: 'rgba(190,237,217,0.7)', margin: '4px 0 0 0', fontWeight: '500' }}>
+                        {match.course_name}
+                      </p>
+                    </div>
+                  ))
+                )}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
-                <div style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'rgba(14,60,47,0.4)', border: '1px solid rgba(236,193,81,0.05)', opacity: 0.8 }}>
-                  <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(190,237,217,0.5)', textTransform: 'uppercase' }}>Completed • Sept 28</span>
-                    <span style={{ backgroundColor: 'rgba(236,193,81,0.15)', color: '#ecc151', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '900', fontStyle: 'italic' }}>RESULT: +2</span>
-                  </div>
-                  <h4 style={{ fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', color: '#beedd9', margin: 0 }}>The Wolf @ Spyglass Hill</h4>
-                  <p style={{ fontSize: '13px', color: 'rgba(190,237,217,0.5)', margin: '4px 0 0 0' }}>Spyglass Hill Golf Course</p>
-                </div>
-                <div style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'rgba(14,60,47,0.4)', border: '1px solid rgba(236,193,81,0.05)', opacity: 0.8 }}>
-                  <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(190,237,217,0.5)', textTransform: 'uppercase' }}>Completed • Sept 21</span>
-                    <span style={{ backgroundColor: 'rgba(236,193,81,0.15)', color: '#ecc151', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '900', fontStyle: 'italic' }}>38 PTS</span>
-                  </div>
-                  <h4 style={{ fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', color: '#beedd9', margin: 0 }}>Stableford Sunday</h4>
-                  <p style={{ fontSize: '13px', color: 'rgba(190,237,217,0.5)', margin: '4px 0 0 0' }}>Spanish Bay</p>
-                </div>
+                {historyMatches.length === 0 ? (
+                  <p style={{ color: 'rgba(190,237,217,0.5)', textAlign: 'center', fontStyle: 'italic', fontSize: '13px' }}>No past matches on record</p>
+                ) : (
+                  historyMatches.map(match => (
+                    <div 
+                      key={match.id} 
+                      onClick={() => handleLaunchMatch(match)}
+                      style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'rgba(14,60,47,0.4)', border: '1px solid rgba(236,193,81,0.05)', opacity: 0.8, cursor: 'pointer' }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(190,237,217,0.5)', textTransform: 'uppercase' }}>
+                          COMPLETED • {match.tee_date}
+                        </span>
+                        <span style={{ backgroundColor: 'rgba(236,193,81,0.15)', color: '#ecc151', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '900', fontStyle: 'italic' }}>CLOSED</span>
+                      </div>
+                      <h4 style={{ fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', color: '#beedd9', margin: 0 }}>
+                        {match.match_name}
+                      </h4>
+                      <p style={{ fontSize: '13px', color: 'rgba(190,237,217,0.5)', margin: '4px 0 0 0' }}>
+                        {match.course_name}
+                      </p>
+                    </div>
+                  ))
+                )}
               </div>
             )}
           </div>
