@@ -12,6 +12,7 @@ function EditPlayer({ playerId, onNavigate }) {
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [playerRole, setPlayerRole] = useState('player'); // New dynamic role tier tracking state
   
   // 🎚️ HANDICAP CORE ENGINE INTERFACES
   const [handicapIndex, setHandicapIndex] = useState('0.0');
@@ -53,6 +54,7 @@ function EditPlayer({ playerId, onNavigate }) {
           setNickname(data.nickname || '');
           setEmail(data.email || '');
           setPhone(data.phone || '');
+          setPlayerRole(data.role || 'player');
           setExternalHandicapId(data.external_handicap_id || '');
           setIsManualIndex(data.is_manual_index || false);
           setManualIndexVal(data.manual_handicap || '');
@@ -63,7 +65,6 @@ function EditPlayer({ playerId, onNavigate }) {
           setEmergencyName(data.emergency_contact_name || '');
           setEmergencyPhone(data.emergency_contact_phone || '');
 
-          // 🛠️ PARSE DATABASE FLOAT BACK TO PHYSICAL VISUAL PLUS PREFIX (+)
           const rawHcp = parseFloat(data.handicap_index || 0.0);
           if (rawHcp < 0) {
             setIsPlusHcp(true);
@@ -84,7 +85,8 @@ function EditPlayer({ playerId, onNavigate }) {
   }, [playerId]);
 
   // 💾 DATABASE WRITE: COMMIT TRANSACTION SAVES
-  const handleUpdateProfileSubmit = async () => {
+  const handleUpdateProfileSubmit = async (e) => {
+    if (e) e.preventDefault();
     if (!firstName.trim()) {
       alert('First Name field cannot remain blank.');
       return;
@@ -93,19 +95,19 @@ function EditPlayer({ playerId, onNavigate }) {
     try {
       setSaving(true);
       
-      // Calculate database index float value based on elite plus (+) state toggles
       let calculatedHcp = handicapIndex ? parseFloat(handicapIndex) : 0.0;
       if (isPlusHcp && calculatedHcp > 0) {
         calculatedHcp = -calculatedHcp;
       }
 
+      // 💊 DATABASE ALIGNMENT FIX: Omit "display_name" entirely so the generated back-end column updates automatically
       const updatedPayload = {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
-        display_name: `${firstName.trim()} ${lastName.trim()}`.toUpperCase(),
         nickname: nickname.trim() ? nickname.trim().toUpperCase() : null,
         email: email.trim() || null,
         phone: phone.trim() || null,
+        role: playerRole, 
         handicap_index: calculatedHcp,
         is_manual_index: isManualIndex,
         manual_handicap: manualIndexVal ? parseFloat(manualIndexVal) : null,
@@ -125,7 +127,7 @@ function EditPlayer({ playerId, onNavigate }) {
 
       if (error) throw error;
       
-      onNavigate('player-intel'); // Step back into main registry overview instantly
+      onNavigate('player-intel'); 
     } catch (err) {
       alert(`Profile compilation save blocked: ${err.message}`);
     } finally {
@@ -144,72 +146,71 @@ function EditPlayer({ playerId, onNavigate }) {
   return (
     <div style={{ textAlign: 'left', width: '100%', position: 'relative', boxSizing: 'border-box' }}>
       
-      {/* HEADER MASTER ACTION BAR */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', height: '80px', marginBottom: '24px' }}>
-        <button 
-          onClick={() => onNavigate('player-intel')}
-          style={{ width: '40px', height: '40px', borderRadius: '50%', border: 'none', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-          type="button"
-        >
-          ◀
-        </button>
-        <h1 className="text-xl font-black italic uppercase tracking-tighter" style={{ color: '#ecc151', margin: 0 }}>
+      {/* HEADER MASTER ACTION BAR - Redundant Buttons Removed Cleanly */}
+      <header style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '80px', marginBottom: '24px' }}>
+        <h1 style={{ color: '#ecc151', margin: 0, fontSize: '24px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', tracking: '-0.02em' }}>
           EDIT PROFILE
         </h1>
-        <button 
-          onClick={handleUpdateProfileSubmit}
-          disabled={saving}
-          style={{ background: 'none', border: 'none', backgroundColor: 'transparent', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', letterSpacing: '0.1em', fontSize: '13px', cursor: 'pointer', opacity: saving ? 0.4 : 1 }}
-          type="button"
-        >
-          {saving ? 'SAVING...' : 'SAVE'}
-        </button>
       </header>
 
-      <main style={{ display: 'flex', flexDirection: 'column', gap: '36px', paddingBottom: '60px' }}>
+      <main style={{ display: 'flex', flexDirection: 'column', gap: '40px', paddingBottom: '40px' }}>
         
         {/* SECTION 1: AVATAR DISPLAY PLACEHOLDER */}
-        <section style={{ display: 'flex', flexDirection: 'column', itemsCenter: 'center', justifyContent: 'center', gap: '12px', textAlign: 'center' }}>
-          <div style={{ position: 'relative', margin: '0 auto', width: '112px', height: '112px' }}>
-            <div style={{ width: '100%', height: '100%', borderRadius: '16px', backgroundColor: '#0e3c2f', border: '2px solid rgba(236,193,81,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', fontWeight: '900', fontSize: '32px', fontStyle: 'italic', textTransform: 'uppercase' }}>
+        <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', textAlign: 'center' }}>
+          <div style={{ position: 'relative', margin: '0 auto', width: '120px', height: '120px' }}>
+            <div style={{ width: '100%', height: '100%', borderRadius: '24px', backgroundColor: '#0e3c2f', border: '2px solid rgba(236,193,81,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '38px', textTransform: 'uppercase' }}>
               {(firstName.substring(0,1) + lastName.substring(0,1)) || 'P'}
             </div>
           </div>
-          <p style={{ margin: 0, fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.2em', color: '#a3d0be' }}>IDENTITY SYMBOL</p>
+          <p style={{ margin: 0, fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.2em', color: '#a3d0be' }}>Identity Symbol</p>
         </section>
 
-        {/* SECTION 2: GENERAL FIELDS */}
-        <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* SECTION 2: HIGH-READABILITY GENERAL FIELDS */}
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
-            <h2 style={{ fontSize: '11px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', textTransform: 'uppercase', tracking: '0.15em', margin: 0 }}>General Intel</h2>
+            <h2 style={{ fontSize: '12px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', textTransform: 'uppercase', tracking: '0.15em', margin: 0 }}>General</h2>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '9px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>FIRST NAME</label>
-              <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '10px', padding: '14px', color: 'white', fontWeight: '700', outline: 'none' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>FIRST NAME</label>
+              <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '9px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>LAST NAME</label>
-              <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '10px', padding: '14px', color: 'white', fontWeight: '700', outline: 'none' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>LAST NAME</label>
+              <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '9px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>CLUB NICKNAME</label>
-            <input type="text" value={nickname} placeholder="e.g., THE CADDY MASTER" onChange={(e) => setNickname(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '10px', padding: '14px', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', outline: 'none' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>CLUB NICKNAME</label>
+            <input type="text" value={nickname} placeholder="e.g., THE CADDY MASTER" onChange={(e) => setNickname(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '18px', outline: 'none' }} />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '9px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>EMAIL ADDRESS</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '10px', padding: '14px', color: 'white', fontWeight: '700', outline: 'none' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>EMAIL ADDRESS</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '9px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>PHONE CONTACT</label>
-            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '10px', padding: '14px', color: 'white', fontWeight: '700', outline: 'none' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>PHONE CONTACT</label>
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
+          </div>
+
+          {/* 🎚️ SECURITY tier CONFIGURATOR SELECTION MATRIX (REQUIREMENT 4) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '11px', fontWeight: '900', color: '#ecc151', tracking: '0.05em', paddingLeft: '4px' }}>PLAYER SECURITY ROLE TIER</label>
+            <select 
+              value={playerRole} 
+              onChange={(e) => setPlayerRole(e.target.value)} 
+              style={{ backgroundColor: 'rgba(14, 60, 47, 0.6)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', outline: 'none', appearance: 'none', WebkitAppearance: 'none' }}
+            >
+              <option value="player">Viewer (Standard Roster Profile)</option>
+              <option value="scorer">Scorer (Can Edit Assigned Match Data Rows)</option>
+              <option value="admin">Admin (Full System Infrastructure Permissions)</option>
+            </select>
           </div>
         </section>
 
@@ -217,14 +218,14 @@ function EditPlayer({ playerId, onNavigate }) {
         <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
-            <h2 style={{ fontSize: '11px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', textTransform: 'uppercase', tracking: '0.15em', margin: 0 }}>Handicap Metrics</h2>
+            <h2 style={{ fontSize: '12px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', textTransform: 'uppercase', tracking: '0.15em', margin: 0 }}>Handicap</h2>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
           </div>
 
           <div style={{ backgroundColor: '#0e3c2f', padding: '24px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <p style={{ margin: 0, fontSize: '14px', fontWeight: '900', color: '#beedd9' }}>Manual Index Lock</p>
+                <p style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: '#beedd9' }}>Manual Index Lock</p>
                 <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#a3d0be', textTransform: 'uppercase' }}>Override system metrics</p>
               </div>
               <div 
@@ -237,31 +238,31 @@ function EditPlayer({ playerId, onNavigate }) {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px', alignItems: 'end' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', tracking: '0.05em' }}>
+                <span style={{ fontSize: '11px', fontWeight: '900', color: '#ecc151', tracking: '0.05em' }}>
                   {isPlusHcp ? 'PLUS HANDICAP (+)' : 'STANDARD HANDICAP'}
                 </span>
-                <input type="number" step="0.1" value={handicapIndex} onChange={(e) => setHandicapIndex(e.target.value)} style={{ backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: isPlusHcp ? '#ecc151' : 'white', fontSize: '15px', fontWeight: '900', outline: 'none', width: '100%', boxSizing: 'border-box' }} />
+                <input type="number" step="0.1" value={handicapIndex} onChange={(e) => setHandicapIndex(e.target.value)} style={{ backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '14px', color: isPlusHcp ? '#ecc151' : 'white', fontSize: '18px', fontWeight: '900', outline: 'none', width: '100%', boxSizing: 'border-box' }} />
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <span style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', tracking: '0.05em' }}>INDEX VARIANT</span>
-                <div onClick={() => setIsPlusHcp(!isPlusHcp)} style={{ height: '46px', backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '10px', display: 'flex', padding: '3px', boxSizing: 'border-box', cursor: 'pointer' }}>
-                  <div style={{ flex: 1, backgroundColor: !isPlusHcp ? '#0e3c2f' : 'transparent', color: !isPlusHcp ? '#beedd9' : 'rgba(190,237,217,0.2)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900' }}>STD</div>
-                  <div style={{ flex: 1, backgroundColor: isPlusHcp ? '#ecc151' : 'transparent', color: isPlusHcp ? '#3e2e00' : 'rgba(236,193,81,0.2)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900' }}>PLUS (+)</div>
+                <span style={{ fontSize: '11px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', tracking: '0.05em' }}>INDEX VARIANT</span>
+                <div onClick={() => setIsPlusHcp(!isPlusHcp)} style={{ height: '50px', backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '10px', display: 'flex', padding: '4px', boxSizing: 'border-box', cursor: 'pointer' }}>
+                  <div style={{ flex: 1, backgroundColor: !isPlusHcp ? '#0e3c2f' : 'transparent', color: !isPlusHcp ? '#beedd9' : 'rgba(190,237,217,0.2)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900' }}>STD</div>
+                  <div style={{ flex: 1, backgroundColor: isPlusHcp ? '#ecc151' : 'transparent', color: isPlusHcp ? '#3e2e00' : 'rgba(190,237,217,0.2)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '900' }}>PLUS (+)</div>
                 </div>
               </div>
             </div>
 
             {isManualIndex && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '9px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em' }}>MANUAL OVERRIDE STROKE SPEC</label>
-                <input type="number" step="0.1" value={manualIndexVal} placeholder="--" onChange={(e) => setManualIndexVal(e.target.value)} style={{ backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: 'white', fontSize: '14px', fontWeight: '700', outline: 'none' }} />
+                <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em' }}>MANUAL OVERRIDE STROKE SPEC</label>
+                <input type="number" step="0.1" value={manualIndexVal} placeholder="--" onChange={(e) => setManualIndexVal(e.target.value)} style={{ backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '14px', color: 'white', fontSize: '16px', fontWeight: '700', outline: 'none' }} />
               </div>
             )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '9px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em' }}>EXTERNAL HANDICAP REKORD ID (GHIN)</label>
-              <input type="text" value={externalHandicapId} placeholder="G-8829-441" onChange={(e) => setExternalHandicapId(e.target.value)} style={{ backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: 'white', fontSize: '14px', fontWeight: '700', outline: 'none' }} />
+              <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em' }}>EXTERNAL HANDICAP RECORD ID (GHIN)</label>
+              <input type="text" value={externalHandicapId} placeholder="G-8829-441" onChange={(e) => setExternalHandicapId(e.target.value)} style={{ backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '14px', color: 'white', fontSize: '16px', fontWeight: '700', outline: 'none' }} />
             </div>
           </div>
         </section>
@@ -270,22 +271,22 @@ function EditPlayer({ playerId, onNavigate }) {
         <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
-            <h2 style={{ fontSize: '11px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', textTransform: 'uppercase', tracking: '0.15em', margin: 0 }}>Preferences</h2>
+            <h2 style={{ fontSize: '12px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', textTransform: 'uppercase', tracking: '0.15em', margin: 0 }}>Preferences</h2>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '9px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>GENDER SPEC</label>
-            <select value={gender} onChange={(e) => setGender(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '10px', padding: '14px', color: 'white', fontWeight: '700', outline: 'none', appearance: 'none', WebkitAppearance: 'none' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>GENDER SPEC</label>
+            <select value={gender} onChange={(e) => setGender(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', outline: 'none', appearance: 'none', WebkitAppearance: 'none' }}>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Prefer Not to Say">Prefer Not to Say</option>
             </select>
           </div>
 
-          <div style={{ backgroundColor: 'rgba(14,60,47,0.2)', padding: '16px 20px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ backgroundColor: 'rgba(14,60,47,0.2)', padding: '18px 20px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <p style={{ margin: 0, fontSize: '14px', fontWeight: '900', color: '#beedd9' }}>Professional Status</p>
+              <p style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: '#beedd9' }}>Professional Status</p>
               <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#a3d0be', textTransform: 'uppercase' }}>Registered PGA Pro Status</p>
             </div>
             <div 
@@ -296,13 +297,13 @@ function EditPlayer({ playerId, onNavigate }) {
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '9px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>PREFERRED TEE BOX TEXTURE</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>PREFERRED TEE BOX TEXTURE</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               {['GOLD', 'BLACK', 'BLUE', 'WHITE'].map(tee => {
                 const active = preferredTeeBox === tee;
                 return (
-                  <button key={tee} onClick={() => setPreferredTeeBox(tee)} style={{ flex: 1, padding: '12px 0', borderRadius: '8px', border: 'none', cursor: 'pointer', fontStyle: 'italic', fontWeight: '900', fontSize: '11px', tracking: '0.05em', backgroundColor: active ? '#ecc151' : '#0e3c2f', color: active ? '#3e2e00' : 'rgba(190,237,217,0.5)', border: active ? '1px solid #ecc151' : '1px solid transparent' }} type="button">
+                  <button key={tee} onClick={() => setPreferredTeeBox(tee)} style={{ flex: 1, padding: '16px 0', borderRadius: '10px', border: 'none', cursor: 'pointer', fontStyle: 'italic', fontWeight: '900', fontSize: '13px', tracking: '0.05em', backgroundColor: active ? '#ecc151' : '#0e3c2f', color: active ? '#3e2e00' : 'rgba(190,237,217,0.5)', border: active ? '1px solid #ecc151' : '1px solid transparent' }} type="button">
                     {tee}
                   </button>
                 );
@@ -310,9 +311,9 @@ function EditPlayer({ playerId, onNavigate }) {
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '9px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>HOME COURSE REGISTER KEY</label>
-            <input type="text" value={homeCourseId} onChange={(e) => setHomeCourseId(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '10px', padding: '14px', color: 'white', fontWeight: '700', outline: 'none' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>HOME COURSE REGISTER KEY</label>
+            <input type="text" value={homeCourseId} onChange={(e) => setHomeCourseId(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', outline: 'none' }} />
           </div>
         </section>
 
@@ -320,21 +321,34 @@ function EditPlayer({ playerId, onNavigate }) {
         <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
-            <h2 style={{ fontSize: '11px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', textTransform: 'uppercase', tracking: '0.15em', margin: 0 }}>Safety Matrices</h2>
+            <h2 style={{ fontSize: '12px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', textTransform: 'uppercase', tracking: '0.15em', margin: 0 }}>Safety</h2>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '9px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>EMERGENCY NAME</label>
-              <input type="text" value={emergencyName} onChange={(e) => setEmergencyName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '10px', padding: '14px', color: 'white', fontWeight: '700', outline: 'none' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>EMERGENCY NAME</label>
+              <input type="text" value={emergencyName} onChange={(e) => setEmergencyName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', outline: 'none' }} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '9px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>EMERGENCY PHONE</label>
-              <input type="tel" value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '10px', padding: '14px', color: 'white', fontWeight: '700', outline: 'none' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>EMERGENCY PHONE</label>
+              <input type="tel" value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', outline: 'none' }} />
             </div>
           </div>
         </section>
+
+        {/* 💾 HIGH-DENSITY PRIMARY DEPLOYMENT SAVE ENGINE (STOCKED AT BOTTOM FOR VERIFICATION) */}
+        <div style={{ marginTop: '20px', paddingTop: '10px' }}>
+          <button 
+            onClick={handleUpdateProfileSubmit}
+            disabled={saving}
+            style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 20px 40px rgba(236,193,81,0.15)', opacity: saving ? 0.6 : 1 }}
+            type="button"
+          >
+            <span className="material-symbols-outlined" style={{ fontWeight: 'bold' }}>check_circle</span>
+            {saving ? 'COMPILING SCHEMAS...' : 'COMMIT PROFILE CHANGES'}
+          </button>
+        </div>
 
       </main>
 
