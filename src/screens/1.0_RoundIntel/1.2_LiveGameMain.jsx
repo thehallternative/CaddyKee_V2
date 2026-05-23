@@ -9,16 +9,21 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
   const [players, setPlayers] = useState([]);
   const [holeDefinitions, setHoleDefinitions] = useState([]); 
   
-  // 🎛️ UNIVERSAL CHASSIS SCORES & HOLE VARIABLE STATES
+  // 🎛️ CORE HOLE STATE ENGINE
   const [currentHole, setCurrentHole] = useState(1);
   const [isStandingsOpen, setIsStandingsOpen] = useState(false);
   const [selectedWolfPartner, setSelectedWolfPartner] = useState('');
   const [isPressActive, setIsPressActive] = useState(false);
   
-  // 🗄️ THE MASTER LIVE GROSS SCORE TRACKER
+  // 🗄️ LOCAL SCRATCHPAD SCORE STATE & CLOUD STATE CACHE FOR INVERSION CHECKS
   const [scores, setScores] = useState({});
+  const [committedScoresCache, setCommittedScoresCache] = useState({});
+  const [isHoleCommitted, setIsHoleCommitted] = useState(false);
 
-  // 🛠️ UTILITY: PLUS HANDICAP MATHEMATICS
+  // 🎚️ POPOUT SAVING GATE MODAL DIALOG STATE
+  const [pendingNavigationDirection, setPendingNavigationDirection] = useState(null);
+
+  // 🛠️ UTILITY: PLUS HANDICAP DISPLAY INVERSION RULE
   const formatHandicapDisplay = (handicap) => {
     if (handicap === undefined || handicap === null) return '0';
     const num = parseFloat(handicap);
@@ -26,14 +31,14 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
     return `${num}`;
   };
 
-  // 🧮 DYNAMIC HOLE DICTIONARY RESOLVER
+  // 🧮 DYNAMIC HOLE DEFINITION LOOKUP
   const currentHoleData = holeDefinitions.find(h => h.hole_number === currentHole) || {
     par: 4,
     stroke_index: 5,
     yardage: null
   };
 
-  // 📡 DATABASE READ A: MASTER CONTEXT, ROSTER, & HOLE MAPS
+  // 📡 DATABASE READ A: ROSTER & COURSE MAP OVERLAYS
   useEffect(() => {
     if (!matchId) {
       setLoading(false);
@@ -44,7 +49,7 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
       try {
         setLoading(true);
         
-        // 1. Fetch Master Match Reference Frame
+        // 1. Fetch Master Match Context
         const { data: matchData, error: matchErr } = await supabase
           .from('matches')
           .select('match_name, course_name')
@@ -56,7 +61,7 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
           resolvedCourseName = matchData[0].course_name;
         }
 
-        // 2. Fetch Player Ledger Ordered by Hitting Order
+        // 2. Fetch Active Roster Ordered by Position
         const { data: playerData, error: playerErr } = await supabase
           .from('match_players')
           .select(`
@@ -75,7 +80,7 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
           loadedPlayers = playerData;
         }
 
-        // 3. Fetch Hole Definitions Map based on Course Name Match
+        // 3. Ingest Course Hole Mapping Coordinates
         let resolvedHoles = [];
         if (resolvedCourseName) {
           const { data: courseMap } = await supabase
@@ -106,16 +111,16 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
           }
         }
 
-        // 4. Initial Score Seeding Pass -> Fallback defaults to true Par metrics
+        // 4. Seeding Pass baseline Par mapping defaults
         const firstHoleConfig = resolvedHoles.find(h => h.hole_number === 1) || { par: 4 };
         const initialScores = {};
         loadedPlayers.forEach(p => {
-          initialScores[p.id] = { gross: firstHoleConfig.par, overUnder: 'E' };
+          initialScores[p.id] = { gross: firstHoleConfig.par };
         });
         setScores(initialScores);
 
       } catch (error) {
-        console.error('Telemetry ingestion fault intercepted:', error.message);
+        console.error('Telemetry ingestion fault:', error.message);
       } finally {
         setLoading(false);
       }
@@ -124,13 +129,12 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
     fetchMatchTelemetry();
   }, [matchId]);
 
-  // 📡 DATABASE READ B: LIVE SCORE STATE COUPLING PER HOLE TRANSITION
+  // 📡 DATABASE READ B: HOLE INTEL COUPLING + STATE RECONCILIATION
   useEffect(() => {
     if (!matchId || players.length === 0) return;
 
     const fetchCommittedHoleScores = async () => {
       try {
-        // Fetch existing score card entries for this hole
         const { data: dbScores, error } = await supabase
           .from('match_scores')
           .select('player_id, gross_score')
@@ -140,41 +144,60 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
         if (error) throw error;
 
         const updatedScores = {};
+        const cacheMap = {};
+        let matchCount = 0;
+
         players.forEach(p => {
-          // If found in database, map it; otherwise default to this hole's native baseline Par
           const matchingRow = dbScores?.find(s => s.player_id === p.id);
-          updatedScores[p.id] = {
-            gross: matchingRow ? matchingRow.gross_score : currentHoleData.par,
-            overUnder: 'E'
-          };
+          if (matchingRow) {
+            updatedScores[p.id] = { gross: matchingRow.gross_score };
+            cacheMap[p.id] = matchingRow.gross_score;
+            matchCount++;
+          } else {
+            updatedScores[p.id] = { gross: currentHoleData.par };
+          }
         });
 
         setScores(updatedScores);
+        setCommittedScoresCache(cacheMap);
+        
+        // If all active roster players have database entries logged, invert back to green panel status
+        setIsHoleCommitted(matchCount === players.length && players.length > 0);
       } catch (err) {
-        console.error('Error fetching committed hole state:', err.message);
+        console.error('Error fetching committed state:', err.message);
       }
     };
 
     fetchCommittedHoleScores();
   }, [currentHole, matchId, players, holeDefinitions]);
 
-  // 💾 TELEMETRY DATABASE DEPLOYMENT ENGINE (THE COMMIT GATE)
-  const handleCommitHoleTelemetry = async () => {
-    if (!matchId || players.length === 0) return;
+  // 🧮 LIVE REAL-TIME INVERSION COMPARISON CHECKRELAY
+  useEffect(() => {
+    if (players.length === 0) return;
+    
+    let stateMatch = true;
+    players.forEach(p => {
+      const liveGross = scores[p.id]?.gross;
+      const cachedGross = committedScoresCache[p.id];
+      if (liveGross !== cachedGross) {
+        stateMatch = false; // Discrepancy caught -> Force gold dashboard inversion panel
+      }
+    });
 
+    setIsHoleCommitted(stateMatch && Object.keys(committedScoresCache).length === players.length);
+  }, [scores, committedScoresCache, players]);
+
+  // 💾 CORE SCORE PERMANENCE PERSISTENCE ENGINE
+  const executeScoreCommit = async () => {
+    if (!matchId || players.length === 0) return false;
     try {
       setCommitting(true);
-
-      // Build safe database upsert objects matching your constraints
-      const upsertPayloads = players.map(player => {
-        const currentGross = scores[player.id]?.gross || currentHoleData.par;
-        return {
-          match_id: matchId,
-          player_id: player.id,
-          hole_number: currentHole,
-          gross_score: currentGross
-        };
-      });
+      const upsertPayloads = players.map(player => ({
+        match_id: matchId,
+        player_id: player.id,
+        hole_number: currentHole,
+        gross_score: scores[player.id]?.gross || currentHoleData.par
+      }));
 
       const { error } = await supabase
         .from('match_scores')
@@ -182,34 +205,57 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
 
       if (error) throw error;
 
-      // Soft success micro haptic visual reminder
-      alert(`HOLE ${currentHole} METRICS RECORDED SECURELY`);
+      // Sync cache parameters to switch panel to green
+      const newCache = {};
+      players.forEach(p => {
+        newCache[p.id] = scores[p.id]?.gross || currentHoleData.par;
+      });
+      setCommittedScoresCache(newCache);
+      setIsHoleCommitted(true);
+      return true;
     } catch (err) {
-      alert(`Commit sequence blocked: ${err.message}`);
+      alert(`Save blocked: ${err.message}`);
+      return false;
     } finally {
       setCommitting(false);
     }
   };
 
-  const adjustScore = (playerId, delta) => {
-    setScores(prev => {
-      const currentGross = prev[playerId]?.gross || currentHoleData.par;
-      return {
-        ...prev,
-        [playerId]: {
-          ...prev[playerId],
-          gross: Math.max(1, currentGross + delta)
-        }
-      };
-    });
+  // 🕹️ HOLE GATING SCROLLER SYSTEM
+  const triggerHoleNavigation = async (direction) => {
+    // If the panel is green (perfect match to DB), bypass popout and slide instantly
+    if (isHoleCommitted) {
+      processHoleShift(direction);
+      return;
+    }
+    // Panel is gold -> Open the clean modal gateway interceptor
+    setPendingNavigationDirection(direction);
   };
 
-  const handleHoleChange = (direction) => {
+  const processHoleShift = (direction) => {
+    setPendingNavigationDirection(null);
     if (direction === 'prev') {
       setCurrentHole(prev => Math.max(1, prev - 1));
-    } else {
+    } else if (direction === 'next') {
       setCurrentHole(prev => Math.min(18, prev + 1));
     }
+  };
+
+  const handleModalSaveAndAdvance = async () => {
+    const success = await executeScoreCommit();
+    if (success && pendingNavigationDirection) {
+      processHoleShift(pendingNavigationDirection);
+    }
+  };
+
+  const adjustScore = (playerId, delta) => {
+    setScores(prev => {
+      const currentGross = prev[playerId]?.gross !== undefined ? prev[playerId].gross : currentHoleData.par;
+      return {
+        ...prev,
+        [playerId]: { ...prev[playerId], gross: Math.max(1, currentGross + delta) }
+      };
+    });
   };
 
   if (loading) {
@@ -230,7 +276,7 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
   return (
     <div style={{ textAlign: 'left', width: '100%', position: 'relative', boxSizing: 'border-box' }}>
       
-      {/* 🏛️ DYNAMIC MATCH & COURSE TITLE HUD OVERVIEW */}
+      {/* 🏛️ MASTER HUD HEADER PANEL */}
       <div style={{ textAlign: 'center', marginBottom: '24px' }}>
         <h1 className="text-2xl font-black italic uppercase tracking-tighter" style={{ color: '#ecc151', margin: '0 0 2px 0' }}>
           {matchDetails.match_name || 'LIVE SCORECARD'}
@@ -264,8 +310,6 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
           {activeRoster.map(player => {
             const displayName = player.profiles?.nickname || player.profiles?.display_name || player.guest_display_name || `PLAYER ${player.player_position}`;
             const initials = displayName.substring(0, 2);
-            
-            // Evaluates current database snapshot state fallback directly to Par metrics dynamic state
             const currentGross = scores[player.id]?.gross !== undefined ? scores[player.id].gross : currentHoleData.par;
 
             return (
@@ -298,50 +342,10 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
             );
           })}
 
-          {/* 💾 THE COMMIT TELEMETRY ACTION GATE BAR */}
-          <button
-            onClick={handleCommitHoleTelemetry}
-            disabled={committing || players.length === 0}
-            style={{ width: '100%', padding: '16px 0', borderRadius: '32px', border: 'none', backgroundColor: committing ? '#0e3c2f' : '#ecc151', color: committing ? '#beedd9' : '#3e2e00', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', fontSize: '12px', cursor: 'pointer', marginTop: '16px', tracking: '0.05em', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}
-            type="button"
-          >
-            {committing ? 'SYNCING METRICS...' : '💾 COMMIT HOLE TELEMETRY'}
-          </button>
-
-          {/* 🕹️ VERTICALLY OPTIMIZED HOLE NAVIGATION SCROLLER PANEL */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#00251b', padding: '16px 24px', borderRadius: '32px', border: '1px solid rgba(236,193,81,0.15)', marginTop: '8px' }}>
-            <button 
-              onClick={() => handleHoleChange('prev')} 
-              disabled={currentHole === 1}
-              style={{ width: '48px', height: '48px', borderRadius: '50%', border: 'none', backgroundColor: currentHole === 1 ? 'transparent' : '#0e3c2f', color: currentHole === 1 ? 'rgba(190,237,217,0.2)' : '#ecc151', fontSize: '20px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              type="button"
-            >
-              ◀
-            </button>
-            
-            <div style={{ textAlign: 'center' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', margin: 0, textTransform: 'uppercase', tracking: '-0.04em' }}>
-                HOLE {currentHole}
-              </h2>
-              <span style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190, 237, 217, 0.7)', tracking: '0.12em', textTransform: 'uppercase', display: 'block', marginTop: '2px' }}>
-                PAR {currentHoleData.par} • S.I. {currentHoleData.stroke_index} {currentHoleData.yardage ? `• ${currentHoleData.yardage} YDS` : ''}
-              </span>
-            </div>
-
-            <button 
-              onClick={() => handleHoleChange('next')} 
-              disabled={currentHole === 18}
-              style={{ width: '48px', height: '48px', borderRadius: '50%', border: 'none', backgroundColor: currentHole === 18 ? 'transparent' : '#0e3c2f', color: currentHole === 18 ? 'rgba(190,237,217,0.2)' : '#ecc151', fontSize: '20px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              type="button"
-            >
-              ▶
-            </button>
-          </div>
-
-          {/* FLUID HOLE VARIABLES FOOTER PANEL CONTAINER */}
-          <div style={{ marginTop: '24px' }}>
+          {/* GAME VARIABLES FOOTER PANEL */}
+          <div style={{ marginTop: '16px' }}>
             <h3 style={{ fontSize: '14px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px', borderBottom: '1px solid rgba(236,193,81,0.1)', paddingBottom: '6px' }}>
-              HOLE COMBAT VARIABLES
+              Game Variables
             </h3>
             <div style={{ display: 'grid', gridTemplateColumns: activeGames.includes('wolf') && activeGames.includes('match_play') ? '1fr 1fr' : '1fr', gap: '16px' }}>
               
@@ -383,6 +387,49 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
 
             </div>
           </div>
+
+          {/* 🕹️ CHROMATICALLY ADAPTIVE HOLE NAVIGATION SCROLLER PANEL (STOCKED AT BOTTOM) */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between', 
+            padding: '16px 24px', 
+            borderRadius: '32px', 
+            marginTop: '20px',
+            transition: 'all 0.4s ease',
+            // Color inversion architecture: green panel if committed, gold panel if dirty/unsaved
+            backgroundColor: isHoleCommitted ? '#00251b' : '#ecc151', 
+            border: isHoleCommitted ? '1px solid rgba(236,193,81,0.25)' : '1px solid #ecc151',
+            color: isHoleCommitted ? '#ecc151' : '#3e2e00'
+          }}>
+            <button 
+              onClick={() => triggerHoleNavigation('prev')} 
+              disabled={currentHole === 1}
+              style={{ width: '48px', height: '48px', borderRadius: '50%', border: 'none', backgroundColor: isHoleCommitted ? '#0e3c2f' : 'rgba(0,0,0,0.1)', color: isHoleCommitted ? '#ecc151' : '#3e2e00', fontSize: '20px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: currentHole === 1 ? 0.15 : 1 }}
+              type="button"
+            >
+              ◀
+            </button>
+            
+            <div style={{ textAlign: 'center' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: '900', fontStyle: 'italic', margin: 0, textTransform: 'uppercase', tracking: '-0.04em', color: isHoleCommitted ? '#ecc151' : '#3e2e00' }}>
+                HOLE {currentHole}
+              </h2>
+              <span style={{ fontSize: '9px', fontWeight: '900', tracking: '0.12em', textTransform: 'uppercase', display: 'block', marginTop: '2px', color: isHoleCommitted ? 'rgba(190, 237, 217, 0.7)' : 'rgba(62, 46, 0, 0.7)' }}>
+                PAR {currentHoleData.par} • S.I. {currentHoleData.stroke_index} {currentHoleData.yardage ? `• ${currentHoleData.yardage} YDS` : ''}
+              </span>
+            </div>
+
+            <button 
+              onClick={() => triggerHoleNavigation('next')} 
+              disabled={currentHole === 18}
+              style={{ width: '48px', height: '48px', borderRadius: '50%', border: 'none', backgroundColor: isHoleCommitted ? '#0e3c2f' : 'rgba(0,0,0,0.1)', color: isHoleCommitted ? '#ecc151' : '#3e2e00', fontSize: '20px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: currentHole === 18 ? 0.15 : 1 }}
+              type="button"
+            >
+              ▶
+            </button>
+          </div>
+
         </div>
       )}
 
@@ -390,7 +437,6 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
       {isStandingsOpen && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
-          {/* Section B1: Individual Standings */}
           <section>
             <span style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190, 237, 217, 0.5)', tracking: '0.15em', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>INDIVIDUAL WAGER METRICS</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -415,7 +461,6 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
             </div>
           </section>
 
-          {/* Section B2: Conditioned Skins Pool Box */}
           {activeGames.includes('skins') && (
             <section>
               <div style={{ backgroundColor: '#ecc151', padding: '24px', borderRadius: '24px', color: '#3e2e00', boxShadow: '0 15px 30px rgba(236,193,81,0.15)' }}>
@@ -434,6 +479,44 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
             </section>
           )}
 
+        </div>
+      )}
+
+      {/* 🏛️ PREMIUM FLOATING INTERCEPTOR DIALOG POPPING GATE MODULE */}
+      {pendingNavigationDirection && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', boxSizing: 'border-box' }}>
+          <div onClick={() => setPendingNavigationDirection(null)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} />
+          
+          <div style={{ position: 'relative', width: '100%', maxWidth: '340px', backgroundColor: '#0b2e24', border: '2px solid #ecc151', borderRadius: '32px', padding: '32px 24px', boxSizing: 'border-box', boxShadow: '0 25px 50px rgba(0,0,0,0.6)', textAlign: 'center' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'rgba(236,193,81,0.1)', border: '1px solid #ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#ecc151', fontWeight: '900', fontSize: '22px' }}>
+              💾
+            </div>
+            
+            <h3 style={{ fontSize: '20px', fontWeight: '900', fontStyle: 'italic', color: '#beedd9', margin: '0 0 8px 0', textTransform: 'uppercase', tracking: '-0.02em' }}>
+              Save Scores
+            </h3>
+            <p style={{ fontSize: '13px', fontWeight: '500', color: 'rgba(190,237,217,0.7)', margin: '0 0 28px 0', lineHeight: '1.4' }}>
+              Do you want to save the scores for <span style={{ color: '#ecc151', fontWeight: '700' }}>Hole {currentHole}</span> before moving to the next hole?
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button 
+                onClick={handleModalSaveAndAdvance}
+                disabled={committing}
+                style={{ width: '100%', padding: '16px 0', borderRadius: '30px', border: 'none', backgroundColor: '#ecc151', color: '#3e2e00', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', fontSize: '12px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(236,193,81,0.3)' }}
+                type="button"
+              >
+                {committing ? 'Saving...' : 'Save & Advance'}
+              </button>
+              <button 
+                onClick={() => processHoleShift(pendingNavigationDirection)}
+                style={{ width: '100%', padding: '16px 0', borderRadius: '30px', border: '1px solid rgba(235,94,85,0.4)', backgroundColor: 'transparent', color: '#eb5e55', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', fontSize: '11px', cursor: 'pointer' }}
+                type="button"
+              >
+                Discard Changes
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
