@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { supabase } from '../../supabaseClient';
 
 function CreateMatch({ onNavigate }) {
-  // 💾 FULL CORE DATA CAPTURE STATE ENGINE
+  // 💾 CORE DATA CAPTURE STATE ENGINE
   const [matchName, setMatchName] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('Augusta National');
   const [teeDate, setTeeDate] = useState('OCT 24, 2026');
   const [teeTime, setTeeTime] = useState('08:30 AM');
   
-  // High-fidelity configuration modules states matrix matching all Stitch sliders
+  // Insulated configurations matrix matching all sliders
   const [games, setGames] = useState({
     skins: { active: false, expanded: false, stakes: 10, carryOver: true },
     wolf: { active: false, expanded: false, multiplier: 2, loneWolf: false },
@@ -58,17 +58,17 @@ function CreateMatch({ onNavigate }) {
     }));
   };
 
-  // 🚀 HIGH-FIDELITY TELEMETRY INSERTER WRITING DIRECTLY TO SUPABASE
+  // 🚀 DATABASE COMMUNICATIONS ENGINE
   const handleInitializeMatch = async () => {
     try {
-      // 1. Write the parent structural row parameters to public.matches
+      // 1. Write core match row metrics
       const { data: newMatch, error: matchError } = await supabase
         .from('matches')
         .insert([
           {
             match_name: matchName || 'Saturday Skins Challenge',
             course_name: selectedCourse,
-            tee_date: new Date().toISOString().split('T')[0], // Sanitizes date for PostgreSQL rules
+            tee_date: new Date().toISOString().split('T')[0], 
             tee_time: '08:30:00'
           }
         ])
@@ -77,7 +77,7 @@ function CreateMatch({ onNavigate }) {
 
       if (matchError) throw matchError;
 
-      // 2. Loop and generate active side-wager relational entries inside active_wagers
+      // 2. Map configuration entries internally
       const activeGameKeys = Object.keys(games).filter(g => games[g].active);
       
       if (activeGameKeys.length > 0) {
@@ -94,11 +94,10 @@ function CreateMatch({ onNavigate }) {
         if (wagerError) throw wagerError;
       }
 
-      // 3. Smooth forward handoff route to our Live Dynamic scoring grid matrix canvas
       onNavigate('live-game');
 
     } catch (err) {
-      console.error('Supabase payload write error:', err.message);
+      console.error('Supabase integration channel crash:', err.message);
       alert('Supabase Connection Failed: ' + err.message);
     }
   };
@@ -106,7 +105,6 @@ function CreateMatch({ onNavigate }) {
   return (
     <div style={{ textAlign: 'left', width: '100%', boxSizing: 'border-box' }}>
       
-      {/* HEADER CONTEXT LOG SECTION */}
       <header style={{ marginBottom: '40px' }}>
         <p style={{ fontSize: '10px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.2em', margin: '0 0 8px 0', fontFamily: 'sans-serif' }}>
           MATCH CONFIGURATION PROTOCOL
@@ -118,7 +116,7 @@ function CreateMatch({ onNavigate }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
-        {/* PILLAR 1: MATCH NAME PANEL */}
+        {/* FIELD A: MATCH NAME */}
         <section>
           <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em', display: 'block', marginBottom: '12px', paddingLeft: '8px' }}>
             MATCH NAME
@@ -134,7 +132,7 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* PILLAR 2: WHERE (COURSE GEOMETRY CONFIG) */}
+        {/* FIELD B: COURSE */}
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', padding: '0 8px' }}>
             <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em' }}>WHERE</span>
@@ -158,7 +156,7 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* PILLAR 3: WHEN (DATE GRID SYSTEM) */}
+        {/* FIELD C: DATETIME CHANNELS */}
         <section>
           <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em', display: 'block', marginBottom: '12px', paddingLeft: '8px' }}>
             WHEN
@@ -181,7 +179,7 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* PILLAR 4: WHO (4-PLAYER SQUAD GRID MATRIX) */}
+        {/* FIELD D: THE 4-MAN ROSTER GRID */}
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', padding: '0 8px' }}>
             <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em' }}>WHO</span>
@@ -190,15 +188,13 @@ function CreateMatch({ onNavigate }) {
             </button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-            {/* Captain Card Frame */}
             <div style={{ backgroundColor: '#00251b', padding: '16px 8px', borderRadius: '16px', border: '1px solid #ecc151', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontStyle: 'italic', fontSize: '14px', marginBottom: '8px' }}>
                 DH
               </div>
-              <span style={{ fontSize: '10px', fontWeight: '900', color: '#white', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', width: '100%' }}>D. HAZEN</span>
+              <span style={{ fontSize: '10px', fontWeight: '900', color: 'white', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', width: '100%' }}>D. HAZEN</span>
               <span style={{ fontSize: '8px', fontWeight: '900', color: '#ecc151', marginTop: '4px', tracking: '0.05em' }}>HCP: 4.2</span>
             </div>
-            {/* Player Slots 2, 3, 4 */}
             {[2, 3, 4].map(idx => (
               <div key={idx} style={{ backgroundColor: '#0e3c2f', borderRadius: '16px', border: '1px dashed rgba(236,193,81,0.15)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px 8px', opacity: 0.6 }}>
                 <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid rgba(236,193,81,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(236,193,81,0.4)' }}>
@@ -210,7 +206,7 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* PILLAR 5: WHAT (GAME MODE CONFIG PANEL MATRICES) */}
+        {/* FIELD E: THE SELECTION MATRICES */}
         <section style={{ marginTop: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', padding: '0 8px' }}>
             <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em' }}>GAME MODE SELECTION</span>
@@ -219,7 +215,7 @@ function CreateMatch({ onNavigate }) {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             
-            {/* SLIDER BOX A: SKINS */}
+            {/* ITEM 1: SKINS */}
             <div style={{ backgroundColor: '#0e3c2f', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', overflow: 'hidden' }}>
               <div onClick={() => handleDrawerExpand('skins')} style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer' }}>
                 <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#00251b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: games.skins.active ? '#ecc151' : 'rgba(190,237,217,0.3)', border: '1px solid rgba(236,193,81,0.05)', flex: 'none' }}>
@@ -239,7 +235,6 @@ function CreateMatch({ onNavigate }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '900', color: '#beedd9', tracking: '0.05em' }}>STAKES PER HOLE</h4>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: 'rgba(190,237,217,0.5)' }}>Skins base unit wager</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', backgroundColor: '#0e3c2f', padding: '6px 16px', borderRadius: '24px' }}>
                       <button onClick={(e) => { e.stopPropagation(); adjustSkinsStakes(-5); }} style={{ background: 'none', border: 'none', color: '#ecc151', fontWeight: '900', fontSize: '18px', cursor: 'pointer' }}>-</button>
@@ -251,7 +246,6 @@ function CreateMatch({ onNavigate }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '900', color: '#beedd9', tracking: '0.05em' }}>CARRY OVER</h4>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: 'rgba(190,237,217,0.5)' }}>Pushes apply to next hole</p>
                     </div>
                     <div onClick={toggleSkinsCarryOver} style={{ width: '44px', height: '24px', borderRadius: '12px', backgroundColor: games.skins.carryOver ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box' }}>
                       <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: games.skins.carryOver ? '#3e2e00' : '#414845', transform: games.skins.carryOver ? 'translateX(20px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
@@ -261,7 +255,7 @@ function CreateMatch({ onNavigate }) {
               )}
             </div>
 
-            {/* SLIDER BOX B: WOLF */}
+            {/* ITEM 2: WOLF */}
             <div style={{ backgroundColor: '#0e3c2f', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', overflow: 'hidden' }}>
               <div onClick={() => handleDrawerExpand('wolf')} style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer' }}>
                 <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#00251b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: games.wolf.active ? '#ecc151' : 'rgba(190,237,217,0.3)', border: '1px solid rgba(236,193,81,0.05)', flex: 'none' }}>
@@ -281,7 +275,6 @@ function CreateMatch({ onNavigate }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '900', color: '#beedd9', tracking: '0.05em' }}>WOLF POINT SCALE</h4>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: 'rgba(190,237,217,0.5)' }}>Win/Loss base multiplier</p>
                     </div>
                     <span style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900', fontSize: '14px', tracking: '0.1em' }}>X {games.wolf.multiplier}</span>
                   </div>
@@ -289,7 +282,6 @@ function CreateMatch({ onNavigate }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '900', color: '#beedd9', tracking: '0.05em' }}>LONE WOLF POT</h4>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: 'rgba(190,237,217,0.5)' }}>Double payouts for solo declaration win</p>
                     </div>
                     <div onClick={toggleLoneWolf} style={{ width: '44px', height: '24px', borderRadius: '12px', backgroundColor: games.wolf.loneWolf ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box' }}>
                       <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: games.wolf.loneWolf ? '#3e2e00' : '#414845', transform: games.wolf.loneWolf ? 'translateX(20px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
@@ -299,7 +291,7 @@ function CreateMatch({ onNavigate }) {
               )}
             </div>
 
-            {/* SLIDER BOX C: MATCH PLAY */}
+            {/* ITEM 3: MATCH PLAY */}
             <div style={{ backgroundColor: '#0e3c2f', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', overflow: 'hidden' }}>
               <div onClick={() => handleDrawerExpand('match')} style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer' }}>
                 <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#00251b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: games.match.active ? '#ecc151' : 'rgba(190,237,217,0.3)', border: '1px solid rgba(236,193,81,0.05)', flex: 'none' }}>
@@ -319,7 +311,6 @@ function CreateMatch({ onNavigate }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '900', color: '#beedd9', tracking: '0.05em' }}>HANDICAP SCALE</h4>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: 'rgba(190,237,217,0.5)' }}>Application ratio of net stroke index</p>
                     </div>
                     <span style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900', fontSize: '14px' }}>{games.match.hcpScale}%</span>
                   </div>
@@ -327,7 +318,6 @@ function CreateMatch({ onNavigate }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '900', color: '#beedd9', tracking: '0.05em' }}>TIE BREAKER RULE</h4>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: 'rgba(190,237,217,0.5)' }}>Resolution approach for all-square finish</p>
                     </div>
                     <select 
                       value={games.match.tieBreaker}
@@ -345,19 +335,16 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* FINAL TELEMETRY EXECUTION TRIGGER CONTAINER */}
+        {/* INITIATOR DISPATCH BUTTON */}
         <div style={{ paddingTop: '28px', paddingBottom: '20px' }}>
           <button 
             onClick={handleInitializeMatch}
-            style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '10px', boxShadow: '0 20px 40px rgba(236,193,81,0.15)' }}
+            style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 20px 40px rgba(236,193,81,0.15)' }}
             type="button"
           >
             <span className="material-symbols-outlined" style={{ fontWeight: 'bold' }}>power_settings_new</span>
             INITIALIZE MATCH TELEMETRY
           </button>
-          <p style={{ fontSize: '8px', color: 'rgba(190,237,217,0.3)', fontWeight: '900', textTransform: 'uppercase', tracking: '0.2em', textAlign: 'center', marginTop: '16px', letterSpacing: '0.15em' }}>
-            ENCRYPTING TELEMETRY PROTOCOL STREAM...
-          </p>
         </div>
 
       </div>

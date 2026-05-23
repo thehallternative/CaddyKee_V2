@@ -3,11 +3,26 @@ import caddyKeeLogo from './assets/logo.png';
 import MissionControl from './screens/0.0_MissionControl';
 import RoundIntelMain from './screens/1.0_RoundIntel/1.0_RoundIntelMain'; 
 import CreateMatch from './screens/1.0_RoundIntel/1.1_CreateMatch'; 
-import LiveGameMain from './screens/1.0_RoundIntel/1.2_LiveGameMain'; // <-- Added Universal Chassis Route
+import LiveGameMain from './screens/1.0_RoundIntel/1.2_LiveGameMain';
 
 function App() {
   const [isKeeOpen, setIsKeeOpen] = useState(false);
   const [activeScreen, setActiveScreen] = useState('mission-control');
+  
+  // 🧭 THE FAST-SESSION DATA TRANSPORTER SLOTS
+  const [currentMatchContext, setCurrentMatchContext] = useState({
+    matchId: null,
+    matchName: '',
+    courseName: '',
+    activeGames: ['match_play'] // Dynamic chassis baseline default
+  });
+
+  const handleScreenNavigation = (targetScreen, contextPayload = null) => {
+    if (contextPayload) {
+      setCurrentMatchContext(contextPayload);
+    }
+    setActiveScreen(targetScreen);
+  };
 
   return (
     <div style={{ backgroundColor: '#001710', minHeight: '100vh', position: 'relative', fontFamily: 'sans-serif', overflowX: 'hidden', paddingBottom: '140px', boxSizing: 'border-box' }}>
@@ -18,9 +33,9 @@ function App() {
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
             <button 
               onClick={() => {
-                if (activeScreen === 'live-game') setActiveScreen('create-match');
-                else if (activeScreen === 'create-match') setActiveScreen('round-intel');
-                else setActiveScreen('mission-control');
+                if (activeScreen === 'live-game') handleScreenNavigation('create-match');
+                else if (activeScreen === 'create-match') handleScreenNavigation('round-intel');
+                else handleScreenNavigation('mission-control');
               }}
               style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
               type="button"
@@ -34,7 +49,7 @@ function App() {
         
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: 1 }}>
           <button
-            onClick={() => setActiveScreen('mission-control')}
+            onClick={() => handleScreenNavigation('mission-control')}
             style={{ background: 'none', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', outline: 'none', padding: 0 }}
             type="button"
           >
@@ -52,23 +67,29 @@ function App() {
       {/* CORE ROUTING ENGINE INJECTION */}
       <main className="px-6 pt-4 max-w-xl mx-auto w-full box-border" style={{ display: 'flex', flexDirection: 'column' }}>
         {activeScreen === 'mission-control' && (
-          <MissionControl onNavigate={(screen) => setActiveScreen(screen)} />
+          <MissionControl onNavigate={(screen) => handleScreenNavigation(screen)} />
         )}
         {activeScreen === 'round-intel' && (
-          <RoundIntelMain onNavigate={(screen) => setActiveScreen(screen)} />
+          <RoundIntelMain onNavigate={(screen) => handleScreenNavigation(screen)} />
         )}
         {activeScreen === 'create-match' && (
-          <CreateMatch onNavigate={(screen) => setActiveScreen(screen)} />
+          <CreateMatch onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
         )}
         {activeScreen === 'live-game' && (
-          <LiveGameMain activeGames={['skins', 'wolf', 'match_play']} onNavigate={(screen) => setActiveScreen(screen)} />
+          <LiveGameMain 
+            matchId={currentMatchContext.matchId}
+            matchName={currentMatchContext.matchName}
+            courseName={currentMatchContext.courseName}
+            activeGames={currentMatchContext.activeGames} 
+            onNavigate={(screen) => handleScreenNavigation(screen)} 
+          />
         )}
       </main>
 
       {/* PERSISTENT NAVIGATION HUD PILL */}
       <div style={{ position: 'fixed', bottom: '24px', left: '16px', right: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
         <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 12px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
-          <button onClick={() => setActiveScreen('mission-control')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
+          <button onClick={() => handleScreenNavigation('mission-control')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: 'bold' }}>sports_golf</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Game On</span>
           </button>
