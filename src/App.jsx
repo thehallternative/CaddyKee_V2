@@ -70,7 +70,7 @@ function App() {
           <MissionControl onNavigate={(screen) => handleScreenNavigation(screen)} />
         )}
         {activeScreen === 'round-intel' && (
-          <RoundIntelMain onNavigate={(screen) => handleScreenNavigation(screen)} />
+          <RoundIntelMain onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
         )}
         {activeScreen === 'create-match' && (
           <CreateMatch onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
@@ -116,12 +116,12 @@ function App() {
             </button>
           </div>
 
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifycontent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: 'bold' }}>meeting_room</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px', whiteSpace: 'nowrap' }}>Clubhouse</span>
           </button>
           
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifycontent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: 'bold' }}>more_horiz</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Menu</span>
           </button>
@@ -133,11 +133,11 @@ function App() {
         <div onClick={() => setIsKeeOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', opacity: isKeeOpen ? 1 : 0, transition: 'opacity 0.5s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '48px', borderTop: '1px solid rgba(236,193,81,0.2)', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', backgroundColor: '#00251b', boxShadow: '0 -10px 30px rgba(0,0,0,0.5)', transition: 'transform 0.5s ease-out', transform: isKeeOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(65,72,69,0.3)', margin: '20px auto 4px auto' }}></div>
-          <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifycontent: 'space-between', borderBottom: '1px solid rgba(65,72,69,0.1)' }}>
+          <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(65,72,69,0.1)' }}>
             <h3 style={{ margin: 0, color: '#beedd9', fontStyle: 'italic', fontWeight: '900' }}>KEE</h3>
             <button onClick={() => setIsKeeOpen(false)} style={{ backgroundColor: '#001710', color: '#beedd9', border: 'none', padding: '8px 12px', borderRadius: '20px', cursor: 'pointer' }} type="button">Close</button>
           </div>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifycontent: 'center' }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <p style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900' }}>Listening...</p>
           </div>
         </div>

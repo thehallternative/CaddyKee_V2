@@ -92,12 +92,16 @@ function RoundIntelMain({ onNavigate }) {
 
   const handleLaunchMatch = (match) => {
     setIsScheduledOpen(false);
+    
+    // Explicit structural contract payload passed straight back to App.jsx
     const payload = {
       matchId: match.id,
       matchName: match.match_name,
       courseName: match.course_name,
       activeGames: match.gameTypes
     };
+    
+    // DELIVER BOTH TARGET AND CONTENT PAYLOAD
     onNavigate('live-game', payload);
   };
 
