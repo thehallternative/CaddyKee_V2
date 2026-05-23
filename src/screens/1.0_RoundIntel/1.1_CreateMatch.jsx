@@ -133,8 +133,8 @@ function CreateMatch({ onNavigate }) {
     const pseudoGuestProfile = {
       id: null, 
       is_guest: true,
-      display_name: guestName.trim().toUpperCase(),
-      nickname: 'GUEST',
+      display_name: guestName.trim(), // Kept natural casing to preserve formatting cleanly
+      nickname: '', // Erased static string so display_name rules extract logic
       handicap_index: finalHcpValue
     };
 
@@ -376,6 +376,16 @@ function CreateMatch({ onNavigate }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
             {[1, 2, 3, 4].map(slotIdx => {
               const player = selectedPlayers[slotIdx];
+              
+              // 🎛️ SMART INITIAL EXTRATION DECK FOR MEMBERS & QUICK GUESTS
+              const resolvedInitials = player 
+                ? (player.nickname ? player.nickname.substring(0, 2).toUpperCase() : player.display_name.substring(0, 2).toUpperCase())
+                : '';
+                
+              const resolvedDisplayName = player 
+                ? (player.nickname ? player.nickname : player.display_name)
+                : '';
+
               return (
                 <div 
                   key={slotIdx}
@@ -384,11 +394,11 @@ function CreateMatch({ onNavigate }) {
                 >
                   {player ? (
                     <>
-                      <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontStyle: 'italic', fontSize: '14px', marginBottom: '8px' }}>
-                        {player.nickname ? player.nickname.substring(0, 2).toUpperCase() : player.display_name.substring(0, 2).toUpperCase()}
+                      <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontStyle: 'italic', fontSize: '14px', marginBottom: '8px', textTransform: 'uppercase' }}>
+                        {resolvedInitials}
                       </div>
                       <span style={{ fontSize: '10px', fontWeight: '900', color: 'white', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', width: '100%', textTransform: 'uppercase' }}>
-                        {player.nickname ? player.nickname : player.display_name.split(' ')[0]}
+                        {resolvedDisplayName}
                       </span>
                       <span style={{ fontSize: '8px', fontWeight: '900', color: '#ecc151', marginTop: '4px' }}>
                         HCP: {formatHandicapDisplay(player.handicap_index)}
@@ -536,7 +546,7 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* INITIATOR DISPATCH BUTTON */}
+        {/* 🏆 RENAME DISPATCH TRIGGER: START ROUND */}
         <div style={{ paddingTop: '28px', paddingBottom: '20px' }}>
           <button 
             onClick={handleInitializeMatch}
@@ -544,7 +554,7 @@ function CreateMatch({ onNavigate }) {
             type="button"
           >
             <span className="material-symbols-outlined" style={{ fontWeight: 'bold' }}>power_settings_new</span>
-            INITIALIZE MATCH TELEMETRY
+            START ROUND
           </button>
         </div>
 
@@ -554,35 +564,20 @@ function CreateMatch({ onNavigate }) {
       {/* 💎 DRAWER A: HIGH-FIDELITY MOBILE COURSE SLIDING DRAWER SYSTEM             */}
       {/* ========================================================================= */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: isCourseDrawerOpen ? 'auto' : 'none', display: 'block' }}>
-        
-        {/* Dark Backdrop Mask Filter */}
         <div 
           onClick={() => setIsCourseDrawerOpen(false)} 
           style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isCourseDrawerOpen ? 1 : 0, transition: 'opacity 0.4s ease-out', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} 
         />
-        
-        {/* Sliding Sheet Panel */}
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '15vh', borderTop: '1px solid rgba(236,193,81,0.25)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', boxShadow: '0 -15px 40px rgba(0,0,0,0.6)', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isCourseDrawerOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          
-          {/* Top Notch Bar Graphic */}
           <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto', flex: 'none' }} />
-          
-          {/* Header Dashboard Title */}
           <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 'none' }}>
             <div>
               <p style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.15em', margin: '0 0 2px 0', textTransform: 'uppercase' }}>SELECT VENUE GEOMETRY</p>
-              <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic', uppercase: 'text' }}>AVAILABLE CLUBS</h3>
+              <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>AVAILABLE CLUBS</h3>
             </div>
-            <button 
-              onClick={() => setIsCourseDrawerOpen(false)} 
-              style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', textTransform: 'uppercase' }} 
-              type="button"
-            >
-              Cancel
-            </button>
+            <button onClick={() => setIsCourseDrawerOpen(false)} style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', textTransform: 'uppercase' }} type="button">Cancel</button>
           </div>
 
-          {/* Dynamic Scroll Matrix Stack Rows */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 60px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {coursesList.map((course) => {
               const isSelected = course.id === selectedCourseId;
@@ -600,16 +595,13 @@ function CreateMatch({ onNavigate }) {
                       {course.location_city}
                     </span>
                   </div>
-                  
-                  {/* Radio Confirmation Light Indicator */}
-                  <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: isSelected ? '2px solid #ecc151' : '2px solid rgba(236,193,81,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', boxSizing: 'border-box' }}>
+                  <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: '2px solid rgba(236,193,81,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', boxSizing: 'border-box' }}>
                     {isSelected && <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ecc151' }} />}
                   </div>
                 </div>
               );
             })}
           </div>
-
         </div>
       </div>
 
@@ -626,21 +618,14 @@ function CreateMatch({ onNavigate }) {
           <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto', flex: 'none' }} />
           
           <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', flexDirection: 'column', gap: '14px', flex: 'none' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifycontent: 'space-between' }}>
               <div>
                 <p style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.15em', margin: '0 0 2px 0', textTransform: 'uppercase' }}>ROSTER SQUAD MUTATION</p>
                 <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>SELECT PLAYER SLOT {activeTargetSlot}</h3>
               </div>
-              <button 
-                onClick={() => setIsPlayerDrawerOpen(false)} 
-                style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', textTransform: 'uppercase' }} 
-                type="button"
-              >
-                Close
-              </button>
+              <button onClick={() => setIsPlayerDrawerOpen(false)} style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', textTransform: 'uppercase' }} type="button">Close</button>
             </div>
             
-            {/* Top Toolbar Action Core: Live Search Box */}
             <div style={{ backgroundColor: '#001710', padding: '14px 18px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '20px' }}>search</span>
               <input 
@@ -652,31 +637,26 @@ function CreateMatch({ onNavigate }) {
               />
             </div>
             
-            {/* Full-Width Quick Guest Visibility Bar Trigger */}
             <button
               type="button"
               onClick={() => setIsAddingGuest(!isAddingGuest)}
-              style={{ width: '100%', backgroundColor: isAddingGuest ? '#ecc151' : '#0e3c2f', color: isAddingGuest ? '#3e2e00' : '#ecc151', border: '1px solid rgba(236,193,81,0.08)', padding: '14px 0', borderRadius: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textTransform: 'uppercase', transition: 'all 0.2s' }}
+              style={{ width: '100%', backgroundColor: isAddingGuest ? '#ecc151' : '#0e3c2f', color: isAddingGuest ? '#3e2e00' : '#ecc151', border: '1px solid rgba(236,193,81,0.08)', padding: '14px 0', borderRadius: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '6px', textTransform: 'uppercase', transition: 'all 0.2s' }}
             >
-              <span style={{ fontSize: '14px', fontWeight: 'bold', fontFamily: 'monospace' }}>
-                {isAddingGuest ? '✕' : '＋'}
-              </span>
+              <span style={{ fontSize: '14px', fontWeight: 'bold', fontFamily: 'monospace' }}>{isAddingGuest ? '✕' : '＋'}</span>
               {isAddingGuest ? 'Collapse Guest Console' : 'Create Quick Anonymous Guest'}
             </button>
 
-            {/* 🏎️ RESTRUCTURED HIGH-FIDELITY INLINE GUEST ENTRY DECK WITH STRETCHED PILL CHASSIS */}
             {isAddingGuest && (
               <form 
                 onSubmit={handleCreateQuickGuest}
-                style={{ backgroundColor: '#001710', border: '1px solid #ecc151', padding: '20px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeIn 0.2s ease-out' }}
+                style={{ backgroundColor: '#001710', border: '1px solid #ecc151', padding: '20px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  {/* Guest Handle Row */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.05em' }}>GUEST NAME / MONIKER</span>
                     <input 
                       type="text" 
-                      placeholder="e.g., Slicer Mike"
+                      placeholder="e.g., Timmy"
                       value={guestName}
                       onChange={(e) => setGuestName(e.target.value)}
                       required
@@ -684,7 +664,6 @@ function CreateMatch({ onNavigate }) {
                     />
                   </div>
 
-                  {/* Stretched Grid Layout for Inputs */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px', alignItems: 'end' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.05em' }}>
@@ -700,19 +679,14 @@ function CreateMatch({ onNavigate }) {
                       />
                     </div>
 
-                    {/* Pro High-Contrast Toggle */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <span style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', letterSpacing: '0.05em' }}>INDEX VARIANT</span>
                       <div 
                         onClick={() => setIsPlusHandicap(!isPlusHandicap)}
                         style={{ height: '46px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '10px', display: 'flex', padding: '3px', boxSizing: 'border-box', cursor: 'pointer' }}
                       >
-                        <div style={{ flex: 1, backgroundColor: !isPlusHandicap ? '#00251b' : 'transparent', color: !isPlusHandicap ? '#beedd9' : 'rgba(190,237,217,0.25)', border: !isPlusHandicap ? '1px solid rgba(236,193,81,0.1)' : 'none', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900', transition: 'all 0.1s ease-in-out' }}>
-                          STD
-                        </div>
-                        <div style={{ flex: 1, backgroundColor: isPlusHandicap ? '#ecc151' : 'transparent', color: isPlusHandicap ? '#3e2e00' : 'rgba(236,193,81,0.3)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900', transition: 'all 0.1s ease-in-out' }}>
-                          PLUS (+)
-                        </div>
+                        <div style={{ flex: 1, backgroundColor: !isPlusHandicap ? '#00251b' : 'transparent', color: !isPlusHandicap ? '#beedd9' : 'rgba(190,237,217,0.25)', border: !isPlusHandicap ? '1px solid rgba(236,193,81,0.1)' : 'none', borderRadius: '7px', display: 'flex', alignItems: 'center', justifycontent: 'center', fontSize: '11px', fontWeight: '900' }}>STD</div>
+                        <div style={{ flex: 1, backgroundColor: isPlusHandicap ? '#ecc151' : 'transparent', color: isPlusHandicap ? '#3e2e00' : 'rgba(236,193,81,0.3)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifycontent: 'center', fontSize: '11px', fontWeight: '900' }}>PLUS (+)</div>
                       </div>
                     </div>
                   </div>
@@ -720,16 +694,15 @@ function CreateMatch({ onNavigate }) {
 
                 <button
                   type="submit"
-                  style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '10px', padding: '14px 0', fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '4px' }}
+                  style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '10px', padding: '14px 0', fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '6px', marginTop: '4px' }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: 'bold' }}>check_circle</span>
-                  Inject {isPlusHandicap ? `+${guestHandicap}` : guestHandicap} Guest Into Slot {activeTargetSlot}
+                  Inject Slot {activeTargetSlot} Guest
                 </button>
               </form>
             )}
           </div>
 
-          {/* Member Profile Selection Rows Stack */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 60px 24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {filteredProfiles.map((profile) => {
               const isAlreadyDrafted = Object.values(selectedPlayers).some(slot => slot?.id === profile.id);
@@ -737,7 +710,7 @@ function CreateMatch({ onNavigate }) {
                 <div 
                   key={profile.id} 
                   onClick={() => { if (!isAlreadyDrafted) handleSelectMemberProfile(profile); }}
-                  style={{ backgroundColor: isAlreadyDrafted ? 'rgba(0,29,20,0.3)' : '#001d14', border: '1px solid rgba(236,193,81,0.04)', padding: '16px 20px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: isAlreadyDrafted ? 'not-allowed' : 'pointer', opacity: isAlreadyDrafted ? 0.35 : 1 }}
+                  style={{ backgroundColor: isAlreadyDrafted ? 'rgba(0,29,20,0.3)' : '#001d14', border: '1px solid rgba(236,193,81,0.04)', padding: '16px 20px', borderRadius: '14px', display: 'flex', justifycontent: 'space-between', alignItems: 'center', cursor: isAlreadyDrafted ? 'not-allowed' : 'pointer', opacity: isAlreadyDrafted ? 0.35 : 1 }}
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <span style={{ color: '#beedd9', fontSize: '16px', fontWeight: '900', textTransform: 'uppercase' }}>
