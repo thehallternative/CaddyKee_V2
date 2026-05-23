@@ -4,9 +4,10 @@ import { supabase } from '../../supabaseClient';
 function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], onNavigate }) {
   // 🎛️ CORE TELEMETRY & LOADING STATES
   const [loading, setLoading] = useState(true);
+  const [committing, setCommitting] = useState(false);
   const [matchDetails, setMatchDetails] = useState({ match_name: '', course_name: '' });
   const [players, setPlayers] = useState([]);
-  const [holeDefinitions, setHoleDefinitions] = useState([]); // Real DB Hole Layout Cache
+  const [holeDefinitions, setHoleDefinitions] = useState([]); 
   
   // 🎛️ UNIVERSAL CHASSIS SCORES & HOLE VARIABLE STATES
   const [currentHole, setCurrentHole] = useState(1);
@@ -14,7 +15,7 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
   const [selectedWolfPartner, setSelectedWolfPartner] = useState('');
   const [isPressActive, setIsPressActive] = useState(false);
   
-  // Local scratchpad score state before sync architecture is written
+  // 🗄️ THE MASTER LIVE GROSS SCORE TRACKER
   const [scores, setScores] = useState({});
 
   // 🛠️ UTILITY: PLUS HANDICAP MATHEMATICS
@@ -25,7 +26,14 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
     return `${num}`;
   };
 
-  // 📡 DATABASE READ: MASTER CONTEXT, ROSTER, & HOLE CONFIGURATIONS
+  // 🧮 DYNAMIC HOLE DICTIONARY RESOLVER
+  const currentHoleData = holeDefinitions.find(h => h.hole_number === currentHole) || {
+    par: 4,
+    stroke_index: 5,
+    yardage: null
+  };
+
+  // 📡 DATABASE READ A: MASTER CONTEXT, ROSTER, & HOLE MAPS
   useEffect(() => {
     if (!matchId) {
       setLoading(false);
@@ -61,20 +69,15 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
           .eq('match_id', matchId)
           .order('player_position', { ascending: true });
 
+        let loadedPlayers = [];
         if (!playerErr && playerData) {
           setPlayers(playerData);
-          
-          // Seed initial score tracking references dynamically from real roster IDs
-          const initialScores = {};
-          playerData.forEach(p => {
-            initialScores[p.id] = { gross: 4, overUnder: 'E' };
-          });
-          setScores(initialScores);
+          loadedPlayers = playerData;
         }
 
         // 3. Fetch Hole Definitions Map based on Course Name Match
+        let resolvedHoles = [];
         if (resolvedCourseName) {
-          // Resolve course entry
           const { data: courseMap } = await supabase
             .from('course_map')
             .select('id')
@@ -82,7 +85,6 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
             .maybeSingle();
 
           if (courseMap) {
-            // Find the tee system linked to this course
             const { data: tees } = await supabase
               .from('course_tees')
               .select('id')
@@ -90,7 +92,6 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
               .limit(1);
 
             if (tees && tees.length > 0) {
-              // Pull all 18 hole definitions ordered by layout sequence
               const { data: holes } = await supabase
                 .from('course_hole_definitions')
                 .select('hole_number, par, stroke_index, yardage')
@@ -99,10 +100,20 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
 
               if (holes) {
                 setHoleDefinitions(holes);
+                resolvedHoles = holes;
               }
             }
           }
         }
+
+        // 4. Initial Score Seeding Pass -> Fallback defaults to true Par metrics
+        const firstHoleConfig = resolvedHoles.find(h => h.hole_number === 1) || { par: 4 };
+        const initialScores = {};
+        loadedPlayers.forEach(p => {
+          initialScores[p.id] = { gross: firstHoleConfig.par, overUnder: 'E' };
+        });
+        setScores(initialScores);
+
       } catch (error) {
         console.error('Telemetry ingestion fault intercepted:', error.message);
       } finally {
@@ -113,21 +124,81 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
     fetchMatchTelemetry();
   }, [matchId]);
 
-  // 🧮 DYNAMIC HOLE DICTIONARY RESOLVER
-  const currentHoleData = holeDefinitions.find(h => h.hole_number === currentHole) || {
-    par: 4,
-    stroke_index: 5,
-    yardage: null
+  // 📡 DATABASE READ B: LIVE SCORE STATE COUPLING PER HOLE TRANSITION
+  useEffect(() => {
+    if (!matchId || players.length === 0) return;
+
+    const fetchCommittedHoleScores = async () => {
+      try {
+        // Fetch existing score card entries for this hole
+        const { data: dbScores, error } = await supabase
+          .from('match_scores')
+          .select('player_id, gross_score')
+          .eq('match_id', matchId)
+          .eq('hole_number', currentHole);
+
+        if (error) throw error;
+
+        const updatedScores = {};
+        players.forEach(p => {
+          // If found in database, map it; otherwise default to this hole's native baseline Par
+          const matchingRow = dbScores?.find(s => s.player_id === p.id);
+          updatedScores[p.id] = {
+            gross: matchingRow ? matchingRow.gross_score : currentHoleData.par,
+            overUnder: 'E'
+          };
+        });
+
+        setScores(updatedScores);
+      } catch (err) {
+        console.error('Error fetching committed hole state:', err.message);
+      }
+    };
+
+    fetchCommittedHoleScores();
+  }, [currentHole, matchId, players, holeDefinitions]);
+
+  // 💾 TELEMETRY DATABASE DEPLOYMENT ENGINE (THE COMMIT GATE)
+  const handleCommitHoleTelemetry = async () => {
+    if (!matchId || players.length === 0) return;
+
+    try {
+      setCommitting(true);
+
+      // Build safe database upsert objects matching your constraints
+      const upsertPayloads = players.map(player => {
+        const currentGross = scores[player.id]?.gross || currentHoleData.par;
+        return {
+          match_id: matchId,
+          player_id: player.id,
+          hole_number: currentHole,
+          gross_score: currentGross
+        };
+      });
+
+      const { error } = await supabase
+        .from('match_scores')
+        .upsert(upsertPayloads, { onConflict: 'match_id,player_id,hole_number' });
+
+      if (error) throw error;
+
+      // Soft success micro haptic visual reminder
+      alert(`HOLE ${currentHole} METRICS RECORDED SECURELY`);
+    } catch (err) {
+      alert(`Commit sequence blocked: ${err.message}`);
+    } finally {
+      setCommitting(false);
+    }
   };
 
-  const adjustScore = (playerKey, delta) => {
+  const adjustScore = (playerId, delta) => {
     setScores(prev => {
-      if (!prev[playerKey]) return prev;
+      const currentGross = prev[playerId]?.gross || currentHoleData.par;
       return {
         ...prev,
-        [playerKey]: {
-          ...prev[playerKey],
-          gross: Math.max(1, prev[playerKey].gross + delta)
+        [playerId]: {
+          ...prev[playerId],
+          gross: Math.max(1, currentGross + delta)
         }
       };
     });
@@ -193,7 +264,9 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
           {activeRoster.map(player => {
             const displayName = player.profiles?.nickname || player.profiles?.display_name || player.guest_display_name || `PLAYER ${player.player_position}`;
             const initials = displayName.substring(0, 2);
-            const currentScoreObj = scores[player.id] || { gross: currentHoleData.par, overUnder: 'E' };
+            
+            // Evaluates current database snapshot state fallback directly to Par metrics dynamic state
+            const currentGross = scores[player.id]?.gross !== undefined ? scores[player.id].gross : currentHoleData.par;
 
             return (
               <div key={player.id} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(20px)', padding: '12px 16px', borderRadius: '40px', border: '1px solid rgba(236, 193, 81, 0.1)', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', boxSizing: 'border-box' }}>
@@ -216,7 +289,7 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
                   <button onClick={() => adjustScore(player.id, -1)} style={{ width: '36px', height: '36px', borderRadius: '50%', border: 'none', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} type="button">
                     <span style={{ fontSize: '18px', fontWeight: 'bold' }}>—</span>
                   </button>
-                  <span style={{ width: '32px', textAlign: 'center', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '20px' }}>{currentScoreObj.gross}</span>
+                  <span style={{ width: '32px', textAlign: 'center', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '20px' }}>{currentGross}</span>
                   <button onClick={() => adjustScore(player.id, 1)} style={{ width: '36px', height: '36px', borderRadius: '50%', border: 'none', backgroundColor: '#ecc151', color: '#3e2e00', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} type="button">
                     <span style={{ fontSize: '18px', fontWeight: 'bold' }}>＋</span>
                   </button>
@@ -225,8 +298,18 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
             );
           })}
 
+          {/* 💾 THE COMMIT TELEMETRY ACTION GATE BAR */}
+          <button
+            onClick={handleCommitHoleTelemetry}
+            disabled={committing || players.length === 0}
+            style={{ width: '100%', padding: '16px 0', borderRadius: '32px', border: 'none', backgroundColor: committing ? '#0e3c2f' : '#ecc151', color: committing ? '#beedd9' : '#3e2e00', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', fontSize: '12px', cursor: 'pointer', marginTop: '16px', tracking: '0.05em', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}
+            type="button"
+          >
+            {committing ? 'SYNCING METRICS...' : '💾 COMMIT HOLE TELEMETRY'}
+          </button>
+
           {/* 🕹️ VERTICALLY OPTIMIZED HOLE NAVIGATION SCROLLER PANEL */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#00251b', padding: '16px 24px', borderRadius: '32px', border: '1px solid rgba(236,193,81,0.15)', marginTop: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#00251b', padding: '16px 24px', borderRadius: '32px', border: '1px solid rgba(236,193,81,0.15)', marginTop: '8px' }}>
             <button 
               onClick={() => handleHoleChange('prev')} 
               disabled={currentHole === 1}
@@ -309,7 +392,7 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
           
           {/* Section B1: Individual Standings */}
           <section>
-            <span style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190,237,217,0.5)', tracking: '0.15em', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>INDIVIDUAL WAGER METRICS</span>
+            <span style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190, 237, 217, 0.5)', tracking: '0.15em', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>INDIVIDUAL WAGER METRICS</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {activeRoster.map((player, i) => {
                 const name = player.profiles?.nickname || player.profiles?.display_name || player.guest_display_name || `PLAYER ${player.player_position}`;
