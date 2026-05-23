@@ -79,11 +79,11 @@ function CreatePlayer({ onNavigate }) {
         calculatedHcp = -calculatedHcp;
       }
 
+      // 💊 DATABASE ALIGNMENT FIX: Omit "display_name" from payloads entirely so Postgres calculates it automatically
       const insertPayload = {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
-        display_name: `${firstName.trim()} ${lastName.trim()}`.toUpperCase(),
-        nickname: nickname.trim() ? nickname.trim() : null, // Preserves case structure perfectly
+        nickname: nickname.trim() ? nickname.trim() : null, 
         email: email.trim() || null,
         phone: phone.trim() || null,
         role: playerRole,
@@ -105,7 +105,7 @@ function CreatePlayer({ onNavigate }) {
 
       if (error) throw error;
       
-      onNavigate('player-intel'); // Return smoothly to registry view layout
+      onNavigate('player-intel'); 
     } catch (err) {
       alert(`Player creation blocked: ${err.message}`);
     } finally {
@@ -117,18 +117,10 @@ function CreatePlayer({ onNavigate }) {
     <div style={{ textAlign: 'left', width: '100%', position: 'relative', boxSizing: 'border-box' }}>
       
       {/* HEADER MASTER ACTION BAR - Fixed Redundant UI Removed Cleanly */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', height: '80px', marginBottom: '24px' }}>
-        <button 
-          onClick={() => onNavigate('player-intel')}
-          style={{ width: '40px', height: '40px', borderRadius: '50%', border: 'none', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-          type="button"
-        >
-          ◀
-        </button>
+      <header style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '80px', marginBottom: '24px' }}>
         <h1 style={{ color: '#ecc151', margin: 0, fontSize: '24px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', tracking: '-0.02em' }}>
           CREATE PLAYER
         </h1>
-        <div style={{ width: '40px' }} />
       </header>
 
       <main style={{ display: 'flex', flexDirection: 'column', gap: '40px', paddingBottom: '60px' }}>
@@ -324,11 +316,12 @@ function CreatePlayer({ onNavigate }) {
         {/* PRIMARY DEPLOYMENT SAVE ENGINE CONTAINER */}
         <div style={{ marginTop: '20px' }}>
           <button 
-            onClick={handleCreatePlayerSubmit}
-            style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 20px 40px rgba(236,193,81,0.15)' }}
+            onClick={createPlayerSubmit}
+            disabled={saving}
+            style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 20px 40px rgba(236,193,81,0.2)', opacity: saving ? 0.6 : 1 }}
             type="button"
           >
-            <span>💾</span> SAVE NEW PLAYER
+            <span>💾</span> {saving ? 'SAVING...' : 'SAVE NEW PLAYER'}
           </button>
         </div>
 
