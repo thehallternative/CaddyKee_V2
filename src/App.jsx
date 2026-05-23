@@ -6,6 +6,7 @@ import CreateMatch from './screens/1.0_RoundIntel/1.1_CreateMatch';
 import LiveGameMain from './screens/1.0_RoundIntel/1.2_LiveGameMain';
 import PlayerIntelMain from './screens/3.0_PlayerIntel/3.0_PlayerIntelMain';
 import EditPlayer from './screens/3.0_PlayerIntel/3.1_EditPlayer';
+import CreatePlayer from './screens/3.0_PlayerIntel/3.2_CreatePlayer';
 
 function App() {
   const [isKeeOpen, setIsKeeOpen] = useState(false);
@@ -16,10 +17,10 @@ function App() {
     matchId: null,
     matchName: '',
     courseName: '',
-    activeGames: ['match_play'] // Dynamic chassis baseline default
+    activeGames: ['match_play']
   });
 
-  // 📝 INDIVIDUAL PLAYER SELECTION DATA DATA SLOT FOR PROFILES
+  // 📝 EXTRA DATA TRANSPORTER SLOT FOR INDIVIDUAL PLAYER EDITING
   const [editingPlayerId, setEditingPlayerId] = useState(null);
 
   const handleScreenNavigation = (targetScreen, contextPayload = null) => {
@@ -33,48 +34,52 @@ function App() {
     setActiveScreen(targetScreen);
   };
 
+  // 🎛️ DYNAMIC CONDITIONAL HEADER RENDERING
+  // Main feature views (Player Intel, Edit, Create) manage their own optimized header spacing metrics.
+  const shouldRenderGlobalHeader = !['player-intel', 'edit-player', 'create-player'].includes(activeScreen);
+
   return (
     <div style={{ backgroundColor: '#001710', minHeight: '100vh', position: 'relative', fontFamily: 'sans-serif', overflowX: 'hidden', paddingBottom: '140px', boxSizing: 'border-box' }}>
       
-      {/* HEADER MASTER PANEL */}
-      <header style={{ width: '100%', padding: '24px 24px 16px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-        <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
-            <button 
-              onClick={() => {
-                if (activeScreen === 'live-game') handleScreenNavigation('round-intel');
-                else if (activeScreen === 'create-match') handleScreenNavigation('round-intel');
-                else if (activeScreen === 'round-intel') handleScreenNavigation('mission-control');
-                else if (activeScreen === 'player-intel') handleScreenNavigation('mission-control');
-                else if (activeScreen === 'edit-player') handleScreenNavigation('player-intel');
-                else handleScreenNavigation('mission-control');
-              }}
-              style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
+      {/* GLOBAL HEADER PANEL - Only renders on non-intel screen variants to kill duplicate bars */}
+      {shouldRenderGlobalHeader && (
+        <header style={{ width: '100%', padding: '24px 24px 16px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+          <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
+              <button 
+                onClick={() => {
+                  if (activeScreen === 'live-game') handleScreenNavigation('round-intel');
+                  else if (activeScreen === 'create-match') handleScreenNavigation('round-intel');
+                  else if (activeScreen === 'round-intel') handleScreenNavigation('mission-control');
+                  else handleScreenNavigation('mission-control');
+                }}
+                style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
+                type="button"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                  {activeScreen === 'mission-control' ? 'home' : 'arrow_back'}
+                </span>
+              </button>
+            </div>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: 1 }}>
+            <button
+              onClick={() => handleScreenNavigation('mission-control')}
+              style={{ background: 'none', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', outline: 'none', padding: 0 }}
               type="button"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                {activeScreen === 'mission-control' ? 'home' : 'arrow_back'}
-              </span>
+              <h1 style={{ color: '#ecc151', fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.05em', fontSize: '26px', lineHeight: '1', margin: 0 }}>CADDYKEE</h1>
             </button>
           </div>
-        </div>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: 1 }}>
-          <button
-            onClick={() => handleScreenNavigation('mission-control')}
-            style={{ background: 'none', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', outline: 'none', padding: 0 }}
-            type="button"
-          >
-            <h1 style={{ color: '#ecc151', fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.05em', fontSize: '26px', lineHeight: '1', margin: 0 }}>CADDYKEE</h1>
-          </button>
-        </div>
-        
-        <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontStyle: 'italic', fontWeight: '900', fontSize: '11px', boxSizing: 'border-box' }}>
-            DH
+          
+          <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontStyle: 'italic', fontWeight: '900', fontSize: '11px', boxSizing: 'border-box' }}>
+              DH
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* CORE ROUTING ENGINE INJECTION */}
       <main className="px-6 pt-4 max-w-xl mx-auto w-full box-border" style={{ display: 'flex', flexDirection: 'column' }}>
@@ -102,6 +107,9 @@ function App() {
         {activeScreen === 'edit-player' && (
           <EditPlayer playerId={editingPlayerId} onNavigate={(screen) => handleScreenNavigation(screen)} />
         )}
+        {activeScreen === 'create-player' && (
+          <CreatePlayer onNavigate={(screen) => handleScreenNavigation(screen)} />
+        )}
       </main>
 
       {/* PERSISTENT NAVIGATION HUD PILL */}
@@ -112,15 +120,15 @@ function App() {
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Game On</span>
           </button>
           
-          <button onClick={() => handleScreenNavigation('player-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', padding: 0 }} type="button">
+          <button onClick={() => handleScreenNavigation('player-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifycontent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', padding: 0 }} type="button">
             <svg style={{ width: '24px', height: '24px' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M14.5 5.5C15 4 16.5 2.8 18 2.2C19.2 1.8 19.8 2.5 19.2 3.8L17.5 6.5" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M12.5 5.5C12.8 3.5 14 1.8 15.5 1.2C16.8 0.8 17.5 1.8 16.8 3.2L15 6" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M10.5 5.5C10.5 3.8 11.2 2.2 12.5 1.8C13.8 1.5 14.2 2.5 13.8 3.8L12.5 6" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M9.5 6.5H15.5L13.5 22.5H8.5L9.5 6.5Z" fill="#0e3c2f" stroke="#ecc151" strokeWidth="1.5" strokeLinejoin="round"/>
               <path d="M9.5 7.5C8.2 7.5 7.5 8.5 7.5 9.5V11.5C7.5 12.5 8.2 13.5 9.5 13.5" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
-              <path d="M11 11.5L16.5 22" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M11 14.5L7.5 22" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M11 14.5L16.5 22" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M11 14.5L7.5 22" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Players</span>
           </button>

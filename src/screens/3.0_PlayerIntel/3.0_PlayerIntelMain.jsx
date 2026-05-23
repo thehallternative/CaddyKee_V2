@@ -11,12 +11,9 @@ function PlayerIntelMain({ onNavigate }) {
   const [profiles, setProfiles] = useState([]);
   const [selectedPlayerStats, setSelectedPlayerStats] = useState(null);
 
-  // 📝 INLINE DRAWER REGISTRATION STATES (ADDING TIMMY ENGINE)
-  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
-  const [newPlayerName, setNewPlayerName] = useState('');
-  const [newPlayerNickname, setNewPlayerNickname] = useState('');
-  const [newPlayerHcp, setNewPlayerHcp] = useState('0.0');
-  const [isPlusHcp, setIsPlusHcp] = useState(false); // 💊 Plus toggle rule support
+  // 📡 ASSISTANT VOICE SHEET STATE COUPLINGS
+  const [isKeeVoiceOpen, setIsKeeVoiceOpen] = useState(false);
+  const [voiceTouchStart, setVoiceTouchStart] = useState(0);
 
   // 📡 DATABASE READ: STREAM PROFILES FROM SUPABASE
   const fetchProfiles = async () => {
@@ -48,52 +45,16 @@ function PlayerIntelMain({ onNavigate }) {
     return num.toFixed(1);
   };
 
-  // 💾 DATABASE WRITE: REGISTER NEW PLAYER
-  const handleCreatePlayerSubmit = async (e) => {
-    e.preventDefault();
-    if (!newPlayerName.trim()) return;
+  // 🕹️ ASSISTANT DRAWER GESTURE SWIPE SHEET DISPATCHERS
+  const handleVoiceTouchStart = (e) => {
+    setVoiceTouchStart(e.touches[0].clientY);
+  };
 
-    try {
-      setLoading(true);
-      let hcpFloat = newPlayerHcp ? parseFloat(newPlayerHcp) : 0.0;
-      
-      // Invert plus handicap value to negative float for database storage rule
-      if (isPlusHcp && hcpFloat > 0) {
-        hcpFloat = -hcpFloat;
-      }
-
-      const cleanName = newPlayerName.trim();
-      const nameParts = cleanName.split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-
-      const insertPayload = {
-        display_name: cleanName.toUpperCase(),
-        first_name: firstName,
-        last_name: lastName,
-        nickname: newPlayerNickname.trim() ? newPlayerNickname.trim().toUpperCase() : null,
-        handicap_index: hcpFloat
-      };
-
-      const { error } = await supabase
-        .from('profiles')
-        .insert([insertPayload]);
-
-      if (error) throw error;
-
-      // Reset Form State Elements
-      setNewPlayerName('');
-      setNewPlayerNickname('');
-      setNewPlayerHcp('0.0');
-      setIsPlusHcp(false);
-      setIsCreateDrawerOpen(false);
-
-      // Re-fetch clean list state data instantly
-      await fetchProfiles();
-    } catch (err) {
-      alert(`Registration fault: ${err.message}`);
-    } finally {
-      setLoading(false);
+  const handleVoiceTouchMove = (e) => {
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - voiceTouchStart;
+    if (diff > 60) {
+      setIsKeeVoiceOpen(false); // Discard drawer downward swipe gesture match
     }
   };
 
@@ -145,8 +106,9 @@ function PlayerIntelMain({ onNavigate }) {
 
       {/* DRAWER TRIGGER FORM TOGGLE ACTION PANEL */}
       <div style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}>
+        {/* 🚀 FIXED LINK: Button routes cleanly to our standalone Create Player component layout */}
         <button 
-          onClick={() => setIsCreateDrawerOpen(true)}
+          onClick={() => onNavigate('create-player')}
           style={{ flex: 1, backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', padding: '16px 0', borderRadius: '12px', fontWeight: '900', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
           type="button"
         >
@@ -192,28 +154,12 @@ function PlayerIntelMain({ onNavigate }) {
                   </div>
                 </div>
                 
-                {/* 🔥 COMPONENT UPGRADE: HIGH-FIDELITY INTERACTIVE PROMINENT ROUTING EDIT BUTTON CHASSIS */}
                 <button 
                   onClick={(e) => {
-                    e.stopPropagation(); // Shield modal click overlays from firing during navigation
+                    e.stopPropagation(); 
                     onNavigate('edit-player', { playerId: profile.id });
                   }}
-                  style={{ 
-                    width: '44px', 
-                    height: '44px', 
-                    borderRadius: '50%', 
-                    border: 'none', 
-                    backgroundColor: '#0e3c2f', 
-                    color: '#ecc151', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    fontSize: '16px',
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
-                    border: '1px solid rgba(236,193,81,0.2)',
-                    transition: 'all 0.2s'
-                  }} 
+                  style={{ width: '44px', height: '44px', borderRadius: '50%', border: 'none', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '16px', boxShadow: '0 4px 10px rgba(0,0,0,0.2)', border: '1px solid rgba(236,193,81,0.2)', transition: 'all 0.2s' }} 
                   type="button"
                 >
                   ✎
@@ -223,7 +169,7 @@ function PlayerIntelMain({ onNavigate }) {
           })}
         </div>
       ) : (
-        /* DUMMY COMPONENT GROUP STACK DRAWERS LINK */
+        /* GROUPS TAB LEDGER SECTION */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(236, 193, 81, 0.05)' }}>
             <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151' }}>THE SATURDAY SKINS</h3>
@@ -235,82 +181,6 @@ function PlayerIntelMain({ onNavigate }) {
           </div>
         </div>
       )}
-
-      {/* ========================================================================= */}
-      {/* 💎 EXPANDABLE BOTTOM DRAWER FORM: ADDING TIMMY DIRECT ENGINE             */}
-      {/* ========================================================================= */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: isCreateDrawerOpen ? 'auto' : 'none', display: 'block' }}>
-        <div onClick={() => setIsCreateDrawerOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isCreateDrawerOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
-        
-        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '20vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', boxShadow: '0 -20px 100px rgba(0,0,0,0.8)', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isCreateDrawerOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(236,193,81,0.2)', margin: '16px auto 4px auto' }} />
-          
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <span style={{ color: '#ecc151', fontWeight: '700', textTransform: 'uppercase', fontSize: '9px', tracking: '0.1em' }}>DB INJECTION MODULE</span>
-              <h3 style={{ fontSize: '24px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', margin: '2px 0 0 0' }}>REGISTER PLAYER</h3>
-            </div>
-            <button onClick={() => setIsCreateDrawerOpen(false)} style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.2)', color: '#ecc151', fontWeight: '900', cursor: 'pointer' }} type="button">✕</button>
-          </div>
-
-          <form onSubmit={handleCreatePlayerSubmit} style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', boxSizing: 'border-box' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', tracking: '0.05em' }}>FULL NAME</label>
-              <input 
-                type="text"
-                placeholder="e.g., Timmy Gallant"
-                value={newPlayerName}
-                onChange={(e) => setNewPlayerName(e.target.value)}
-                required
-                style={{ backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '14px', color: 'white', fontWeight: '700', fontSize: '15px', outline: 'none' }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', tracking: '0.05em' }}>NICKNAME / CLUB MONIKER</label>
-              <input 
-                type="text"
-                placeholder="e.g., TG"
-                value={newPlayerNickname}
-                onChange={(e) => setNewPlayerNickname(e.target.value)}
-                style={{ backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '14px', color: 'white', fontWeight: '700', fontSize: '15px', outline: 'none' }}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', tracking: '0.05em' }}>HANDICAP INDEX</label>
-                <input 
-                  type="number"
-                  step="0.1"
-                  placeholder="0.0"
-                  value={newPlayerHcp}
-                  onChange={(e) => setNewPlayerHcp(e.target.value)}
-                  style={{ backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '14px', color: isPlusHcp ? '#ecc151' : 'white', fontWeight: '900', fontSize: '15px', outline: 'none', boxSizing: 'border-box', width: '100%' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', tracking: '0.05em' }}>INDEX VARIANT</label>
-                <div 
-                  onClick={() => setIsPlusHcp(!isPlusHcp)}
-                  style={{ height: '50px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', display: 'flex', padding: '4px', boxSizing: 'border-box', cursor: 'pointer' }}
-                >
-                  <div style={{ flex: 1, backgroundColor: !isPlusHcp ? '#00251b' : 'transparent', color: !isPlusHcp ? '#beedd9' : 'rgba(190,237,217,0.2)', border: !isPlusHcp ? '1px solid rgba(236,193,81,0.1)' : 'none', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900' }}>STD</div>
-                  <div style={{ flex: 1, backgroundColor: isPlusHcp ? '#ecc151' : 'transparent', color: isPlusHcp ? '#3e2e00' : 'rgba(190,237,217,0.2)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900' }}>PLUS (+)</div>
-                </div>
-              </div>
-            </div>
-
-            <button 
-              type="submit"
-              style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '30px', padding: '18px 0', fontSize: '13px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', marginTop: '12px', boxShadow: '0 8px 20px rgba(236,193,81,0.25)' }}
-            >
-              Confirm Cloud Injection
-            </button>
-          </form>
-        </div>
-      </div>
 
       {/* ========================================================================= */}
       {/* 💎 STANDALONE PLAYER STATS DETAIL OVERLAY PANELS LAYER                   */}
@@ -358,6 +228,79 @@ function PlayerIntelMain({ onNavigate }) {
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* 🎙️ PERSISTENT KEE ASSISTANT DRAWER LAYER MATRIX                          */}
+      {/* ========================================================================= */}
+      <div style={{ position: 'fixed', bottom: '110px', left: '0', right: '0', zIndex: 55, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+        <button 
+          onClick={() => setIsKeeVoiceOpen(true)}
+          style={{ pointerEvents: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none' }}
+          type="button"
+        >
+          <div style={{ width: '54px', height: '54px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 20px rgba(236,193,81,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#ecc151', fontSize: '24px' }}>🎙️</span>
+          </div>
+          <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px', color: '#ecc151' }}>KEE VOICE</span>
+        </button>
+      </div>
+
+      <div style={{ position: 'fixed', inset: 0, zIndex: 130, pointerEvents: isKeeVoiceOpen ? 'auto' : 'none', display: 'block' }}>
+        <div onClick={() => setIsKeeVoiceOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isKeeVoiceOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} />
+        
+        <div 
+          onTouchStart={handleVoiceTouchStart}
+          onTouchMove={handleVoiceTouchMove}
+          style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '12vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', backgroundColor: '#00251b', boxShadow: '0 -20px 100px rgba(0,0,0,0.8)', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isKeeVoiceOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}
+        >
+          <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(236,193,81,0.2)', margin: '16px auto 4px auto', flex: 'none' }} />
+          
+          <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(65,72,69,0.1)', flex: 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '44px', height: '44px', backgroundColor: 'rgba(236,193,81,0.1)', border: '1px solid #ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', borderRadius: '50%' }}>
+                💬
+              </div>
+              <div>
+                <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>KEE</h3>
+                <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', tracking: '0.05em' }}>● ACTIVE INTELLIGENCE</span>
+              </div>
+            </div>
+            <button onClick={() => setIsKeeVoiceOpen(false)} style={{ backgroundColor: '#001710', color: '#beedd9', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }} type="button">Close</button>
+          </div>
+
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px', boxSizing: 'border-box', textAlign: 'center', gap: '32px' }}>
+            <div>
+              <p style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900', fontSize: '18px', margin: '0 0 16px 0', tracking: '0.05em' }}>Listening...</p>
+              <div style={{ display: 'flex', gap: '6px', height: '40px', alignItems: 'center', justifyContent: 'center' }}>
+                <style>{`
+                  @keyframes wavePulse { 0%, 100% { height: 10px; } 50% { height: 36px; } }
+                  .w-bar { width: 4px; background: #ecc151; border-radius: 2px; animation: wavePulse 1.2s ease-in-out infinite; }
+                `}</style>
+                <div className="w-bar" style={{ animationDelay: '0.1s' }} />
+                <div className="w-bar" style={{ animationDelay: '0.3s' }} />
+                <div className="w-bar" style={{ animationDelay: '0.5s' }} />
+                <div className="w-bar" style={{ animationDelay: '0.2s' }} />
+                <div className="w-bar" style={{ animationDelay: '0.1s' }} />
+              </div>
+            </div>
+
+            <div style={{ width: '100%', maxWidth: '400px', boxSizing: 'border-box' }}>
+              <p style={{ fontSize: '11px', fontWeight: '900', color: 'rgba(190,237,217,0.5)', tracking: '0.1em', marginBottom: '12px' }}>TRY ASKING</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ backgroundColor: '#001710', padding: '16px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', textAlign: 'left', fontStyle: 'italic', fontSize: '13px', color: '#beedd9' }}>"What's the wind doing on the 4th?"</div>
+                <div style={{ backgroundColor: '#001710', padding: '16px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', textAlign: 'left', fontStyle: 'italic', fontSize: '13px', color: '#beedd9' }}>"Who's leading the tournament?"</div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ padding: '24px', paddingBottom: '40px', flex: 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#00120b', padding: '4px', borderRadius: '30px', border: '1px solid rgba(236,193,81,0.1)' }}>
+              <input placeholder="Type a caddy message..." style={{ flex: 1, background: 'transparent', border: 'none', padding: '12px 20px', color: 'white', outline: 'none', fontSize: '14px' }} />
+              <button style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#ecc151', border: 'none', color: '#3e2e00', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }} type="button">▲</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
     </div>
   );
