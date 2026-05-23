@@ -5,11 +5,31 @@ function CreateMatch({ onNavigate }) {
   // 💾 STANDARDIZED PICKER & LIVE DATABASE COUPLING STATES
   const [matchName, setMatchName] = useState('');
   
-  // Custom Mobile UI Sliding Drawer Layer Matrix
+  // Custom Mobile UI Sliding Drawer Layer Matrix (Courses)
   const [coursesList, setCoursesList] = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [isCourseDrawerOpen, setIsCourseDrawerOpen] = useState(false);
+
+  // Squad Roster Management States (Profiles & Guests)
+  const [profilesList, setProfilesList] = useState([]);
+  const [loadingProfiles, setLoadingProfiles] = useState(true);
+  const [isPlayerDrawerOpen, setIsPlayerDrawerOpen] = useState(false);
+  const [activeTargetSlot, setActiveTargetSlot] = useState(null); // Tracks slots 1, 2, 3, or 4
+  const [searchFilter, setSearchFilter] = useState('');
+
+  // Quick Guest Inline Toggle Form States
+  const [isAddingGuest, setIsAddingGuest] = useState(false);
+  const [guestName, setGuestName] = useState('');
+  const [guestHandicap, setGuestHandicap] = useState('0.0');
+
+  // Dynamic 4-Slot Active Player Board State Matrix
+  const [selectedPlayers, setSelectedPlayers] = useState({
+    1: null,
+    2: null,
+    3: null,
+    4: null
+  });
 
   // Initialize with standard current formats so pickers aren't empty on mount
   const [teeDate, setTeeDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -21,31 +41,90 @@ function CreateMatch({ onNavigate }) {
     match: { active: true, expanded: false, hcpScale: 100, tieBreaker: 'SUDDEN DEATH' }
   });
 
-  // 📡 ASYNC MOUNT TELEMETRY LOAD (PATTERN 1)
+  // 📡 ASYNC MOUNT TELEMETRY LOAD (COURSES & PROFILES)
   useEffect(() => {
-    async function streamCourseMapRegistry() {
+    async function streamInitialDatabaseTelemetry() {
       try {
         setLoadingCourses(true);
-        const { data, error } = await supabase
+        setLoadingProfiles(true);
+
+        // 1. Fetch active course options
+        const { data: courseData, error: courseError } = await supabase
           .from('course_map')
           .select('id, course_name, location_city')
           .eq('is_active', true)
           .order('course_name', { ascending: true });
 
-        if (error) throw error;
-        
-        setCoursesList(data || []);
-        if (data && data.length > 0) {
-          setSelectedCourseId(data[0].id);
+        if (courseError) throw courseError;
+        setCoursesList(courseData || []);
+        if (courseData && courseData.length > 0) {
+          setSelectedCourseId(courseData[0].id);
         }
+
+        // 2. Fetch active community member profile rows
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, display_name, nickname, handicap_index');
+
+        if (profileError) throw profileError;
+        setProfilesList(profileData || []);
+
+        // 3. Evaluate and apply default captain assignment to Slot 1
+        const defaultCaptain = profileData?.find(
+          p => p.nickname?.toUpperCase() === 'DH' || p.display_name?.toUpperCase().includes('HAZEN')
+        );
+        if (defaultCaptain) {
+          setSelectedPlayers(prev => ({ ...prev, 1: defaultCaptain }));
+        }
+
       } catch (err) {
-        console.error('Failed to query course_map channels:', err.message);
+        console.error('Failed to query database registries:', err.message);
       } finally {
         setLoadingCourses(false);
+        setLoadingProfiles(false);
       }
     }
-    streamCourseMapRegistry();
+    streamInitialDatabaseTelemetry();
   }, []);
+
+  // Open Player Drawer Controller
+  const handleOpenPlayerSelection = (slotIndex) => {
+    setActiveTargetSlot(slotIndex);
+    setSearchFilter('');
+    setIsAddingGuest(false);
+    setGuestName('');
+    setGuestHandicap('0.0');
+    setIsPlayerDrawerOpen(true);
+  };
+
+  // Assign Member Selection Row to active player board slot
+  const handleSelectMemberProfile = (profileObj) => {
+    setSelectedPlayers(prev => ({
+      ...prev,
+      [activeTargetSlot]: profileObj
+    }));
+    setIsPlayerDrawerOpen(false);
+  };
+
+  // Local Object Factory to deploy temporary accountable Quick Guests
+  const handleCreateQuickGuest = (e) => {
+    e.preventDefault();
+    if (!guestName.trim()) return;
+
+    const pseudoGuestProfile = {
+      id: null, // Signals transactional layer to process this as a guest string name fallback
+      is_guest: true,
+      display_name: guestName.trim().toUpperCase(),
+      nickname: 'GUEST',
+      handicap_index: guestHandicap ? parseFloat(guestHandicap) : 0.0
+    };
+
+    setSelectedPlayers(prev => ({
+      ...prev,
+      [activeTargetSlot]: pseudoGuestProfile
+    }));
+    setIsPlayerDrawerOpen(false);
+  };
 
   const handleGameToggle = (gameId) => {
     setGames(prev => ({
@@ -93,7 +172,7 @@ function CreateMatch({ onNavigate }) {
   // Find Currently Active Selected Course Object Profile safely
   const currentSelectedCourse = coursesList.find(c => c.id === selectedCourseId);
 
-  // 🚀 ACTIVE PAYLOAD DATA EMISSION
+  // 🚀 ATOMIC COMPOUND TRANSACTION TELEMETRY EMISSION
   const handleInitializeMatch = async () => {
     try {
       // Clean time input string to include standard seconds matrix format for PostgreSQL compatibility
@@ -102,7 +181,7 @@ function CreateMatch({ onNavigate }) {
       // Map course ID back to string name parameters for target matches schema insertion row
       const targetCourseName = currentSelectedCourse ? currentSelectedCourse.course_name : 'Unknown Course';
 
-      // 1. Dispatch clean, sanitized structural variables to your live Supabase database
+      // TRANSACTION STEP 1: Insert Core Matches Header Log Item
       const { data: newMatch, error: matchError } = await supabase
         .from('matches')
         .insert([
@@ -118,7 +197,7 @@ function CreateMatch({ onNavigate }) {
 
       if (matchError) throw matchError;
 
-      // 2. Loop and generate active side-wager relational entries inside active_wagers
+      // TRANSACTION STEP 2: Loop and generate active side-wager relational entries inside active_wagers
       const activeGameKeys = Object.keys(games).filter(g => games[g].active);
       
       if (activeGameKeys.length > 0) {
@@ -135,12 +214,35 @@ function CreateMatch({ onNavigate }) {
         if (wagerError) throw wagerError;
       }
 
-      // 3. Fast Handoff Context payload step over to the Universal Scoring Chassis screen
+      // TRANSACTION STEP 3: Map Active Board Slots and Write into the optimized match_players schema
+      const activeRosterPayload = Object.keys(selectedPlayers)
+        .filter(slotKey => selectedPlayers[slotKey] !== null)
+        .map(slotKey => {
+          const p = selectedPlayers[slotKey];
+          return {
+            match_id: newMatch.id,
+            profile_id: p.id, // Will save cleanly as NULL if it's a guest profile object
+            guest_display_name: p.id ? null : p.display_name, // Saves unique moniker if profile_id is missing
+            player_position: parseInt(slotKey),
+            handicap_at_match_time: p.handicap_index || 0.0
+          };
+        });
+
+      if (activeRosterPayload.length > 0) {
+        const { error: rosterError } = await supabase
+          .from('match_players')
+          .insert(activeRosterPayload);
+
+        if (rosterError) throw rosterError;
+      }
+
+      // TRANSACTION STEP 4: Fast Handoff Context payload step over to the Universal Scoring Chassis screen
       onNavigate('live-game', {
         matchId: newMatch.id,
         matchName: matchName || 'Saturday Skins Challenge',
         courseName: targetCourseName,
-        activeGames: activeGameKeys
+        activeGames: activeGameKeys,
+        roster: selectedPlayers
       });
 
     } catch (err) {
@@ -148,6 +250,12 @@ function CreateMatch({ onNavigate }) {
       alert('Supabase Connection Failed: ' + err.message);
     }
   };
+
+  // Local Array Discovery Filter Rules for Active Member Profile Lists
+  const filteredProfiles = profilesList.filter(p => {
+    const combinedCriteria = `${p.display_name || ''} ${p.nickname || ''}`.toUpperCase();
+    return combinedCriteria.includes(searchFilter.toUpperCase());
+  });
 
   return (
     <div style={{ textAlign: 'left', width: '100%', boxSizing: 'border-box' }}>
@@ -179,7 +287,7 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* PILLAR 2: WHERE (PREMIUM SLIDING DRAWER TRIGGER LINK) */}
+        {/* PILLAR 2: WHERE */}
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', padding: '0 8px' }}>
             <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em' }}>WHERE</span>
@@ -206,7 +314,6 @@ function CreateMatch({ onNavigate }) {
                   </span>
                 </div>
               )}
-              {/* Custom Caret Arrow to indicate clickability */}
               <span className="material-symbols-outlined" style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', color: '#ecc151', fontSize: '20px', opacity: 0.6 }}>
                 unfold_more
               </span>
@@ -245,27 +352,43 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* PILLAR 4: WHO */}
+        {/* PILLAR 4: WHO (INTEGRATED ACTIVE SQUAD BOARD SELECTION GRAPHICS) */}
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', padding: '0 8px' }}>
             <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em' }}>WHO</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-            <div style={{ backgroundColor: '#00251b', padding: '16px 8px', borderRadius: '16px', border: '1px solid #ecc151', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontStyle: 'italic', fontSize: '14px', marginBottom: '8px' }}>
-                DH
-              </div>
-              <span style={{ fontSize: '10px', fontWeight: '900', color: 'white', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', width: '100%' }}>D. HAZEN</span>
-              <span style={{ fontSize: '8px', fontWeight: '900', color: '#ecc151', marginTop: '4px' }}>HCP: 4.2</span>
-            </div>
-            {[2, 3, 4].map(idx => (
-              <div key={idx} style={{ backgroundColor: '#0e3c2f', borderRadius: '16px', border: '1px dashed rgba(236,193,81,0.15)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px 8px', opacity: 0.6 }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid rgba(236,193,81,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(236,193,81,0.4)' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
+            {[1, 2, 3, 4].map(slotIdx => {
+              const player = selectedPlayers[slotIdx];
+              return (
+                <div 
+                  key={slotIdx}
+                  onClick={() => { if (!loadingProfiles) handleOpenPlayerSelection(slotIdx); }}
+                  style={{ backgroundColor: player ? '#00251b' : '#0e3c2f', border: player ? '1px solid #ecc151' : '1px dashed rgba(236,193,81,0.15)', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '16px 8px', cursor: 'pointer', minHeight: '112px', justifyContent: 'center', boxSizing: 'border-box' }}
+                >
+                  {player ? (
+                    <>
+                      <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontStyle: 'italic', fontSize: '14px', marginBottom: '8px' }}>
+                        {player.nickname ? player.nickname.substring(0, 2).toUpperCase() : player.display_name.substring(0, 2).toUpperCase()}
+                      </div>
+                      <span style={{ fontSize: '10px', fontWeight: '900', color: 'white', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', width: '100%', textTransform: 'uppercase' }}>
+                        {player.nickname ? player.nickname : player.display_name.split(' ')[0]}
+                      </span>
+                      <span style={{ fontSize: '8px', fontWeight: '900', color: '#ecc151', marginTop: '4px' }}>
+                        HCP: {player.handicap_index !== null ? player.handicap_index : '0.0'}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid rgba(236,193,81,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(236,193,81,0.4)', marginBottom: '8px' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
+                      </div>
+                      <span style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190,237,217,0.4)' }}>SLOT {slotIdx}</span>
+                    </>
+                  )}
                 </div>
-                <span style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', marginTop: '12px' }}>PLAYER {idx}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
@@ -412,38 +535,28 @@ function CreateMatch({ onNavigate }) {
       </div>
 
       {/* ========================================================================= */}
-      {/* 💎 HIGH-FIDELITY MOBILE COURSE SLIDING DRAWER SYSTEM                      */}
+      {/* 💎 DRAWER A: HIGH-FIDELITY MOBILE COURSE SLIDING DRAWER SYSTEM             */}
       {/* ========================================================================= */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: isCourseDrawerOpen ? 'auto' : 'none', display: 'block' }}>
-        
-        {/* Dark Backdrop Mask Filter */}
         <div 
           onClick={() => setIsCourseDrawerOpen(false)} 
           style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isCourseDrawerOpen ? 1 : 0, transition: 'opacity 0.4s ease-out', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} 
         />
-        
-        {/* Sliding Sheet Panel */}
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '15vh', borderTop: '1px solid rgba(236,193,81,0.25)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', boxShadow: '0 -15px 40px rgba(0,0,0,0.6)', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isCourseDrawerOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          
-          {/* Top Notch Bar Graphic */}
           <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto', flex: 'none' }} />
-          
-          {/* Header Dashboard Title */}
           <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 'none' }}>
             <div>
               <p style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.15em', margin: '0 0 2px 0', textTransform: 'uppercase' }}>SELECT VENUE GEOMETRY</p>
-              <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic', uppercase: 'text' }}>AVAILABLE CLUBS</h3>
+              <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>AVAILABLE CLUBS</h3>
             </div>
             <button 
               onClick={() => setIsCourseDrawerOpen(false)} 
-              style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', textTransform: 'uppercase' }} 
+              style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }} 
               type="button"
             >
               Cancel
             </button>
           </div>
-
-          {/* Dynamic Scroll Matrix Stack Rows */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 60px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {coursesList.map((course) => {
               const isSelected = course.id === selectedCourseId;
@@ -454,21 +567,149 @@ function CreateMatch({ onNavigate }) {
                   style={{ backgroundColor: isSelected ? '#0e3c2f' : '#001d14', border: isSelected ? '1px solid #ecc151' : '1px solid rgba(236,193,81,0.04)', padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingRight: '12px' }}>
-                    <span style={{ color: isSelected ? '#white' : '#beedd9', fontSize: '16px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.02em' }}>
+                    <span style={{ color: isSelected ? 'white' : '#beedd9', fontSize: '16px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.02em' }}>
                       {course.course_name}
                     </span>
                     <span style={{ color: isSelected ? '#ecc151' : 'rgba(190,237,217,0.4)', fontSize: '12px', fontWeight: '700' }}>
                       {course.location_city}
                     </span>
                   </div>
-                  
-                  {/* Radio Confirmation Light Indicator */}
                   <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: isSelected ? '2px solid #ecc151' : '2px solid rgba(236,193,81,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', boxSizing: 'border-box' }}>
                     {isSelected && <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ecc151' }} />}
                   </div>
                 </div>
               );
             })}
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 💎 DRAWER B: HIGH-FIDELITY SEARCH DRAWER + ACCOUNTABLE QUICK GUEST PACK  */}
+      {/* ========================================================================= */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 110, pointerEvents: isPlayerDrawerOpen ? 'auto' : 'none', display: 'block' }}>
+        <div 
+          onClick={() => setIsPlayerDrawerOpen(false)} 
+          style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isPlayerDrawerOpen ? 1 : 0, transition: 'opacity 0.4s ease-out', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} 
+        />
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '15vh', borderTop: '1px solid rgba(236,193,81,0.25)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isPlayerDrawerOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -15px 40px rgba(0,0,0,0.6)' }}>
+          
+          <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto', flex: 'none' }} />
+          
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', flexDirection: 'column', gap: '14px', flex: 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <p style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.15em', margin: '0 0 2px 0', textTransform: 'uppercase' }}>ROSTER SQUAD MUTATION</p>
+                <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>SELECT PLAYER SLOT {activeTargetSlot}</h3>
+              </div>
+              <button 
+                onClick={() => setIsPlayerDrawerOpen(false)} 
+                style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', textTransform: 'uppercase' }} 
+                type="button"
+              >
+                Close
+              </button>
+            </div>
+            
+            {/* Top Toolbar Action Core: Live Search + Quick Guest Deck Toggle */}
+            <div style={{ display: 'flex', gap: '12px', itemsCenter: 'center' }}>
+              <div style={{ flex: 1, backgroundColor: '#001710', padding: '14px 18px', rounded: '12px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '20px' }}>search</span>
+                <input 
+                  type="text"
+                  placeholder="Search community profiles..."
+                  value={searchFilter}
+                  onChange={(e) => setSearchFilter(e.target.value)}
+                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#beedd9', fontWeight: '700', fontSize: '15px', padding: 0 }}
+                />
+              </div>
+              
+              <button
+                type="button"
+                onClick={() => setIsAddingGuest(!isAddingGuest)}
+                style={{ backgroundColor: isAddingGuest ? '#ecc151' : '#0e3c2f', color: isAddingGuest ? '#3e2e00' : '#ecc151', border: '1px solid rgba(236,193,81,0.1)', padding: '0 18px', borderRadius: '12px', height: '48px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whitespace: 'nowrap', textTransform: 'uppercase', transition: 'all 0.2s' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{isAddingGuest ? 'close' : 'person_add'}</span>
+                {isAddingGuest ? 'Cancel' : 'Quick Guest'}
+              </button>
+            </div>
+
+            {/* 🏎️ INLINE QUICK GUEST ACCELERATION CARD */}
+            {isAddingGuest && (
+              <form 
+                onSubmit={handleCreateQuickGuest}
+                style={{ backgroundColor: '#001710', border: '1px solid #ecc151', padding: '20px', borderRadius: '16px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '14px', animation: 'fadeIn 0.2s ease-out' }}
+              >
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.05em' }}>GUEST NAME / MONIKER</span>
+                    <input 
+                      type="text" 
+                      placeholder="e.g., Slicer Mike"
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      required
+                      style={{ backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: 'white', fontSize: '14px', fontWeight: '700', outline: 'none' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.05em' }}>HANDICAP</span>
+                    <input 
+                      type="number" 
+                      step="0.1" 
+                      placeholder="0.0"
+                      value={guestHandicap}
+                      onChange={(e) => setGuestHandicap(e.target.value)}
+                      style={{ backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: 'white', fontSize: '14px', fontWeight: '700', outline: 'none', textalign: 'center' }}
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '10px', padding: '14px 0', fontSize: '13px', fontWeight: '900', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '6px' }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: 'bold' }}>check_circle</span>
+                  Inject Accountable Guest Into Slot {activeTargetSlot}
+                </button>
+              </form>
+            )}
+          </div>
+
+          {/* Member Profile Selection Rows Stack */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 60px 24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {filteredProfiles.map((profile) => {
+              // Duplicate Prevention check against existing card assignments
+              const isAlreadyDrafted = Object.values(selectedPlayers).some(slot => slot?.id === profile.id);
+              return (
+                <div 
+                  key={profile.id} 
+                  onClick={() => { if (!isAlreadyDrafted) handleSelectMemberProfile(profile); }}
+                  style={{ backgroundColor: isAlreadyDrafted ? 'rgba(0,29,20,0.3)' : '#001d14', border: '1px solid rgba(236,193,81,0.04)', padding: '16px 20px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: isAlreadyDrafted ? 'not-allowed' : 'pointer', opacity: isAlreadyDrafted ? 0.35 : 1 }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ color: '#beedd9', fontSize: '16px', fontWeight: '900', textTransform: 'uppercase' }}>
+                      {profile.display_name}
+                      {profile.nickname && (
+                        <span style={{ color: '#ecc151', marginLeft: '6px', fontSize: '13px', fontWeight: '700' }}>
+                          ({profile.nickname.toUpperCase()})
+                        </span>
+                      )}
+                    </span>
+                    <span style={{ color: 'rgba(190,237,217,0.4)', fontSize: '11px', fontWeight: '700' }}>
+                      GLOBAL HANDICAP REGISTER: {profile.handicap_index !== null ? profile.handicap_index : '0.0'}
+                    </span>
+                  </div>
+                  <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '18px', opacity: isAlreadyDrafted ? 0.2 : 0.6 }}>
+                    {isAlreadyDrafted ? 'lock_person' : 'person_add'}
+                  </span>
+                </div>
+              );
+            })}
+            {filteredProfiles.length === 0 && !isAddingGuest && (
+              <p style={{ color: 'rgba(190,237,217,0.3)', textAlign: 'center', fontStyle: 'italic', marginTop: '30px', fontSize: '13px' }}>
+                No database records match your search query.
+              </p>
+            )}
           </div>
 
         </div>
