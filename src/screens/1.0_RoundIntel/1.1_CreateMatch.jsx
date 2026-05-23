@@ -125,7 +125,7 @@ function CreateMatch({ onNavigate }) {
 
     let finalHcpValue = guestHandicap ? parseFloat(guestHandicap) : 0.0;
     
-    // 🧮 Plus Math Conversion Rule: Store + as negative float value
+    // 🧮 Core Plus Math Conversion Rule: Store + as negative float value
     if (isPlusHandicap && finalHcpValue > 0) {
       finalHcpValue = -finalHcpValue;
     }
@@ -213,7 +213,7 @@ function CreateMatch({ onNavigate }) {
 
       if (matchError) throw matchError;
 
-      // TRANSACTION STEP 2: Loop and generate active side-wager entries
+      // TRANSACTION STEP 2: Loop and generate active side-wager relational entries inside active_wagers
       const activeGameKeys = Object.keys(games).filter(g => games[g].active);
       
       if (activeGameKeys.length > 0) {
@@ -614,7 +614,7 @@ function CreateMatch({ onNavigate }) {
       </div>
 
       {/* ========================================================================= */}
-      {/* 💎 DRAWER B: VERTICALLY-OPTIMIZED SEARCH DRAWER + PLUS HCP TOGGLE MODULE  */}
+      {/* 💎 DRAWER B: HIGH-FIDELITY SEARCH DRAWER + ACCOUNTABLE QUICK GUEST PACK  */}
       {/* ========================================================================= */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 110, pointerEvents: isPlayerDrawerOpen ? 'auto' : 'none', display: 'block' }}>
         <div 
@@ -625,8 +625,7 @@ function CreateMatch({ onNavigate }) {
           
           <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto', flex: 'none' }} />
           
-          {/* Vertical Stack Toolbar Area to Prevent Button Cutoff Clipping */}
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', flexDirection: 'column', gap: '12px', flex: 'none' }}>
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', flexDirection: 'column', gap: '14px', flex: 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <p style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.15em', margin: '0 0 2px 0', textTransform: 'uppercase' }}>ROSTER SQUAD MUTATION</p>
@@ -641,7 +640,7 @@ function CreateMatch({ onNavigate }) {
               </button>
             </div>
             
-            {/* 100% Full-Width Clean Profile Search Row Input */}
+            {/* Top Toolbar Action Core: Live Search Box */}
             <div style={{ backgroundColor: '#001710', padding: '14px 18px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '20px' }}>search</span>
               <input 
@@ -652,24 +651,26 @@ function CreateMatch({ onNavigate }) {
                 style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#beedd9', fontWeight: '700', fontSize: '15px', padding: 0 }}
               />
             </div>
-
-            {/* Vertically Stacked Wide Quick Guest Navigation Bar Row */}
+            
+            {/* Full-Width Quick Guest Visibility Bar Trigger */}
             <button
               type="button"
               onClick={() => setIsAddingGuest(!isAddingGuest)}
               style={{ width: '100%', backgroundColor: isAddingGuest ? '#ecc151' : '#0e3c2f', color: isAddingGuest ? '#3e2e00' : '#ecc151', border: '1px solid rgba(236,193,81,0.08)', padding: '14px 0', borderRadius: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textTransform: 'uppercase', transition: 'all 0.2s' }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{isAddingGuest ? 'close_to_line' : 'person_add'}</span>
-              {isAddingGuest ? 'Collapse Guest Console' : '+ Create Quick Anonymous Guest'}
+              <span style={{ fontSize: '14px', fontWeight: 'bold', fontFamily: 'monospace' }}>
+                {isAddingGuest ? '✕' : '＋'}
+              </span>
+              {isAddingGuest ? 'Collapse Guest Console' : 'Create Quick Anonymous Guest'}
             </button>
 
-            {/* 🏎️ RESTRUCTURED HIGH-FIDELITY INLINE GUEST ENTRY DECK WITH PILL TOGGLE CHASSIS */}
+            {/* 🏎️ RESTRUCTURED HIGH-FIDELITY INLINE GUEST ENTRY DECK WITH STRETCHED PILL CHASSIS */}
             {isAddingGuest && (
               <form 
                 onSubmit={handleCreateQuickGuest}
                 style={{ backgroundColor: '#001710', border: '1px solid #ecc151', padding: '20px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeIn 0.2s ease-out' }}
               >
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '14px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   {/* Guest Handle Row */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.05em' }}>GUEST NAME / MONIKER</span>
@@ -683,11 +684,11 @@ function CreateMatch({ onNavigate }) {
                     />
                   </div>
 
-                  {/* Dynamic Handicap Entry Deck Row + Connected Pill Toggle */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', alignItems: 'end' }}>
+                  {/* Stretched Grid Layout for Inputs */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px', alignItems: 'end' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.05em' }}>
-                        {isPlusHandicap ? 'PLUS HANDICAP INDEX (+)' : 'STANDARD HANDICAP INDEX'}
+                        {isPlusHandicap ? 'PLUS HANDICAP (+)' : 'STANDARD HANDICAP'}
                       </span>
                       <input 
                         type="number" 
@@ -695,21 +696,21 @@ function CreateMatch({ onNavigate }) {
                         placeholder="0.0"
                         value={guestHandicap}
                         onChange={(e) => setGuestHandicap(e.target.value)}
-                        style={{ backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: isPlusHandicap ? '#ecc151' : 'white', fontSize: '14px', fontWeight: '900', outline: 'none' }}
+                        style={{ backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: isPlusHandicap ? '#ecc151' : 'white', fontSize: '14px', fontWeight: '900', outline: 'none', width: '100%', boxSizing: 'border-box' }}
                       />
                     </div>
 
-                    {/* 💊 THE PLUS HCP PILL TOGGLE ENGINE */}
+                    {/* Pro High-Contrast Toggle */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <span style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', letterSpacing: '0.05em' }}>INDEX VARIANT</span>
                       <div 
                         onClick={() => setIsPlusHandicap(!isPlusHandicap)}
-                        style={{ height: '45px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', display: 'flex', padding: '3px', boxSizing: 'border-box', cursor: 'pointer' }}
+                        style={{ height: '46px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '10px', display: 'flex', padding: '3px', boxSizing: 'border-box', cursor: 'pointer' }}
                       >
-                        <div style={{ flex: 1, backgroundColor: !isPlusHandicap ? '#00251b' : 'transparent', color: !isPlusHandicap ? '#beedd9' : 'rgba(190,237,217,0.3)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900', transition: 'all 0.15s' }}>
+                        <div style={{ flex: 1, backgroundColor: !isPlusHandicap ? '#00251b' : 'transparent', color: !isPlusHandicap ? '#beedd9' : 'rgba(190,237,217,0.25)', border: !isPlusHandicap ? '1px solid rgba(236,193,81,0.1)' : 'none', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900', transition: 'all 0.1s ease-in-out' }}>
                           STD
                         </div>
-                        <div style={{ flex: 1, backgroundColor: isPlusHandicap ? '#ecc151' : 'transparent', color: isPlusHandicap ? '#3e2e00' : 'rgba(236,193,81,0.4)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900', transition: 'all 0.15s' }}>
+                        <div style={{ flex: 1, backgroundColor: isPlusHandicap ? '#ecc151' : 'transparent', color: isPlusHandicap ? '#3e2e00' : 'rgba(236,193,81,0.3)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900', transition: 'all 0.1s ease-in-out' }}>
                           PLUS (+)
                         </div>
                       </div>
