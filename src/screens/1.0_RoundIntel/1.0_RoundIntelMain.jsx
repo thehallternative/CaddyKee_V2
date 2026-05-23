@@ -10,6 +10,11 @@ function RoundIntelMain({ onNavigate }) {
   const [scheduledMatches, setScheduledMatches] = useState([]);
   const [historyMatches, setHistoryMatches] = useState([]);
 
+  // 🎛️ SWIPE GESTURE STATE TRACKER
+  const [activeSwipeId, setActiveSwipeId] = useState(null); // Tracks which card is open
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchDelta, setTouchDelta] = useState(0);
+
   const fetchMatches = async () => {
     try {
       setLoading(true);
@@ -60,49 +65,80 @@ function RoundIntelMain({ onNavigate }) {
     }
   }, [isScheduledOpen]);
 
-  // 🗑️ CASCADING ADMIN DESTRUCTION ENGINE
-  const handleAdminDelete = async (e, matchId) => {
-    e.stopPropagation(); // Avoid triggering the screen navigation click
-    
-    const confirmDelete = window.confirm("ADMIN ALERT: Delete this match and all child wagers/rosters permanently?");
-    if (!confirmDelete) return;
-
+  // 🗑️ TELEMETRY CASCADING DESTRUCTION ENGINE
+  const executeMatchPurge = async (matchId) => {
     try {
       setLoading(true);
       
-      // 1. Clear child wagers
+      // 1. Wipe dependent wagers
       await supabase.from('active_wagers').delete().eq('match_id', matchId);
       
-      // 2. Clear child player ledger dependencies
+      // 2. Wipe dependent player rosters
       await supabase.from('match_players').delete().eq('match_id', matchId);
       
-      // 3. Delete master match frame
+      // 3. Clear master match record frame
       const { error } = await supabase.from('matches').delete().eq('id', matchId);
       
       if (error) throw error;
       
-      // Refresh cache state
+      setActiveSwipeId(null);
+      setTouchDelta(0);
       await fetchMatches();
     } catch (err) {
-      alert(`Delete sequence failed: ${err.message}`);
+      console.error(`Purge fault: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   const handleLaunchMatch = (match) => {
+    // If a card has an open swipe action, clicking resets it instead of navigating
+    if (activeSwipeId === match.id && touchDelta !== 0) {
+      setActiveSwipeId(null);
+      setTouchDelta(0);
+      return;
+    }
+
     setIsScheduledOpen(false);
-    
-    // Explicit structural contract payload passed straight back to App.jsx
     const payload = {
       matchId: match.id,
       matchName: match.match_name,
       courseName: match.course_name,
       activeGames: match.gameTypes
     };
-    
-    // DELIVER BOTH TARGET AND CONTENT PAYLOAD
     onNavigate('live-game', payload);
+  };
+
+  // 🕹️ MOBILE TOUCH INTERACTION EVENTS HANDLERS
+  const handleTouchStart = (e, id) => {
+    setTouchStart(e.targetTouches[0].clientX);
+    if (activeSwipeId !== id) {
+      setActiveSwipeId(id);
+      setTouchDelta(0);
+    }
+  };
+
+  const handleTouchMove = (e, id) => {
+    if (activeSwipeId !== id) return;
+    const currentX = e.targetTouches[0].clientX;
+    const currentDelta = currentX - touchStart;
+    
+    // Set boundaries to prevent over-swiping on mobile
+    if (currentDelta > 85) setTouchDelta(85);
+    else if (currentDelta < -85) setTouchDelta(-85);
+    else setTouchDelta(currentDelta);
+  };
+
+  const handleTouchEnd = () => {
+    // Lock-in check on release: must exceed 65px threshold or reset back to center
+    if (touchDelta < -65) {
+      setTouchDelta(-80); // Snap completely left to lock open delete
+    } else if (touchDelta > 65) {
+      setTouchDelta(80);  // Snap completely right to lock open edit
+    } else {
+      setActiveSwipeId(null);
+      setTouchDelta(0);   // Return home
+    }
   };
 
   const renderMatchCards = (matchList, placeholderText) => {
@@ -113,39 +149,65 @@ function RoundIntelMain({ onNavigate }) {
         </p>
       );
     }
-    return matchList.map(match => (
-      <div 
-        key={match.id} 
-        onClick={() => handleLaunchMatch(match)}
-        style={{ padding: '20px', borderRadius: '16px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', cursor: 'pointer', textAlign: 'left', position: 'relative' }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', paddingRight: '40px' }}>
-          <span style={{ fontSize: '10px', fontWeight: '700', color: '#ecc151', textTransform: 'uppercase', tracking: '0.05em' }}>
-            {match.tee_date} • {match.tee_time || 'NO TIME'}
-          </span>
-          <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '18px' }}>play_circle</span>
-        </div>
-        
-        <h4 style={{ fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', color: '#beedd9', margin: '0 40px 0 0' }}>
-          {match.match_name}
-        </h4>
-        <p style={{ fontSize: '13px', color: 'rgba(190,237,217,0.7)', margin: '4px 0 0 0', fontWeight: '500' }}>
-          {match.course_name}
-        </p>
+    return matchList.map(match => {
+      const isSwiped = activeSwipeId === match.id;
+      // Fluid runtime matrix style transform calculation
+      const cardTransform = isSwiped ? `translateX(${touchDelta}px)` : 'translateX(0px)';
 
-        {/* 🛠️ ABSOLUTE ADMIN CONTROL PANEL OVERLAY */}
-        <div style={{ position: 'absolute', right: '16px', bottom: '16px', display: 'flex', gap: '8px' }}>
-          <button
-            onClick={(e) => handleAdminDelete(e, match.id)}
-            style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(235, 94, 85, 0.2)', border: '1px solid #eb5e55', color: '#eb5e55', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', cursor: 'pointer' }}
-            title="Delete Match"
-            type="button"
+      return (
+        <div 
+          key={match.id}
+          style={{ position: 'relative', overflow: 'hidden', borderRadius: '16px', backgroundColor: '#051d16', width: '100%' }}
+        >
+          {/* 🔥 UNDERLAY LAYER A: PREMIUM GOLD EDIT MODULE */}
+          <div 
+            onClick={() => {
+              setActiveSwipeId(null);
+              setTouchDelta(0);
+              onNavigate('create-match', { matchId: match.id, isEditing: true });
+            }}
+            style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '100px', backgroundColor: '#ecc151', color: '#3e2e00', display: 'flex', alignItems: 'center', paddingLeft: '24px', boxSizing: 'border-box', fontWeight: '900', fontStyle: 'italic', fontSize: '12px', zIndex: 1, cursor: 'pointer', opacity: isSwiped && touchDelta > 0 ? 1 : 0, transition: 'opacity 0.1s' }}
           >
-            ✕
-          </button>
+            EDIT
+          </div>
+
+          {/* ❌ UNDERLAY LAYER B: HIGH-CONTRAST DESTRUCTIVE RED TRASH MODULE */}
+          <div 
+            onClick={() => {
+              if (window.confirm(`PERMANENT DELETION: Purge "${match.match_name}"?`)) {
+                executeMatchPurge(match.id);
+              }
+            }}
+            style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '100px', backgroundColor: '#eb5e55', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '20px', boxSizing: 'border-box', fontWeight: '900', fontStyle: 'italic', fontSize: '12px', zIndex: 1, cursor: 'pointer', opacity: isSwiped && touchDelta < 0 ? 1 : 0, transition: 'opacity 0.1s' }}
+          >
+            DELETE
+          </div>
+
+          {/* 🌁 TOP VISUAL FOREGROUND CARD STACK */}
+          <div 
+            onClick={() => handleLaunchMatch(match)}
+            onTouchStart={(e) => handleTouchStart(e, match.id)}
+            onTouchMove={(e) => handleTouchMove(e, match.id)}
+            onTouchEnd={handleTouchEnd}
+            style={{ padding: '20px', borderRadius: '16px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', cursor: 'pointer', textAlign: 'left', position: 'relative', zIndex: 2, transform: cardTransform, transition: touchDelta === 0 ? 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)' : 'none', willChange: 'transform' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontSize: '10px', fontWeight: '700', color: '#ecc151', textTransform: 'uppercase', tracking: '0.05em' }}>
+                {match.tee_date} • {match.tee_time || 'NO TIME'}
+              </span>
+              <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '18px' }}>play_circle</span>
+            </div>
+            
+            <h4 style={{ fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', color: '#beedd9', margin: 0 }}>
+              {match.match_name}
+            </h4>
+            <p style={{ fontSize: '13px', color: 'rgba(190,237,217,0.7)', margin: '4px 0 0 0', fontWeight: '500' }}>
+              {match.course_name}
+            </p>
+          </div>
         </div>
-      </div>
-    ));
+      );
+    });
   };
 
   return (
@@ -181,7 +243,7 @@ function RoundIntelMain({ onNavigate }) {
       </div>
 
       <div style={{ position: 'fixed', inset: 0, zIndex: 70, pointerEvents: isScheduledOpen ? 'auto' : 'none', display: 'block' }}>
-        <div onClick={() => setIsScheduledOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isScheduledOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
+        <div onClick={() => { setIsScheduledOpen(false); setActiveSwipeId(null); setTouchDelta(0); }} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isScheduledOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
         
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '10vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', backgroundColor: '#00251b', boxShadow: '0 -20px 100px rgba(0,0,0,0.8)', transition: 'transform 0.4s ease-out', transform: isScheduledOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(236,193,81,0.2)', margin: '16px auto 4px auto' }}></div>
@@ -192,22 +254,22 @@ function RoundIntelMain({ onNavigate }) {
                 <span style={{ color: '#ecc151', fontWeight: '700', textTransform: 'uppercase', tracking: '0.1em', fontSize: '10px' }}>Your Schedule</span>
                 <h3 style={{ fontSize: '32px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', color: '#ecc151', margin: '4px 0 0 0', letterSpacing: '-0.02em' }}>ROUND INTEL</h3>
               </div>
-              <button onClick={() => setIsScheduledOpen(false)} style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', cursor: 'pointer' }} type="button">
+              <button onClick={() => { setIsScheduledOpen(false); setActiveSwipeId(null); setTouchDelta(0); }} style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', cursor: 'pointer' }} type="button">
                 <span style={{ fontSize: '18px', fontWeight: 'bold' }}>✕</span>
               </button>
             </div>
 
             <div style={{ display: 'flex', padding: '2px', borderRadius: '30px', backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)' }}>
-              <button onClick={() => setActiveTab('scheduled')} style={{ flex: 1, padding: '10px 0', borderRadius: '24px', border: 'none', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', cursor: 'pointer', backgroundColor: activeTab === 'scheduled' ? '#ecc151' : 'transparent', color: activeTab === 'scheduled' ? '#3e2e00' : 'rgba(236,193,81,0.6)' }} type="button">Scheduled</button>
-              <button onClick={() => setActiveTab('live')} style={{ flex: 1, padding: '10px 0', borderRadius: '24px', border: 'none', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', cursor: 'pointer', backgroundColor: activeTab === 'live' ? '#ecc151' : 'transparent', color: activeTab === 'live' ? '#3e2e00' : 'rgba(236,193,81,0.6)' }} type="button">Live</button>
-              <button onClick={() => setActiveTab('history')} style={{ flex: 1, padding: '10px 0', borderRadius: '24px', border: 'none', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', cursor: 'pointer', backgroundColor: activeTab === 'history' ? '#ecc151' : 'transparent', color: activeTab === 'history' ? '#3e2e00' : 'rgba(236,193,81,0.6)' }} type="button">History</button>
+              <button onClick={() => { setActiveTab('scheduled'); setActiveSwipeId(null); setTouchDelta(0); }} style={{ flex: 1, padding: '10px 0', borderRadius: '24px', border: 'none', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', cursor: 'pointer', backgroundColor: activeTab === 'scheduled' ? '#ecc151' : 'transparent', color: activeTab === 'scheduled' ? '#3e2e00' : 'rgba(236,193,81,0.6)' }} type="button">Scheduled</button>
+              <button onClick={() => { setActiveTab('live'); setActiveSwipeId(null); setTouchDelta(0); }} style={{ flex: 1, padding: '10px 0', borderRadius: '24px', border: 'none', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', cursor: 'pointer', backgroundColor: activeTab === 'live' ? '#ecc151' : 'transparent', color: activeTab === 'live' ? '#3e2e00' : 'rgba(236,193,81,0.6)' }} type="button">Live</button>
+              <button onClick={() => { setActiveTab('history'); setActiveSwipeId(null); setTouchDelta(0); }} style={{ flex: 1, padding: '10px 0', borderRadius: '24px', border: 'none', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', cursor: 'pointer', backgroundColor: activeTab === 'history' ? '#ecc151' : 'transparent', color: activeTab === 'history' ? '#3e2e00' : 'rgba(236,193,81,0.6)' }} type="button">History</button>
             </div>
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 40px 20px', boxSizing: 'border-box' }}>
             {loading ? (
               <div style={{ color: '#beedd9', textAlign: 'center', fontWeight: '900', fontStyle: 'italic', padding: '20px' }}>
-                PROCESSING DATABASE INSTRUCTIONS...
+                EXECUTING DATABASE MANIFEST...
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
