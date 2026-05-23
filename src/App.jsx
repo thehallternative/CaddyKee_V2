@@ -49,7 +49,7 @@ function App() {
   const getScreenSubTitleString = () => {
     if (activeScreen === 'mission-control') return 'WELCOME';
     if (activeScreen === 'player-intel') return 'PLAYER INTELLIGENCE';
-    if (activeScreen === 'edit-player') return 'EDIT PROFILE';
+    if (activeScreen === 'edit-player') return 'EDIT PLAYER'; // 🚀 FIXED: Label updated to EDIT PLAYER as requested
     if (activeScreen === 'create-player') return 'CREATE PLAYER';
     if (activeScreen === 'round-intel') return 'ROUND INTELLIGENCE';
     if (activeScreen === 'create-match') return 'CREATE MATCH';
