@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import caddyKeeLogo from './assets/logo.png';
 import MissionControl from './screens/0.0_MissionControl';
-import RoundIntelMain from './screens/1.0_RoundIntelMain';
+import RoundIntelMain from './screens/1.0_RoundIntel/1.0_RoundIntelMain'; // <-- Adjusted to new nested folder home
+import CreateMatch from './screens/1.0_RoundIntel/1.1_CreateMatch'; 
 
 function App() {
   const [isKeeOpen, setIsKeeOpen] = useState(false);
@@ -10,12 +11,15 @@ function App() {
   return (
     <div style={{ backgroundColor: '#001710', minHeight: '100vh', position: 'relative', fontFamily: 'sans-serif', overflowX: 'hidden', paddingBottom: '140px', boxSizing: 'border-box' }}>
       
-      {/* 1. SYMMETRIC FIXED MASTER HEADER */}
+      {/* HEADER MASTER PANEL */}
       <header style={{ width: '100%', padding: '24px 24px 16px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
             <button 
-              onClick={() => setActiveScreen('mission-control')}
+              onClick={() => {
+                if (activeScreen === 'create-match') setActiveScreen('round-intel');
+                else setActiveScreen('mission-control');
+              }}
               style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
               type="button"
             >
@@ -43,7 +47,7 @@ function App() {
         </div>
       </header>
 
-      {/* 2. MAIN CORE INJECTION CANVAS */}
+      {/* CORE ROUTING ENGINE INJECTION */}
       <main className="px-6 pt-4 max-w-xl mx-auto w-full box-border" style={{ display: 'flex', flexDirection: 'column' }}>
         {activeScreen === 'mission-control' && (
           <MissionControl onNavigate={(screen) => setActiveScreen(screen)} />
@@ -51,18 +55,21 @@ function App() {
         {activeScreen === 'round-intel' && (
           <RoundIntelMain onNavigate={(screen) => setActiveScreen(screen)} />
         )}
+        {activeScreen === 'create-match' && (
+          <CreateMatch onNavigate={(screen) => setActiveScreen(screen)} />
+        )}
         
-        {/* Dynamic Fallback Router Interface */}
-        {activeScreen !== 'mission-control' && activeScreen !== 'round-intel' && (
+        {/* Safe fallback container view for upcoming screens under construction */}
+        {activeScreen !== 'mission-control' && activeScreen !== 'round-intel' && activeScreen !== 'create-match' && (
           <div style={{ textAlign: 'center', color: '#beedd9', padding: '40px 0', opacity: 0.6 }}>
             <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#ecc151', marginBottom: '16px' }}>construction</span>
             <h3 style={{ textTransform: 'uppercase', fontStyle: 'italic', fontWeight: '900', margin: 0 }}>Section Connected</h3>
-            <p style={{ fontSize: '12px', marginTop: '6px' }}>Ready for file parsing in channel path: "{activeScreen}"</p>
+            <p style={{ fontSize: '12px', marginTop: '6px' }}>Under construction: "{activeScreen}"</p>
           </div>
         )}
       </main>
 
-      {/* 3. PERSISTENT FIXED HUD NAVIGATION PILL */}
+      {/* PERSISTENT MASTER FOOTER NAVIGATION DOCK */}
       <div style={{ position: 'fixed', bottom: '24px', left: '16px', right: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
         <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 12px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
           <button onClick={() => setActiveScreen('mission-control')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
@@ -104,7 +111,7 @@ function App() {
         </nav>
       </div>
 
-      {/* DYNAMIC VOICE INTEL MODAL ASSISTANT */}
+      {/* VOICE DRAWER */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 60, pointerEvents: isKeeOpen ? 'auto' : 'none', display: 'block' }}>
         <div onClick={() => setIsKeeOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', opacity: isKeeOpen ? 1 : 0, transition: 'opacity 0.5s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '48px', borderTop: '1px solid rgba(236,193,81,0.2)', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', backgroundColor: '#00251b', boxShadow: '0 -10px 30px rgba(0,0,0,0.5)', transition: 'transform 0.5s ease-out', transform: isKeeOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}>
