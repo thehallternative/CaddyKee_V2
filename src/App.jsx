@@ -34,52 +34,63 @@ function App() {
     setActiveScreen(targetScreen);
   };
 
-  // 🎛️ DYNAMIC CONDITIONAL HEADER RENDERING
-  // Main feature views (Player Intel, Edit, Create) manage their own optimized header spacing metrics.
-  const shouldRenderGlobalHeader = !['player-intel', 'edit-player', 'create-player'].includes(activeScreen);
+  // Resolve Header Back Button Navigation Logic Matrix
+  const handleHeaderBackTransition = () => {
+    if (activeScreen === 'live-game') handleScreenNavigation('round-intel');
+    else if (activeScreen === 'create-match') handleScreenNavigation('round-intel');
+    else if (activeScreen === 'round-intel') handleScreenNavigation('mission-control');
+    else if (activeScreen === 'player-intel') handleScreenNavigation('mission-control');
+    else if (activeScreen === 'edit-player') handleScreenNavigation('player-intel');
+    else if (activeScreen === 'create-player') handleScreenNavigation('player-intel');
+    else handleScreenNavigation('mission-control');
+  };
+
+  // Custom Human-Readable Screen Header Title Formatter
+  const getScreenTitleString = () => {
+    if (activeScreen === 'player-intel') return 'PLAYER INTELLIGENCE';
+    if (activeScreen === 'edit-player') return 'EDIT PROFILE';
+    if (activeScreen === 'create-player') return 'CREATE PLAYER';
+    if (activeScreen === 'round-intel') return 'ROUND INTELLIGENCE';
+    if (activeScreen === 'create-match') return 'CREATE MATCH';
+    if (activeScreen === 'live-game') return currentMatchContext.matchName || 'LIVE SCORECARD';
+    return 'MISSION CONTROL';
+  };
 
   return (
     <div style={{ backgroundColor: '#001710', minHeight: '100vh', position: 'relative', fontFamily: 'sans-serif', overflowX: 'hidden', paddingBottom: '140px', boxSizing: 'border-box' }}>
       
-      {/* GLOBAL HEADER PANEL - Only renders on non-intel screen variants to kill duplicate bars */}
-      {shouldRenderGlobalHeader && (
-        <header style={{ width: '100%', padding: '24px 24px 16px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-          <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
-              <button 
-                onClick={() => {
-                  if (activeScreen === 'live-game') handleScreenNavigation('round-intel');
-                  else if (activeScreen === 'create-match') handleScreenNavigation('round-intel');
-                  else if (activeScreen === 'round-intel') handleScreenNavigation('mission-control');
-                  else handleScreenNavigation('mission-control');
-                }}
-                style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
-                type="button"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                  {activeScreen === 'mission-control' ? 'home' : 'arrow_back'}
-                </span>
-              </button>
-            </div>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: 1 }}>
-            <button
-              onClick={() => handleScreenNavigation('mission-control')}
-              style={{ background: 'none', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', outline: 'none', padding: 0 }}
+      {/* 👑 CORE MASTER APP HEADER BAR - STANDARD FOR ALL SCREENS */}
+      <header style={{ width: '100%', padding: '24px 24px 16px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+        <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
+            <button 
+              onClick={handleHeaderBackTransition}
+              style={{ color: '#ecc151', padding: 0, border: 'none', background: 'none', backgroundColor: 'transparent', outline: 'none', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
               type="button"
             >
-              <h1 style={{ color: '#ecc151', fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.05em', fontSize: '26px', lineHeight: '1', margin: 0 }}>CADDYKEE</h1>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                {activeScreen === 'mission-control' ? 'home' : 'arrow_back'}
+              </span>
             </button>
           </div>
-          
-          <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontStyle: 'italic', fontWeight: '900', fontSize: '11px', boxSizing: 'border-box' }}>
-              DH
-            </div>
-          </div>
-        </header>
-      )}
+        </div>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: 1, minWidth: 0 }}>
+          <h1 style={{ color: '#ecc151', fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.04em', fontSize: '20px', lineHeight: '1.1', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
+            {getScreenTitleString()}
+          </h1>
+        </div>
+        
+        <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+          <button
+            onClick={() => handleScreenNavigation('player-intel')}
+            style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontStyle: 'italic', fontWeight: '900', fontSize: '11px', boxSizing: 'border-box', cursor: 'pointer', padding: 0 }}
+            type="button"
+          >
+            DH
+          </button>
+        </div>
+      </header>
 
       {/* CORE ROUTING ENGINE INJECTION */}
       <main className="px-6 pt-4 max-w-xl mx-auto w-full box-border" style={{ display: 'flex', flexDirection: 'column' }}>
@@ -112,29 +123,23 @@ function App() {
         )}
       </main>
 
-      {/* PERSISTENT NAVIGATION HUD PILL */}
+      {/* 🧭 PERFECTLY REALIGNED HUD NAVIGATION PILL FRAME */}
       <div style={{ position: 'fixed', bottom: '24px', left: '16px', right: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
-        <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 12px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
-          <button onClick={() => handleScreenNavigation('mission-control')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: 'bold' }}>sports_golf</span>
+        <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 8px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
+          
+          <button onClick={() => handleScreenNavigation('mission-control')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: activeScreen === 'mission-control' ? '#ecc151' : '#beedd9', opacity: activeScreen === 'mission-control' ? 1 : 0.6, padding: 0 }} type="button">
+            <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>sports_golf</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Game On</span>
           </button>
           
-          <button onClick={() => handleScreenNavigation('player-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifycontent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', padding: 0 }} type="button">
-            <svg style={{ width: '24px', height: '24px' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M14.5 5.5C15 4 16.5 2.8 18 2.2C19.2 1.8 19.8 2.5 19.2 3.8L17.5 6.5" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M12.5 5.5C12.8 3.5 14 1.8 15.5 1.2C16.8 0.8 17.5 1.8 16.8 3.2L15 6" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M10.5 5.5C10.5 3.8 11.2 2.2 12.5 1.8C13.8 1.5 14.2 2.5 13.8 3.8L12.5 6" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M9.5 6.5H15.5L13.5 22.5H8.5L9.5 6.5Z" fill="#0e3c2f" stroke="#ecc151" strokeWidth="1.5" strokeLinejoin="round"/>
-              <path d="M9.5 7.5C8.2 7.5 7.5 8.5 7.5 9.5V11.5C7.5 12.5 8.2 13.5 9.5 13.5" stroke="#ecc151" strokeWidth="1.2" strokeLinecap="round"/>
-              <path d="M11 14.5L16.5 22" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M11 14.5L7.5 22" stroke="#ecc151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+          <button onClick={() => handleScreenNavigation('player-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: ['player-intel', 'edit-player', 'create-player'].includes(activeScreen) ? '#ecc151' : '#beedd9', opacity: ['player-intel', 'edit-player', 'create-player'].includes(activeScreen) ? 1 : 0.6, padding: 0 }} type="button">
+            <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>group</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Players</span>
           </button>
 
+          {/* Core Master Kee Voice Drawer Activation Center Anchor */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-            <button onClick={() => setIsKeeOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-20px)', width: '76px' }} type="button">
+            <button onClick={() => setIsKeeOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-20px)', width: '76px', padding: 0 }} type="button">
               <div style={{ width: '66px', height: '66px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 25px rgba(236,193,81,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '3px', boxSizing: 'border-box' }}>
                 <img src={caddyKeeLogo} alt="KEE" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span class="material-symbols-outlined" style="color:#ecc151;font-size:32px;">graphic_eq</span>'; }} />
               </div>
@@ -142,29 +147,66 @@ function App() {
             </button>
           </div>
 
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: 'bold' }}>meeting_room</span>
-            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px', whiteSpace: 'nowrap' }}>Clubhouse</span>
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: '#beedd9', opacity: 0.6, padding: 0 }} type="button">
+            <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>meeting_room</span>
+            <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Clubhouse</span>
           </button>
           
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151' }} type="button">
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: 'bold' }}>more_horiz</span>
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: '#beedd9', opacity: 0.6, padding: 0 }} type="button">
+            <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>more_horiz</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Menu</span>
           </button>
+
         </nav>
       </div>
 
-      {/* ASSISTANT SLIDE DRAWER */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 60, pointerEvents: isKeeOpen ? 'auto' : 'none', display: 'block' }}>
-        <div onClick={() => setIsKeeOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', opacity: isKeeOpen ? 1 : 0, transition: 'opacity 0.5s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
-        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '48px', borderTop: '1px solid rgba(236,193,81,0.2)', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', backgroundColor: '#00251b', boxShadow: '0 -10px 30px rgba(0,0,0,0.5)', transition: 'transform 0.5s ease-out', transform: isKeeOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(65,72,69,0.3)', margin: '20px auto 4px auto' }}></div>
-          <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(65,72,69,0.1)' }}>
-            <h3 style={{ margin: 0, color: '#beedd9', fontStyle: 'italic', fontWeight: '900' }}>KEE</h3>
-            <button onClick={() => setIsKeeOpen(false)} style={{ backgroundColor: '#001710', color: '#beedd9', border: 'none', padding: '8px 12px', borderRadius: '20px', cursor: 'pointer' }} type="button">Close</button>
+      {/* GLOBAL KEE VOICE DRAWER COMPONENT PORTAL */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 130, pointerEvents: isKeeOpen ? 'auto' : 'none', display: 'block' }}>
+        <div onClick={() => setIsKeeOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isKeeOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} />
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '12vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', backgroundColor: '#00251b', boxShadow: '0 -20px 100px rgba(0,0,0,0.8)', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isKeeOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(236,193,81,0.2)', margin: '16px auto 4px auto', flex: 'none' }} />
+          
+          <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(65,72,69,0.1)', flex: 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '44px', height: '44px', backgroundColor: 'rgba(236,193,81,0.1)', border: '1px solid #ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', borderRadius: '50%' }}>💬</div>
+              <div>
+                <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>KEE</h3>
+                <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', tracking: '0.05em' }}>● ACTIVE INTELLIGENCE</span>
+              </div>
+            </div>
+            <button onClick={() => setIsKeeOpen(false)} style={{ backgroundColor: '#001710', color: '#beedd9', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }} type="button">Close</button>
           </div>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <p style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900' }}>Listening...</p>
+
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px', boxSizing: 'border-box', textAlign: 'center', gap: '32px' }}>
+            <div>
+              <p style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900', fontSize: '18px', margin: '0 0 16px 0', tracking: '0.05em' }}>Listening...</p>
+              <div style={{ display: 'flex', gap: '6px', height: '40px', alignItems: 'center', justifyContent: 'center' }}>
+                <style>{`
+                  @keyframes wavePulse { 0%, 100% { height: 10px; } 50% { height: 36px; } }
+                  .w-bar { width: 4px; background: #ecc151; border-radius: 2px; animation: wavePulse 1.2s ease-in-out infinite; }
+                `}</style>
+                <div className="w-bar" style={{ animationDelay: '0.1s' }} />
+                <div className="w-bar" style={{ animationDelay: '0.3s' }} />
+                <div className="w-bar" style={{ animationDelay: '0.5s' }} />
+                <div className="w-bar" style={{ animationDelay: '0.2s' }} />
+                <div className="w-bar" style={{ animationDelay: '0.1s' }} />
+              </div>
+            </div>
+
+            <div style={{ width: '100%', maxWidth: '400px', boxSizing: 'border-box' }}>
+              <p style={{ fontSize: '11px', fontWeight: '900', color: 'rgba(190,237,217,0.5)', tracking: '0.1em', marginBottom: '12px' }}>TRY ASKING</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ backgroundColor: '#001710', padding: '16px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', textAlign: 'left', fontStyle: 'italic', fontSize: '13px', color: '#beedd9' }}>"What's the wind doing on the 4th?"</div>
+                <div style={{ backgroundColor: '#001710', padding: '16px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', textAlign: 'left', fontStyle: 'italic', fontSize: '13px', color: '#beedd9' }}>"Who's leading the tournament?"</div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ padding: '24px', paddingBottom: '40px', flex: 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#00120b', padding: '4px', borderRadius: '30px', border: '1px solid rgba(236,193,81,0.1)' }}>
+              <input placeholder="Type a caddy message..." style={{ flex: 1, background: 'transparent', border: 'none', padding: '12px 20px', color: 'white', outline: 'none', fontSize: '14px' }} />
+              <button style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#ecc151', border: 'none', color: '#3e2e00', display: 'flex', alignItems: 'center', justifyContent: 'center' }} type="button">▲</button>
+            </div>
           </div>
         </div>
       </div>

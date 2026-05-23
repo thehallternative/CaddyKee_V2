@@ -67,15 +67,8 @@ function PlayerIntelMain({ onNavigate }) {
   return (
     <div style={{ textAlign: 'left', width: '100%', boxSizing: 'border-box' }}>
       
-      {/* TOP HEADER MASTER BAR */}
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px', position: 'relative', height: '40px' }}>
-        <h1 style={{ color: '#ecc151', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.04em', fontSize: '20px', margin: 0 }}>
-          PLAYER INTELLIGENCE
-        </h1>
-      </header>
-
       {/* SEGMENTED TAB SWITCH CONTROLLER */}
-      <div style={{ display: 'flex', gap: '32px', marginBottom: '24px', borderBottom: '1px solid rgba(65,72,69,0.2)' }}>
+      <div style={{ display: 'flex', gap: '32px', marginBottom: '24px', borderBottom: '1px solid rgba(65,72,69,0.2)', paddingTop: '12px' }}>
         <button 
           onClick={() => setActiveTab('players')}
           style={{ paddingBottom: '12px', border: 'none', background: 'transparent', fontSize: '13px', fontWeight: '900', tracking: '0.1em', textTransform: 'uppercase', cursor: 'pointer', borderBottom: activeTab === 'players' ? '2px solid #ecc151' : '2px solid transparent', color: activeTab === 'players' ? '#ecc151' : 'rgba(190,237,217,0.5)' }}
@@ -154,12 +147,28 @@ function PlayerIntelMain({ onNavigate }) {
                   </div>
                 </div>
                 
+                {/* 🔥 COMPONENT UPGRADE: HIGH-FIDELITY INTERACTIVE PROMINENT ROUTING EDIT BUTTON CHASSIS */}
                 <button 
                   onClick={(e) => {
-                    e.stopPropagation(); 
+                    e.stopPropagation(); // Shield modal click overlays from firing during navigation
                     onNavigate('edit-player', { playerId: profile.id });
                   }}
-                  style={{ width: '44px', height: '44px', borderRadius: '50%', border: 'none', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '16px', boxShadow: '0 4px 10px rgba(0,0,0,0.2)', border: '1px solid rgba(236,193,81,0.2)', transition: 'all 0.2s' }} 
+                  style={{ 
+                    width: '44px', 
+                    height: '44px', 
+                    borderRadius: '50%', 
+                    border: 'none', 
+                    backgroundColor: '#0e3c2f', 
+                    color: '#ecc151', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                    border: '1px solid rgba(236,193,81,0.2)',
+                    transition: 'all 0.2s'
+                  }} 
                   type="button"
                 >
                   ✎
@@ -169,7 +178,7 @@ function PlayerIntelMain({ onNavigate }) {
           })}
         </div>
       ) : (
-        /* GROUPS TAB LEDGER SECTION */
+        /* DUMMY COMPONENT GROUP STACK DRAWERS LINK */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(236, 193, 81, 0.05)' }}>
             <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151' }}>THE SATURDAY SKINS</h3>
@@ -230,21 +239,8 @@ function PlayerIntelMain({ onNavigate }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 🎙️ PERSISTENT KEE ASSISTANT DRAWER LAYER MATRIX                          */}
+      {/* 💎 KEE ASSISTANT DRAWER COMPACT LAYER - Overlapping components removed cleanly */}
       {/* ========================================================================= */}
-      <div style={{ position: 'fixed', bottom: '110px', left: '0', right: '0', zIndex: 55, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
-        <button 
-          onClick={() => setIsKeeVoiceOpen(true)}
-          style={{ pointerEvents: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none' }}
-          type="button"
-        >
-          <div style={{ width: '54px', height: '54px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 20px rgba(236,193,81,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: '#ecc151', fontSize: '24px' }}>🎙️</span>
-          </div>
-          <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px', color: '#ecc151' }}>KEE VOICE</span>
-        </button>
-      </div>
-
       <div style={{ position: 'fixed', inset: 0, zIndex: 130, pointerEvents: isKeeVoiceOpen ? 'auto' : 'none', display: 'block' }}>
         <div onClick={() => setIsKeeVoiceOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isKeeVoiceOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} />
         
@@ -255,7 +251,7 @@ function PlayerIntelMain({ onNavigate }) {
         >
           <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(236,193,81,0.2)', margin: '16px auto 4px auto', flex: 'none' }} />
           
-          <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(65,72,69,0.1)', flex: 'none' }}>
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(65,72,69,0.1)', flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '44px', height: '44px', backgroundColor: 'rgba(236,193,81,0.1)', border: '1px solid #ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', borderRadius: '50%' }}>
                 💬
