@@ -107,20 +107,10 @@ function PlayerIntelMain({ onNavigate }) {
     <div style={{ textAlign: 'left', width: '100%', boxSizing: 'border-box' }}>
       
       {/* TOP HEADER MASTER BAR */}
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-        <button 
-          onClick={() => onNavigate('mission-control')}
-          style={{ width: '40px', height: '40px', borderRadius: '50%', border: 'none', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-          type="button"
-        >
-          ◀
-        </button>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px', position: 'relative', height: '40px' }}>
         <h1 style={{ color: '#ecc151', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.04em', fontSize: '20px', margin: 0 }}>
           PLAYER INTELLIGENCE
         </h1>
-        <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(236,193,81,0.2)', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', fontWeight: '900', fontSize: '12px' }}>
-          DH
-        </div>
       </header>
 
       {/* SEGMENTED TAB SWITCH CONTROLLER */}
@@ -201,7 +191,31 @@ function PlayerIntelMain({ onNavigate }) {
                     </p>
                   </div>
                 </div>
-                <button style={{ width: '36px', height: '36px', borderRadius: '50%', border: 'none', backgroundColor: '#0e3c2f', color: '#ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center' }} type="button">
+                
+                {/* 🔥 COMPONENT UPGRADE: HIGH-FIDELITY INTERACTIVE PROMINENT ROUTING EDIT BUTTON CHASSIS */}
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation(); // Shield modal click overlays from firing during navigation
+                    onNavigate('edit-player', { playerId: profile.id });
+                  }}
+                  style={{ 
+                    width: '44px', 
+                    height: '44px', 
+                    borderRadius: '50%', 
+                    border: 'none', 
+                    backgroundColor: '#0e3c2f', 
+                    color: '#ecc151', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                    border: '1px solid rgba(236,193,81,0.2)',
+                    transition: 'all 0.2s'
+                  }} 
+                  type="button"
+                >
                   ✎
                 </button>
               </div>
