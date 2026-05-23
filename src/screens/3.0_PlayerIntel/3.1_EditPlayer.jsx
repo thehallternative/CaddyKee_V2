@@ -30,23 +30,23 @@ function EditPlayer({ playerId, onNavigate }) {
   const [emergencyName, setEmergencyName] = useState('');
   const [emergencyPhone, setEmergencyPhone] = useState('');
 
-  // 🧭 COURSES REGISTRY LOOKUPS & HOME COURSE PICKER SELECTIONS
+  // 🧭 COURSES REGISTRY LOOKUPS & PICKER SELECTIONS
   const [coursesList, setCoursesList] = useState([]);
   const [homeCourseId, setHomeCourseId] = useState('');
   const [isCoursePickerOpen, setIsCoursePickerOpen] = useState(false);
   const [isRolePickerOpen, setIsRolePickerOpen] = useState(false);
+  const [isGenderPickerOpen, setIsGenderPickerOpen] = useState(false); // Custom sliding sheet toggle for gender
 
-  // Dynamic Label Resolvers for Roles Custom UI Popouts
+  // Dynamic Label Resolvers for Custom UI Popouts
   const roleLabels = {
     player: 'Viewer (Standard Roster Profile)',
     scorer: 'Scorer (Can Edit Assigned Match Data Rows)',
     admin: 'Admin (Full System Infrastructure Permissions)'
   };
 
-  // Find Selected Home Course Name string target cleanly
   const currentHomeCourseName = coursesList.find(c => c.id === homeCourseId)?.course_name || 'SELECT HOME COURSE';
 
-  // 📡 DATABASE READ: INITIAL MULTI-TABLE TARGET INGESTION
+  // 📡 DATABASE READ: INITIAL RECONCILIATION INGESTION
   useEffect(() => {
     if (!playerId) {
       setLoading(false);
@@ -68,8 +68,8 @@ function EditPlayer({ playerId, onNavigate }) {
           setCoursesList(courseData);
         }
 
-        // 2. Fetch Active Target Player Identity Row Profile
-        const { data: data, error: error } = await supabase
+        // 2. Fetch Active Target Player Profile
+        const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', playerId)
@@ -79,7 +79,7 @@ function EditPlayer({ playerId, onNavigate }) {
         if (data) {
           setFirstName(data.first_name || '');
           setLastName(data.last_name || '');
-          setNickname(data.nickname || '');
+          setNickname(data.nickname || ''); // Retains natural casing as saved in DB
           setEmail(data.email || '');
           setPhone(data.phone || '');
           setPlayerRole(data.role || 'player');
@@ -103,7 +103,7 @@ function EditPlayer({ playerId, onNavigate }) {
           }
         }
       } catch (err) {
-        console.error('Failed to ingest player template attributes:', err.message);
+        console.error('Failed to ingest player profile attributes:', err.message);
       } finally {
         setLoading(false);
       }
@@ -130,7 +130,7 @@ function EditPlayer({ playerId, onNavigate }) {
       const updatedPayload = {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
-        nickname: nickname.trim() ? nickname.trim().toUpperCase() : null,
+        nickname: nickname.trim() ? nickname.trim() : null, // 💊 CASE FIXED: Removed .toUpperCase() to stop cap forcing
         email: email.trim() || null,
         phone: phone.trim() || null,
         role: playerRole, 
@@ -141,7 +141,7 @@ function EditPlayer({ playerId, onNavigate }) {
         gender: gender,
         is_pro: isPro,
         tee_box: preferredTeeBox,
-        home_course_id: homeCourseId || null, // Write back updated database record key
+        home_course_id: homeCourseId || null, 
         emergency_contact_name: emergencyName.trim() || null,
         emergency_contact_phone: emergencyPhone.trim() || null
       };
@@ -206,12 +206,12 @@ function EditPlayer({ playerId, onNavigate }) {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>LAST NAME</label>
-            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
+            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>CLUB NICKNAME</label>
-            <input type="text" value={nickname} placeholder="e.g., THE CADDY MASTER" onChange={(e) => setNickname(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '18px', outline: 'none' }} />
+            <input type="text" value={nickname} placeholder="e.g., The Caddy Master" onChange={(e) => setNickname(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: '#ecc151', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -224,7 +224,7 @@ function EditPlayer({ playerId, onNavigate }) {
             <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
 
-          {/* 💎 1. RE-STYLED PREMIUM UI OVERLAY BLOCK FOR SECURITY TIER SELECTION */}
+          {/* ROLE SELECTOR PANEL OVERLAY TRIGGER */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#ecc151', tracking: '0.05em', paddingLeft: '4px' }}>PLAYER SECURITY ROLE TIER</label>
             <div 
@@ -298,13 +298,16 @@ function EditPlayer({ playerId, onNavigate }) {
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
           </div>
 
+          {/* 💎 1. RE-STYLED GENDER SELECTION MODULE SLIDING DRAWER TRIGGER */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>GENDER SPEC</label>
-            <select value={gender} onChange={(e) => setGender(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', outline: 'none', appearance: 'none', WebkitAppearance: 'none' }}>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Prefer Not to Say">Prefer Not to Say</option>
-            </select>
+            <div 
+              onClick={() => setIsGenderPickerOpen(true)}
+              style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+            >
+              <span>{gender}</span>
+              <span style={{ color: '#ecc151', opacity: 0.7 }}>🧭</span>
+            </div>
           </div>
 
           <div style={{ backgroundColor: 'rgba(14,60,47,0.2)', padding: '18px 20px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -334,7 +337,6 @@ function EditPlayer({ playerId, onNavigate }) {
             </div>
           </div>
 
-          {/* 💎 3. CONNECTED DYNAMIC VENUE SELECTOR INTERACTION ELEMENT */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>HOME COURSE SELECTION</label>
             <div 
@@ -347,7 +349,7 @@ function EditPlayer({ playerId, onNavigate }) {
           </div>
         </section>
 
-        {/* SECTION 5: VERTICALLY STACKED HIGH-READABILITY EMERGENCY SAFETY INFO (REQUIREMENT 2) */}
+        {/* SECTION 5: SAFETY EMERGENCY CONTROLS */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
@@ -366,7 +368,7 @@ function EditPlayer({ playerId, onNavigate }) {
           </div>
         </section>
 
-        {/* 💾 HIGH-DENSITY NATIVE BOTTOM COMMIT ENGINE */}
+        {/* 💾 PRIMARY DEPLOYMENT SAVE ENGINE CONTAINER */}
         <div style={{ marginTop: '20px' }}>
           <button 
             onClick={handleUpdateProfileSubmit}
@@ -424,6 +426,32 @@ function EditPlayer({ playerId, onNavigate }) {
               >
                 <span style={{ color: playerRole === roleKey ? 'white' : '#beedd9', fontWeight: '900', fontSize: '15px' }}>{roleLabels[roleKey]}</span>
                 {playerRole === roleKey && <span style={{ color: '#ecc151' }}>✓</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 💎 1. DRAWER C: CUSTOM PREMIUM GENDER SELECTOR SLIDING SHEET LAYER           */}
+      {/* ========================================================================= */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: isGenderPickerOpen ? 'auto' : 'none', display: 'block' }}>
+        <div onClick={() => setIsGenderPickerOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isGenderPickerOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)' }} />
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '45vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isGenderPickerOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto' }} />
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>SELECT GENDER VARIANT</h3>
+            <button onClick={() => setIsGenderPickerOpen(false)} style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }} type="button">Close</button>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 60px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {['Male', 'Female', 'Prefer Not to Say'].map((variant) => (
+              <div 
+                key={variant} 
+                onClick={() => { setGender(variant); setIsGenderPickerOpen(false); }} 
+                style={{ backgroundColor: gender === variant ? '#0e3c2f' : '#001d14', border: gender === variant ? '1px solid #ecc151' : '1px solid rgba(236,193,81,0.04)', padding: '20px', borderRadius: '14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <span style={{ color: gender === variant ? 'white' : '#beedd9', fontWeight: '900', fontSize: '15px' }}>{variant}</span>
+                {gender === variant && <span style={{ color: '#ecc151' }}>✓</span>}
               </div>
             ))}
           </div>
