@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../supabaseClient'; // Stepping out of both 1.0_RoundIntel/ and screens/ to reach src/
+import { supabase } from '../../supabaseClient';
 
 function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], onNavigate }) {
   // 🎛️ CORE TELEMETRY & LOADING STATES
   const [loading, setLoading] = useState(true);
   const [matchDetails, setMatchDetails] = useState({ match_name: '', course_name: '' });
   const [players, setPlayers] = useState([]);
+  const [holeDefinitions, setHoleDefinitions] = useState([]); // Real DB Hole Layout Cache
   
   // 🎛️ UNIVERSAL CHASSIS SCORES & HOLE VARIABLE STATES
   const [currentHole, setCurrentHole] = useState(1);
@@ -14,12 +15,7 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
   const [isPressActive, setIsPressActive] = useState(false);
   
   // Local scratchpad score state before sync architecture is written
-  const [scores, setScores] = useState({
-    p1: { gross: 4, overUnder: 'E' },
-    p2: { gross: 4, overUnder: 'E' },
-    p3: { gross: 4, overUnder: 'E' },
-    p4: { gross: 4, overUnder: 'E' }
-  });
+  const [scores, setScores] = useState({});
 
   // 🛠️ UTILITY: PLUS HANDICAP MATHEMATICS
   const formatHandicapDisplay = (handicap) => {
@@ -29,14 +25,14 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
     return `${num}`;
   };
 
-  // 📡 DATABASE READ: MASTER CONTEXT & ROSTER INGESTION
+  // 📡 DATABASE READ: MASTER CONTEXT, ROSTER, & HOLE CONFIGURATIONS
   useEffect(() => {
     if (!matchId) {
       setLoading(false);
       return;
     }
 
-    const fetchMatchAndRoster = async () => {
+    const fetchMatchTelemetry = async () => {
       try {
         setLoading(true);
         
@@ -46,8 +42,10 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
           .select('match_name, course_name')
           .eq('id', matchId);
 
+        let resolvedCourseName = '';
         if (!matchErr && matchData && matchData.length > 0) {
           setMatchDetails(matchData[0]);
+          resolvedCourseName = matchData[0].course_name;
         }
 
         // 2. Fetch Player Ledger Ordered by Hitting Order
@@ -71,20 +69,56 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
           playerData.forEach(p => {
             initialScores[p.id] = { gross: 4, overUnder: 'E' };
           });
-          if (playerData.length > 0) {
-            setScores(initialScores);
+          setScores(initialScores);
+        }
+
+        // 3. Fetch Hole Definitions Map based on Course Name Match
+        if (resolvedCourseName) {
+          // Resolve course entry
+          const { data: courseMap } = await supabase
+            .from('course_map')
+            .select('id')
+            .eq('course_name', resolvedCourseName)
+            .maybeSingle();
+
+          if (courseMap) {
+            // Find the tee system linked to this course
+            const { data: tees } = await supabase
+              .from('course_tees')
+              .select('id')
+              .eq('course_id', courseMap.id)
+              .limit(1);
+
+            if (tees && tees.length > 0) {
+              // Pull all 18 hole definitions ordered by layout sequence
+              const { data: holes } = await supabase
+                .from('course_hole_definitions')
+                .select('hole_number, par, stroke_index, yardage')
+                .eq('tee_id', tees[0].id)
+                .order('hole_number', { ascending: true });
+
+              if (holes) {
+                setHoleDefinitions(holes);
+              }
+            }
           }
         }
       } catch (error) {
         console.error('Telemetry ingestion fault intercepted:', error.message);
       } finally {
-        // SAFEGUARD: Guarantee loading mask falls away even if table rows are zero
         setLoading(false);
       }
     };
 
-    fetchMatchAndRoster();
+    fetchMatchTelemetry();
   }, [matchId]);
+
+  // 🧮 DYNAMIC HOLE DICTIONARY RESOLVER
+  const currentHoleData = holeDefinitions.find(h => h.hole_number === currentHole) || {
+    par: 4,
+    stroke_index: 5,
+    yardage: null
+  };
 
   const adjustScore = (playerKey, delta) => {
     setScores(prev => {
@@ -110,12 +144,11 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
   if (loading) {
     return (
       <div style={{ color: '#beedd9', padding: '40px', textAlign: 'center', fontWeight: '900', fontStyle: 'italic', tracking: '0.1em' }}>
-        LOADING MATCH TELEMETRY...
+        INGESTING HOLE MAPS & METRICS...
       </div>
     );
   }
 
-  // Fallback data construct if match_players row returns blank for a test match frame
   const activeRoster = players.length > 0 ? players : [
     { id: 'p1', player_position: 1, guest_display_name: 'Captain DH' },
     { id: 'p2', player_position: 2, guest_display_name: 'Player 2' },
@@ -160,7 +193,7 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
           {activeRoster.map(player => {
             const displayName = player.profiles?.nickname || player.profiles?.display_name || player.guest_display_name || `PLAYER ${player.player_position}`;
             const initials = displayName.substring(0, 2);
-            const currentScoreObj = scores[player.id] || { gross: 4, overUnder: 'E' };
+            const currentScoreObj = scores[player.id] || { gross: currentHoleData.par, overUnder: 'E' };
 
             return (
               <div key={player.id} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(20px)', padding: '12px 16px', borderRadius: '40px', border: '1px solid rgba(236, 193, 81, 0.1)', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', boxSizing: 'border-box' }}>
@@ -207,8 +240,8 @@ function LiveGameMain({ matchId, activeGames = ['skins', 'wolf', 'match_play'], 
               <h2 style={{ fontSize: '24px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', margin: 0, textTransform: 'uppercase', tracking: '-0.04em' }}>
                 HOLE {currentHole}
               </h2>
-              <span style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190,237,217,0.5)', tracking: '0.1em', textTransform: 'uppercase', display: 'block', marginTop: '2px' }}>
-                PAR 4 • S.I. 5
+              <span style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190, 237, 217, 0.7)', tracking: '0.12em', textTransform: 'uppercase', display: 'block', marginTop: '2px' }}>
+                PAR {currentHoleData.par} • S.I. {currentHoleData.stroke_index} {currentHoleData.yardage ? `• ${currentHoleData.yardage} YDS` : ''}
               </span>
             </div>
 
