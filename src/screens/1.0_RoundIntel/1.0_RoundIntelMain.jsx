@@ -2,20 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 
 function RoundIntelMain({ onNavigate }) {
+  // 🎛️ NAVIGATION CONTROLLERS & TABS
   const [activeTab, setActiveTab] = useState('live');
-  const [isScheduledOpen, setIsScheduledOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   
+  // 🗄️ MATCH REGISTRY TELEMETRY STACKS
   const [liveMatches, setLiveMatches] = useState([]);
   const [scheduledMatches, setScheduledMatches] = useState([]);
   const [historyMatches, setHistoryMatches] = useState([]);
 
-  // 🎛️ SWIPE GESTURE STATE TRACKER
-  const [activeSwipeId, setActiveSwipeId] = useState(null); 
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchDelta, setTouchDelta] = useState(0);
-
-  // 🎚️ CUSTOM PREMIUM MODAL DETONATOR STATES
+  // 🎚️ DELETION CONFIRMATION TARGET PORT
   const [deleteTargetMatch, setDeleteTargetMatch] = useState(null); 
 
   const fetchMatches = async () => {
@@ -63,12 +60,10 @@ function RoundIntelMain({ onNavigate }) {
   };
 
   useEffect(() => {
-    if (isScheduledOpen) {
-      fetchMatches();
-    }
-  }, [isScheduledOpen]);
+    fetchMatches();
+  }, []);
 
-  // 🗑️ NATIVE CASCADING DESTRUCTION ENGINE
+  // 🗑️ ATOMIC PURGE EXECUTION ENGINE
   const executeMatchPurge = async (matchId) => {
     try {
       setLoading(true);
@@ -80,9 +75,6 @@ function RoundIntelMain({ onNavigate }) {
         .eq('id', matchId);
       
       if (error) throw error;
-      
-      setActiveSwipeId(null);
-      setTouchDelta(0);
       await fetchMatches();
     } catch (err) {
       console.error(`Purge fault: ${err.message}`);
@@ -92,13 +84,6 @@ function RoundIntelMain({ onNavigate }) {
   };
 
   const handleLaunchMatch = (match) => {
-    if (activeSwipeId === match.id && touchDelta !== 0) {
-      setActiveSwipeId(null);
-      setTouchDelta(0);
-      return;
-    }
-
-    setIsScheduledOpen(false);
     const payload = {
       matchId: match.id,
       matchName: match.match_name,
@@ -108,173 +93,141 @@ function RoundIntelMain({ onNavigate }) {
     onNavigate('live-game', payload);
   };
 
-  // 🕹️ MOBILE TOUCH INTERACTION EVENT HANDLERS
-  const handleTouchStart = (e, id) => {
-    setTouchStart(e.targetTouches[0].clientX);
-    if (activeSwipeId !== id) {
-      setActiveSwipeId(id);
-      setTouchDelta(0);
-    }
+  // Get active match array based on tab state selection context
+  const getActiveListByTab = () => {
+    if (activeTab === 'scheduled') return scheduledMatches;
+    if (activeTab === 'history') return historyMatches;
+    return liveMatches;
   };
 
-  const handleTouchMove = (e, id) => {
-    if (activeSwipeId !== id) return;
-    const currentX = e.targetTouches[0].clientX;
-    const currentDelta = currentX - touchStart;
-    
-    if (currentDelta > 85) setTouchDelta(85);
-    else if (currentDelta < -85) setTouchDelta(-85);
-    else setTouchDelta(currentDelta);
-  };
-
-  const handleTouchEnd = () => {
-    if (touchDelta < -65) {
-      setTouchDelta(-80); 
-    } else if (touchDelta > 65) {
-      setTouchDelta(80);  
-    } else {
-      setActiveSwipeId(null);
-      setTouchDelta(0);   
-    }
-  };
-
-  const renderMatchCards = (matchList, placeholderText) => {
-    if (matchList.length === 0) {
-      return (
-        <p style={{ color: 'rgba(190,237,217,0.4)', textAlign: 'center', fontStyle: 'italic', fontSize: '13px', marginTop: '20px' }}>
-          {placeholderText}
-        </p>
-      );
-    }
-    return matchList.map(match => {
-      const isSwiped = activeSwipeId === match.id;
-      const cardTransform = isSwiped ? `translateX(${touchDelta}px)` : 'translateX(0px)';
-
-      return (
-        <div 
-          key={match.id}
-          style={{ position: 'relative', overflow: 'hidden', borderRadius: '16px', backgroundColor: '#051d16', width: '100%' }}
-        >
-          {/* 🔥 UNDERLAY LAYER A: PREMIUM GOLD EDIT MODULE */}
-          <div 
-            onClick={() => {
-              setActiveSwipeId(null);
-              setTouchDelta(0);
-              onNavigate('create-match', { matchId: match.id, isEditing: true });
-            }}
-            style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '100px', backgroundColor: '#ecc151', color: '#3e2e00', display: 'flex', alignItems: 'center', paddingLeft: '24px', boxSizing: 'border-box', fontWeight: '900', fontStyle: 'italic', fontSize: '12px', zIndex: 1, cursor: 'pointer', opacity: isSwiped && touchDelta > 0 ? 1 : 0, transition: 'opacity 0.1s' }}
-          >
-            EDIT
-          </div>
-
-          {/* ❌ UNDERLAY LAYER B: HIGH-CONTRAST DESTRUCTIVE RED TRASH MODULE */}
-          <div 
-            onClick={() => setDeleteTargetMatch(match)}
-            style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '100px', backgroundColor: '#eb5e55', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '20px', boxSizing: 'border-box', fontWeight: '900', fontStyle: 'italic', fontSize: '12px', zIndex: 1, cursor: 'pointer', opacity: isSwiped && touchDelta < 0 ? 1 : 0, transition: 'opacity 0.1s' }}
-          >
-            DELETE
-          </div>
-
-          {/* 🌁 TOP VISUAL FOREGROUND CARD STACK */}
-          <div 
-            onClick={() => handleLaunchMatch(match)}
-            onTouchStart={(e) => handleTouchStart(e, match.id)}
-            onTouchMove={(e) => handleTouchMove(e, match.id)}
-            onTouchEnd={handleTouchEnd}
-            style={{ padding: '20px', borderRadius: '16px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', cursor: 'pointer', textAlign: 'left', position: 'relative', zIndex: 2, transform: cardTransform, transition: touchDelta === 0 ? 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)' : 'none', willChange: 'transform' }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontSize: '10px', fontWeight: '700', color: '#ecc151', textTransform: 'uppercase', tracking: '0.05em' }}>
-                {match.tee_date} • {match.tee_time || 'NO TIME'}
-              </span>
-              <span className="material-symbols-outlined" style={{ color: '#ecc151', fontSize: '18px' }}>play_circle</span>
-            </div>
-            
-            <h4 style={{ fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', color: '#beedd9', margin: 0 }}>
-              {match.match_name}
-            </h4>
-            <p style={{ fontSize: '13px', color: 'rgba(190,237,217,0.7)', margin: '4px 0 0 0', fontWeight: '500' }}>
-              {match.course_name}
-            </p>
-          </div>
-        </div>
-      );
-    });
-  };
+  // Filter lookahead processing matrix
+  const filteredMatches = getActiveListByTab().filter(m => {
+    const haystack = `${m.match_name || ''} ${m.course_name || ''}`.toUpperCase();
+    return haystack.includes(searchQuery.toUpperCase());
+  });
 
   return (
-    <div style={{ textAlign: 'center', width: '100%', paddingTop: '12px' }}>
+    <div style={{ textAlign: 'left', width: '100%', boxSizing: 'border-box', paddingTop: '12px' }}>
+      
+      {/* SEARCH FIELD BAR CHASSIS */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ backgroundColor: '#0e3c2f', padding: '14px 18px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ color: '#ecc151', fontWeight: 'bold' }}>🔍</span>
+          <input 
+            type="text"
+            placeholder="SEARCH OPERATIONAL ROUNDS..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#beedd9', fontWeight: '700', fontSize: '13px', padding: 0, textTransform: 'uppercase' }}
+          />
+        </div>
+      </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-        <button onClick={() => onNavigate('create-match')} style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }} type="button">
-          <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>groups</span>
-          <div style={{ marginTop: 'auto' }}>
-            <h3 style={{ fontSize: '22px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', margin: 0, lineHeight: '1' }}>Create Match</h3>
-            <p style={{ fontWeight: '600', fontSize: '12px', margin: '4px 0 0 0', opacity: 0.85 }}>Deploy immediate side-wager formats and quick-start groups</p>
-          </div>
+      {/* COMMAND MODULE FULL WIDTH ACTION PANEL */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
+        <button 
+          onClick={() => onNavigate('create-match')}
+          style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', padding: '18px 0', borderRadius: '12px', fontWeight: '900', fontSize: '13px', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 8px 20px rgba(236,193,81,0.1)' }}
+          type="button"
+        >
+          <span>➕</span> Create Match
         </button>
-
-        <button onClick={() => setIsScheduledOpen(true)} style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }} type="button">
-          <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>map</span>
-          <div style={{ marginTop: 'auto' }}>
-            <h3 style={{ fontSize: '22px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', margin: 0, lineHeight: '1' }}>Scheduled Games</h3>
-            <p style={{ fontWeight: '600', fontSize: '12px', margin: '4px 0 0 0', opacity: 0.85 }}>Audit history ledgers, complete match results, and upcoming itineraries</p>
-          </div>
-        </button>
-
-        <button onClick={() => onNavigate('create-tournament')} style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }} type="button">
-          <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>trophy</span>
-          <div style={{ marginTop: 'auto' }}>
-            <h3 style={{ fontSize: '22px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', margin: 0, lineHeight: '1' }}>Create Tournament</h3>
-            <p style={{ fontWeight: '600', fontSize: '12px', margin: '4px 0 0 0', opacity: 0.85 }}>Configure dates, registration fields, and team logic parameters</p>
-          </div>
+        <button 
+          onClick={() => onNavigate('create-tournament')}
+          style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', padding: '18px 0', borderRadius: '12px', fontWeight: '900', fontSize: '13px', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 8px 20px rgba(236,193,81,0.1)' }}
+          type="button"
+        >
+          <span>🏆</span> Create Tournament
         </button>
       </div>
 
-      {/* REACT RENDERING SLIDE-UP THREE-TAB DRAWER */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 70, pointerEvents: isScheduledOpen ? 'auto' : 'none', display: 'block' }}>
-        <div onClick={() => { setIsScheduledOpen(false); setActiveSwipeId(null); setTouchDelta(0); }} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isScheduledOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
-        
-        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '10vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', backgroundColor: '#00251b', boxShadow: '0 -20px 100px rgba(0,0,0,0.8)', transition: 'transform 0.4s ease-out', transform: isScheduledOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(236,193,81,0.2)', margin: '16px auto 4px auto' }}></div>
-          
-          <div style={{ padding: '16px 20px 8px 20px', textAlign: 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-              <div>
-                <span style={{ color: '#ecc151', fontWeight: '700', textTransform: 'uppercase', tracking: '0.1em', fontSize: '10px' }}>Your Schedule</span>
-                <h3 style={{ fontSize: '32px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', color: '#ecc151', margin: '4px 0 0 0', letterSpacing: '-0.02em' }}>ROUND INTEL</h3>
-              </div>
-              <button onClick={() => { setIsScheduledOpen(false); setActiveSwipeId(null); setTouchDelta(0); }} style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', cursor: 'pointer' }} type="button">
-                <span style={{ fontSize: '18px', fontWeight: 'bold' }}>✕</span>
-              </button>
-            </div>
+      {/* SEGMENTED TAB SWITCH CONTROLLER SWITCH INLINE */}
+      <div style={{ display: 'flex', gap: '24px', marginBottom: '24px', borderBottom: '1px solid rgba(65,72,69,0.2)' }}>
+        {['live', 'scheduled', 'history'].map((tab) => (
+          <button 
+            key={tab}
+            onClick={() => { setActiveTab(tab); setSearchQuery(''); }}
+            style={{ paddingBottom: '12px', border: 'none', background: 'transparent', fontSize: '13px', fontWeight: '900', tracking: '0.1em', textTransform: 'uppercase', cursor: 'pointer', borderBottom: activeTab === tab ? '2px solid #ecc151' : '2px solid transparent', color: activeTab === tab ? '#ecc151' : 'rgba(190,237,217,0.5)' }}
+            type="button"
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
 
-            <div style={{ display: 'flex', padding: '2px', borderRadius: '30px', backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)' }}>
-              <button onClick={() => { setActiveTab('scheduled'); setActiveSwipeId(null); setTouchDelta(0); }} style={{ flex: 1, padding: '10px 0', borderRadius: '24px', border: 'none', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', cursor: 'pointer', backgroundColor: activeTab === 'scheduled' ? '#ecc151' : 'transparent', color: activeTab === 'scheduled' ? '#3e2e00' : 'rgba(236,193,81,0.6)' }} type="button">Scheduled</button>
-              <button onClick={() => { setActiveTab('live'); setActiveSwipeId(null); setTouchDelta(0); }} style={{ flex: 1, padding: '10px 0', borderRadius: '24px', border: 'none', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', cursor: 'pointer', backgroundColor: activeTab === 'live' ? '#ecc151' : 'transparent', color: activeTab === 'live' ? '#3e2e00' : 'rgba(236,193,81,0.6)' }} type="button">Live</button>
-              <button onClick={() => { setActiveTab('history'); setActiveSwipeId(null); setTouchDelta(0); }} style={{ flex: 1, padding: '10px 0', borderRadius: '24px', border: 'none', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', cursor: 'pointer', backgroundColor: activeTab === 'history' ? '#ecc151' : 'transparent', color: activeTab === 'history' ? '#3e2e00' : 'rgba(236,193,81,0.6)' }} type="button">History</button>
-            </div>
+      {/* UNIFIED BENTO CONTAINER DISPLAY SCROLL GRID */}
+      <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '8px', padding: '0 4px' }}>
+          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '900', color: '#ecc151', fontStyle: 'italic', textTransform: 'uppercase', tracking: '0.05em' }}>
+            {activeTab === 'live' ? 'ACTIVE ROUNDS' : activeTab === 'scheduled' ? 'UPCOMING TIMELINES' : 'HISTORICAL LEDGERS'}
+          </h3>
+          <span style={{ fontSize: '10px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', tracking: '0.15em' }}>
+            TOTAL UNITS: {filteredMatches.length.toString().padStart(2, '0')}
+          </span>
+        </div>
+
+        {loading ? (
+          <div style={{ color: '#beedd9', padding: '40px', textAlign: 'center', fontStyle: 'italic', fontWeight: '900' }}>
+            STREAMING MATCH INFRASTRUCTURE TELEMETRY...
           </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {filteredMatches.map((match) => (
+              <div 
+                key={match.id}
+                style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(236, 193, 81, 0.08)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box' }}
+              >
+                <div>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.1em', textTransform: 'uppercase' }}>
+                    {match.tee_date} • {match.tee_time || 'ANY TIME'}
+                  </p>
+                  <h4 style={{ margin: 0, fontSize: '22px', fontWeight: '900', fontStyle: 'italic', color: 'white', textTransform: 'uppercase', tracking: '-0.02em' }}>
+                    {match.match_name}
+                  </h4>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'rgba(190,237,217,0.6)', fontWeight: '600' }}>
+                    📍 {match.course_name}
+                  </p>
+                </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 40px 20px', boxSizing: 'border-box' }}>
-            {loading ? (
-              <div style={{ color: '#beedd9', textAlign: 'center', fontWeight: '900', fontStyle: 'italic', padding: '20px' }}>
-                EXECUTING DATABASE MANIFEST...
+                {/* UNIFIED DUAL ACTION ACCELERATORS BUTTON LAYER */}
+                <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                  <button 
+                    onClick={() => handleLaunchMatch(match)}
+                    style={{ flex: 1, padding: '14px 0', borderRadius: '30px', backgroundColor: '#0e3c2f', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer', border: '1px solid rgba(236,193,81,0.1)' }}
+                    type="button"
+                  >
+                    Launch Match ➜
+                  </button>
+                  <button 
+                    onClick={() => onNavigate('create-match', { matchId: match.id, isEditing: true })}
+                    style={{ padding: '0 20px', borderRadius: '30px', border: 'none', backgroundColor: '#ecc151', color: '#3e2e00', fontWeight: '900', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    type="button"
+                  >
+                    ✎ Edit
+                  </button>
+                  <button 
+                    onClick={() => setDeleteTargetMatch(match)}
+                    style={{ padding: '0 16px', borderRadius: '30px', border: 'none', backgroundColor: '#eb5e55', color: 'white', fontWeight: '900', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    type="button"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {activeTab === 'scheduled' && renderMatchCards(scheduledMatches, 'No upcoming scheduled matches')}
-                {activeTab === 'live' && renderMatchCards(liveMatches, 'No active live matches for today')}
-                {activeTab === 'history' && renderMatchCards(historyMatches, 'No historical matches on file')}
+            ))}
+
+            {filteredMatches.length === 0 && (
+              <div style={{ color: 'rgba(190,237,217,0.3)', padding: '40px', textAlign: 'center', fontStyle: 'italic', fontWeight: '700', border: '1px dashed rgba(236,193,81,0.1)', borderRadius: '16px' }}>
+                NO ACTIVE ROUND DATA MATCHES FOUND ON TAB CRITERIA
               </div>
             )}
           </div>
-        </div>
-      </div>
+        )}
+      </section>
 
-      {/* 🏛️ PREMIUM INTEGRATED CADDY AESTHETIC DELETION DIALOG */}
+      {/* PREMIUM INTEGRATED CADDY AESTHETIC DELETION DIALOG */}
       {deleteTargetMatch && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', boxSizing: 'border-box' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', boxSizing: 'border-box' }}>
           <div onClick={() => setDeleteTargetMatch(null)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} />
           
           <div style={{ position: 'relative', width: '100%', maxWidth: '360px', backgroundColor: '#0b2e24', border: '2px solid #eb5e55', borderRadius: '32px', padding: '32px 24px', boxSizing: 'border-box', boxShadow: '0 25px 50px rgba(0,0,0,0.6)', textAlign: 'center' }}>
