@@ -50,7 +50,7 @@ function CourseIntelMain({ onNavigate }) {
           .select('*')
           .eq('course_id', selectedCourse.id)
           .eq('is_active', true)
-          .order('total_yardage', { ascending: false }); // Longest tees stay safely up top
+          .order('total_yardage', { ascending: false });
 
         if (error) throw error;
         setAssociatedTees(data || []);
@@ -64,6 +64,25 @@ function CourseIntelMain({ onNavigate }) {
     queryTeeBoxTelemetry();
   }, [selectedCourse]);
 
+  // 🧠 #1 LOCAL KNOWLEDGE CORE: Dynamic tactical advice based on course name matching
+  const generateTacticalAnalysisNotes = (courseName = '') => {
+    const norm = courseName.toUpperCase();
+    if (norm.includes('LOOKOUT POINT')) {
+      return "Perched high on the Niagara Escarpment. Features dramatic elevation changes and fast, tricky undulating greens that slope severely. Key strategy: Below-the-hole ball placement is mandatory on approach vectors; prioritize accurate iron entry metrics over raw distance off the tee box.";
+    }
+    if (norm.includes('ROCKWAY VINEYARDS')) {
+      return "Stunning landscape weaving through working wine country. Tight, tree-lined native boundaries combine with regular water hazards across the routing layout. Key strategy: Manage course positions carefully on narrow par-4 slots; rely on low-trajectory control fades to avoid hazard lines.";
+    }
+    if (norm.includes('AUGUSTA')) {
+      return "Elite architectural design requiring extreme precision into Amen Corner. Minimal safety parameters on Hole 12 approach corridors. Key strategy: Master high-trajectory draws on back-nine doglegs to maximize scoring variables.";
+    }
+    if (norm.includes('OLD COURSE') || norm.includes('ST ANDREWS')) {
+      return "Historic links terrain subject to high coastal winds and massive double greens. Packed with deep hidden pot bunkers. Key strategy: Keep launch angles low; run creative bump-and-run approaches along the deck lines.";
+    }
+    // Universal pro-grade fallback advice for all other course selections
+    return "Operational track geometries are locked cleanly into active scorecard memory frames. Check local crosswinds and yardage changes through the KEE system notes before pulling a club. Avoid attacking tucked flags to keep big numbers off the card.";
+  };
+
   // Dynamic Color Theme Chip Custom Selector for Tee Badges
   const getTeeColorStyle = (teeName = '') => {
     const norm = teeName.toUpperCase().trim();
@@ -72,7 +91,6 @@ function CourseIntelMain({ onNavigate }) {
     if (norm.includes('BLUE')) return { bg: '#002117', border: '#a3d0be', text: '#a3d0be' };
     if (norm.includes('WHITE')) return { bg: '#2e3132', border: '#e1e3e4', text: '#e1e3e4' };
     if (norm.includes('RED')) return { bg: '#3e0000', border: '#ffb4ab', text: '#ffb4ab' };
-    // Fallback baseline layout theme parameters if custom naming floats in
     return { bg: '#0e3c2f', border: 'rgba(236,193,81,0.2)', text: '#beedd9' };
   };
 
@@ -163,7 +181,7 @@ function CourseIntelMain({ onNavigate }) {
       </section>
 
       {/* ========================================================================= */}
-      {/* 💎 UPGRADED HIGH-READABILITY TACTICAL OVERLAY DRAWER SHEET                  */}
+      {/* 💎 HIGH-READABILITY TACTICAL OVERLAY DRAWER SHEET                        */}
       {/* ========================================================================= */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: selectedCourse ? 'auto' : 'none', display: 'block' }}>
         <div onClick={() => setSelectedCourse(null)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: selectedCourse ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
@@ -186,20 +204,37 @@ function CourseIntelMain({ onNavigate }) {
                 <button onClick={() => setSelectedCourse(null)} style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 18px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', textTransform: 'uppercase' }} type="button">Close</button>
               </div>
 
-              {/* Drawer Content Body (Scrollable) */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '28px', boxSizing: 'border-box', paddingBottom: '80px' }}>
+              {/* Drawer Content Body */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '28px', boxSizing: 'border-box', paddingBottom: '60px' }}>
                 
-                {/* 1. Base Facility Details Container */}
+                {/* 💎 #2 HIGH READABILITY: Blazing fast-glance global Course Par metrics block */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.1em' }}>FACILITY ANALYSIS</span>
+                  <span style={{ fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.1em' }}>GLOBAL DECK CONFIGURATION</span>
+                  <div style={{ backgroundColor: '#001710', padding: '24px', borderRadius: '14px', border: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div style={{ width: '56px', height: '56px', borderRadius: '12px', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', fontSize: '24px' }}>⛳</div>
+                    <div>
+                      {/* Scaled par text string up to high-visibility bold italics profile */}
+                      <p style={{ margin: 0, fontSize: '28px', fontWeight: '900', fontStyle: 'italic', color: 'white', tracking: '-0.02em', lineHeight: '1' }}>
+                        PAR {associatedTees[0]?.total_par || selectedCourse.total_par || '72'}
+                      </p>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '10px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', textTransform: 'uppercase', tracking: '0.05em' }}>
+                        OPERATIONAL ROTATION REGISTRY UNITS: {associatedTees.length} TRACK VARIATIONS
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* #1 DYNAMIC DESCRIPTION SEED ACCESSED VIA CORE FUNCTION */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.1em' }}>TACTICAL APP ANALYSIS</span>
                   <div style={{ backgroundColor: '#001710', padding: '20px', borderRadius: '14px', border: '1px solid rgba(236,193,81,0.05)' }}>
                     <p style={{ margin: 0, color: '#beedd9', fontSize: '14px', lineHeight: '1.6', fontWeight: '500' }}>
-                      {selectedCourse.notes || "Operational club coordinates loaded natively into active scorecard systems memory arrays. Confirm rule assignments and side-wager protocols directly with squad partners prior to choosing tee positions from the deck metrics ledger below."}
+                      {generateTacticalAnalysisNotes(selectedCourse.course_name)}
                     </p>
                   </div>
                 </div>
 
-                {/* 2. Dynamic Live Tee Box Variations Matrix */}
+                {/* TACTICAL TEE BOX VARIATIONS MATRIX */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <span style={{ fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.1em' }}>TACTICAL TEE LEDGER SPECIFICATIONS</span>
                   
@@ -220,7 +255,6 @@ function CourseIntelMain({ onNavigate }) {
                             key={tee.id}
                             style={{ backgroundColor: '#001d14', border: '1px solid rgba(236,193,81,0.04)', borderRadius: '14px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxSizing: 'border-box' }}
                           >
-                            {/* Left Box: Tee Identity Callout */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                               <div style={{ backgroundColor: styleConfig.bg, border: `1px solid ${styleConfig.border}`, color: styleConfig.text, padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: '900', fontStyle: 'italic', tracking: '0.05em', minWidth: '70px', textAlign: 'center', textTransform: 'uppercase', boxSizing: 'border-box' }}>
                                 {tee.tee_name}
@@ -235,7 +269,6 @@ function CourseIntelMain({ onNavigate }) {
                               </div>
                             </div>
 
-                            {/* Right Box: Dynamic Handicap Math Rating Parameters */}
                             <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                               <span style={{ color: '#ecc151', fontSize: '14px', fontWeight: '900', fontStyle: 'italic' }}>
                                 CR: {tee.course_rating ? parseFloat(tee.course_rating).toFixed(1) : '--'}
@@ -254,17 +287,6 @@ function CourseIntelMain({ onNavigate }) {
                   )}
                 </div>
 
-                {/* 3. Action Round Ignition Hook */}
-                <button 
-                  onClick={() => {
-                    setSelectedCourse(null);
-                    onNavigate('round-intel');
-                  }}
-                  style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '30px', padding: '20px 0', fontSize: '15px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', marginTop: '12px', boxShadow: '0 12px 30px rgba(236,193,81,0.2)', flexShrink: 0 }}
-                  type="button"
-                >
-                  🚀 START OPERATIONAL ROUND WITH THIS VENUE
-                </button>
               </div>
             </>
           )}
