@@ -7,6 +7,7 @@ import LiveGameMain from './screens/1.0_RoundIntel/1.2_LiveGameMain';
 import PlayerIntelMain from './screens/3.0_PlayerIntel/3.0_PlayerIntelMain';
 import EditPlayer from './screens/3.0_PlayerIntel/3.1_EditPlayer';
 import CreatePlayer from './screens/3.0_PlayerIntel/3.2_CreatePlayer';
+import CourseIntelMain from './screens/4.0_CourseIntel/4.0_CourseIntelMain';
 
 function App() {
   const [isKeeOpen, setIsKeeOpen] = useState(false);
@@ -42,6 +43,7 @@ function App() {
     else if (activeScreen === 'player-intel') handleScreenNavigation('mission-control');
     else if (activeScreen === 'edit-player') handleScreenNavigation('player-intel');
     else if (activeScreen === 'create-player') handleScreenNavigation('player-intel');
+    else if (activeScreen === 'course-intel') handleScreenNavigation('mission-control');
     else handleScreenNavigation('mission-control');
   };
 
@@ -49,10 +51,11 @@ function App() {
   const getScreenSubTitleString = () => {
     if (activeScreen === 'mission-control') return 'WELCOME';
     if (activeScreen === 'player-intel') return 'PLAYER INTELLIGENCE';
-    if (activeScreen === 'edit-player') return 'EDIT PLAYER'; // 🚀 FIXED: Label updated to EDIT PLAYER as requested
+    if (activeScreen === 'edit-player') return 'EDIT PLAYER'; 
     if (activeScreen === 'create-player') return 'CREATE PLAYER';
     if (activeScreen === 'round-intel') return 'ROUND INTELLIGENCE';
     if (activeScreen === 'create-match') return 'CREATE MATCH';
+    if (activeScreen === 'course-intel') return 'COURSE INTELLIGENCE';
     if (activeScreen === 'live-game') return currentMatchContext.matchName || 'LIVE SCORECARD';
     return '';
   };
@@ -126,6 +129,9 @@ function App() {
         {activeScreen === 'create-player' && (
           <CreatePlayer onNavigate={(screen) => handleScreenNavigation(screen)} />
         )}
+        {activeScreen === 'course-intel' && (
+          <CourseIntelMain onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
+        )}
       </main>
 
       {/* 🧭 PILL CONTEXT HUD FOOTER NAV - FULL ALIGNMENT PILL FIXED */}
@@ -154,8 +160,8 @@ function App() {
             </button>
           </div>
 
-          {/* Mapped Action Pillar 4: Courses Intel Map Sheets Link Dummy Setup */}
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: '#beedd9', opacity: 0.6, padding: 0 }} type="button">
+          {/* Mapped Action Pillar 4: Courses Intel Map Sheets Link */}
+          <button onClick={() => handleScreenNavigation('course-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: activeScreen === 'course-intel' ? '#ecc151' : '#beedd9', opacity: activeScreen === 'course-intel' ? 1 : 0.6, padding: 0 }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>map</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Courses</span>
           </button>
