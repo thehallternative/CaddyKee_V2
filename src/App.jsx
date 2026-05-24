@@ -102,7 +102,6 @@ function App() {
         
         {/* 🎨 STACKED BRAND DESIGN: CaddyKee App Identity locked above clean contextual subtitle string */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: 1, minWidth: 0, gap: '2px' }}>
-          {/* 🚀 FIXED LINK: Tapping branding clearing history matrices and maps home */}
           <h1 
             onClick={() => {
               setScreenHistory([]);
@@ -188,12 +187,13 @@ function App() {
           </button>
 
           {/* KEE VOICE TARGET CONTROL MODAL INTERFACE TRIGGER */}
+          {/* ✅ VISUAL UPDATE: Enhanced button bounding matrices for much larger interactive presence */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-            <button onClick={() => setIsKeeOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-20px)', width: '76px', padding: 0 }} type="button">
-              <div style={{ width: '66px', height: '66px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 25px rgba(236,193,81,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '3px', boxSizing: 'border-box' }}>
-                <img src={caddyKeeLogo} alt="KEE" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span class="material-symbols-outlined" style="color:#ecc151;font-size:32px;">graphic_eq</span>'; }} />
+            <button onClick={() => setIsKOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-22px)', width: '88px', padding: 0 }} type="button">
+              <div style={{ width: '78px', height: '78px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 30px rgba(236,193,81,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '4px', boxSizing: 'border-box' }}>
+                <img src={caddyKeeLogo} alt="KEE" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span class="material-symbols-outlined" style="color:#ecc151;font-size:36px;">graphic_eq</span>'; }} />
               </div>
-              <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.07em', marginTop: '5px' }}>KEE</span>
+              <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.08em', marginTop: '6px' }}>KEE</span>
             </button>
           </div>
 

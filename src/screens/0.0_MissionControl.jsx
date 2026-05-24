@@ -9,9 +9,11 @@ function MissionControl({ matchContext, onNavigate }) {
 
   // 📝 SLOGAN MATRIX PERIODIC TICKER STATE
   const [currentSloganIdx, setCurrentSloganIdx] = useState(0);
+  
+  // ✅ SLOGAN UPDATE: Configured split lines for Slogan 2 to format flawlessly on screen
   const slogans = [
-    "Unlock a Smarter Way to Play.",
-    "Your Group. Your Game. Powered by KEE."
+    { type: 'single', text: "Unlock a Smarter Way to Play." },
+    { type: 'split', line1: "Your Group, Your Game", line2: "Powered by Kee your personal AI assistant" }
   ];
 
   // 📡 DATABASE READ: QUERY ALL CURRENT & UPCOMING TIMELINES LIVE
@@ -20,7 +22,6 @@ function MissionControl({ matchContext, onNavigate }) {
       setLoading(true);
       const todayStr = new Date().toISOString().split('T')[0];
 
-      // Fetch all matches from today onward to dynamically populate the launch feed
       const { data, error } = await supabase
         .from('matches')
         .select('id, match_name, course_name, tee_date, tee_time')
@@ -40,10 +41,9 @@ function MissionControl({ matchContext, onNavigate }) {
   useEffect(() => {
     fetchOperationalAgenda();
 
-    // Slogan rotating ticker intervals setup
     const sloganTimer = setInterval(() => {
       setCurrentSloganIdx((prev) => (prev + 1) % slogans.length);
-    }, 4000);
+    }, 5000);
 
     return () => clearInterval(sloganTimer);
   }, []);
@@ -61,7 +61,7 @@ function MissionControl({ matchContext, onNavigate }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', boxSizing: 'border-box', width: '100%', paddingTop: '12px', position: 'relative' }}>
       
-      {/* 🎨 INJECTING HARDWARE-ACCELERATED KEYFRAMES & PULSE MOTIONS */}
+      {/* 🎨 HARDWARE-ACCELERATED TRANSITIONS */}
       <style>{`
         @keyframes flyInLogo {
           0% { transform: translateY(60px); opacity: 0; filter: blur(4px); }
@@ -103,17 +103,17 @@ function MissionControl({ matchContext, onNavigate }) {
         }
       `}</style>
 
-      {/* 🎨 INTERACTIVE BACKGROUND ATMOSPHERIC RADIAL PULSE SHIELD */}
+      {/* BACKGROUND PULSE */}
       <div 
         style={{ 
           position: 'absolute', 
           top: '-10%', 
           left: '50%', 
-          width: '320px', 
-          height: '320px', 
+          width: '340px', 
+          height: '340px', 
           borderRadius: '50%', 
           backgroundColor: '#ecc151', 
-          filter: 'blur(140px)', 
+          filter: 'blur(150px)', 
           zIndex: 0, 
           pointerEvents: 'none',
           transform: 'translateX(-50%)',
@@ -121,48 +121,61 @@ function MissionControl({ matchContext, onNavigate }) {
         }} 
       />
 
-      {/* BRANDING HUB EXTRUDING HERO CARD */}
+      {/* BRANDING HERO CONTAINER */}
       <section 
         style={{ 
           zIndex: 1,
           backgroundColor: '#0e3c2f', 
           border: '1px solid rgba(236,193,81,0.15)', 
           borderRadius: '24px', 
-          padding: '40px 24px', 
+          padding: '44px 24px', 
           textAlign: 'center', 
           boxShadow: '0 15px 35px rgba(0,0,0,0.4)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '20px',
+          gap: '24px',
           boxSizing: 'border-box'
         }}
       >
-        {/* 🎬 ANIMATED LAYER 1: Core Floating Logo Brand Identity */}
+        {/* 🎬 ANIMATED LAYER 1: Large Immersive Floating Logo Emblem */}
         <div style={{ animation: 'flyInLogo 0.7s cubic-bezier(0.1, 0.85, 0.25, 1) forwards' }}>
           <img 
             src={caddyKeeLogo} 
             alt="CaddyKee Logo" 
-            style={{ width: '80px', height: '80px', objectFit: 'contain', filter: 'drop-shadow(0 0 15px rgba(236,193,81,0.4))' }} 
+            style={{ width: '125px', height: '125px', objectFit: 'contain', filter: 'drop-shadow(0 0 20px rgba(236,193,81,0.45))' }} // ✅ BRAND UPDATE: Boosted to 125px scale
             onError={(e) => { e.target.style.display = 'none'; }}
           />
         </div>
 
-        {/* 🎬 ANIMATED LAYER 2: Staggered Dynamic Slogan Ticker Text */}
+        {/* 🎬 ANIMATED LAYER 2: Dual Line Sequential Slogan Engine */}
         <div 
           style={{ 
             opacity: 0,
             animation: 'flyInSlogan 0.7s cubic-bezier(0.1, 0.85, 0.25, 1) 0.3s forwards',
-            minHeight: '44px',
+            minHeight: '52px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            width: '100%'
           }}
         >
-          <p style={{ margin: 0, color: '#beedd9', fontSize: '15px', fontWeight: '900', fontStyle: 'italic', tracking: '0.02em', textTransform: 'uppercase', lineHeight: '1.4', transition: 'all 0.3s ease' }}>
-            {slogans[currentSloganIdx]}
-          </p>
+          {slogans[currentSloganIdx].type === 'single' ? (
+            <p style={{ margin: 0, color: '#beedd9', fontSize: '15px', fontWeight: '900', fontStyle: 'italic', tracking: '0.02em', textTransform: 'uppercase', lineHeight: '1.4' }}>
+              {slogans[currentSloganIdx].text}
+            </p>
+          ) : (
+            // ✅ SLOGAN UPDATE: Stacked double-row text array mapping
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <p style={{ margin: 0, color: '#beedd9', fontSize: '16px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', tracking: '0.02em', lineHeight: '1.2' }}>
+                {slogans[currentSloganIdx].line1}
+              </p>
+              <p style={{ margin: 0, color: '#ecc151', fontSize: '11px', fontWeight: '700', opacity: 0.85, textTransform: 'uppercase', tracking: '0.04em', letterSpacing: '0.02em' }}>
+                {slogans[currentSloganIdx].line2}
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
