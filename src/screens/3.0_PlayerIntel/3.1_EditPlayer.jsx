@@ -172,10 +172,10 @@ function EditPlayer({ playerId, onNavigate }) {
   return (
     <div style={{ textAlign: 'left', width: '100%', position: 'relative', boxSizing: 'border-box', paddingTop: '12px' }}>
 
-      <main style={{ display: 'flex', flexDirection: 'column', gap: '40px', paddingBottom: '60px' }}>
+      <main style={{ display: 'flex', flexDirection: 'column', gap: '40px', paddingBottom: '60px', boxSizing: 'border-box', width: '100%' }}>
         
-        {/* SECTION 1: IDENTITY AVATAR BLOCK - Re-Centered Cleanly */}
-        <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', textAlign: 'center', width: '100%' }}>
+        {/* SECTION 1: IDENTITY AVATAR BLOCK */}
+        <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', textAlign: 'center', width: '100%', boxSizing: 'border-box' }}>
           <div style={{ position: 'relative', margin: '0 auto', width: '120px', height: '120px' }}>
             <div style={{ width: '100%', height: '100%', borderRadius: '24px', backgroundColor: '#0e3c2f', border: '2px solid rgba(236,193,81,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '38px', textTransform: 'uppercase' }}>
               {(firstName.substring(0,1) + lastName.substring(0,1)) || 'P'}
@@ -185,44 +185,43 @@ function EditPlayer({ playerId, onNavigate }) {
         </section>
 
         {/* SECTION 2: VERTICALLY STACKED GENERAL INFORMATION INTEL */}
-        <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
             <h2 style={{ fontSize: '12px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', textTransform: 'uppercase', tracking: '0.15em', margin: 0 }}>General</h2>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>FIRST NAME</label>
-            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
+            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: 'rgba(14, 60, 47, 0.5)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>LAST NAME</label>
-            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
+            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>CLUB NICKNAME</label>
-            <input type="text" value={nickname} placeholder="e.g., The Caddy Master" onChange={(e) => setNickname(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: '#ecc151', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
+            <input type="text" value={nickname} placeholder="e.g., The Caddy Master" onChange={(e) => setNickname(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: '#ecc151', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>EMAIL ADDRESS</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>PHONE CONTACT</label>
-            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
 
-          {/* ROLE SELECTOR - Extraneous Icon Removed */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#ecc151', tracking: '0.05em', paddingLeft: '4px' }}>PLAYER SECURITY ROLE TIER</label>
             <div 
               onClick={() => setIsRolePickerOpen(true)}
-              style={{ backgroundColor: 'rgba(14, 60, 47, 0.5)', border: '1px solid rgba(236,193,81,0.2)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+              style={{ width: '100%', boxSizing: 'border-box', backgroundColor: 'rgba(14, 60, 47, 0.5)', border: '1px solid rgba(236,193,81,0.2)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
             >
               <span>{roleLabels[playerRole]}</span>
             </div>
@@ -230,17 +229,17 @@ function EditPlayer({ playerId, onNavigate }) {
         </section>
 
         {/* SECTION 3: HANDICAP MANAGEMENT CONFIGS */}
-        <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
             <h2 style={{ fontSize: '12px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', textTransform: 'uppercase', tracking: '0.15em', margin: 0 }}>Handicap</h2>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
           </div>
 
-          <div style={{ backgroundColor: '#0e3c2f', padding: '24px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* Manual Toggle Wrapper - Reset to Far-Right Spacing */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              <div>
+          <div style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#0e3c2f', padding: '24px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* 🛠️ ALIGNMENT RESTORED: Added boxSizing and structured flex bounds to contain the toggle switch safely on the right edge */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', boxSizing: 'border-box' }}>
+              <div style={{ paddingRight: '8px' }}>
                 <p style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: '#beedd9' }}>Manual Index Lock</p>
                 <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#a3d0be', textTransform: 'uppercase' }}>Override system metrics</p>
               </div>
@@ -252,7 +251,7 @@ function EditPlayer({ playerId, onNavigate }) {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px', alignItems: 'end' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px', alignItems: 'end', width: '100%' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '11px', fontWeight: '900', color: '#ecc151', tracking: '0.05em' }}>
                   {isPlusHcp ? 'PLUS HANDICAP (+)' : 'STANDARD HANDICAP'}
@@ -270,41 +269,40 @@ function EditPlayer({ playerId, onNavigate }) {
             </div>
 
             {isManualIndex && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', boxSizing: 'border-box' }}>
                 <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em' }}>MANUAL OVERRIDE STROKE SPEC</label>
-                <input type="number" step="0.1" value={manualIndexVal} placeholder="--" onChange={(e) => setManualIndexVal(e.target.value)} style={{ backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '14px', color: 'white', fontSize: '16px', fontWeight: '700', outline: 'none' }} />
+                <input type="number" step="0.1" value={manualIndexVal} placeholder="--" onChange={(e) => setManualIndexVal(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '14px', color: 'white', fontSize: '16px', fontWeight: '700', outline: 'none' }} />
               </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', boxSizing: 'border-box' }}>
               <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em' }}>EXTERNAL HANDICAP ID (GHIN)</label>
-              <input type="text" value={externalHandicapId} placeholder="G-8829-441" onChange={(e) => setExternalHandicapId(e.target.value)} style={{ backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: 'white', fontSize: '16px', fontWeight: '700', outline: 'none' }} />
+              <input type="text" value={externalHandicapId} placeholder="G-8829-441" onChange={(e) => setExternalHandicapId(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: 'white', fontSize: '16px', fontWeight: '700', outline: 'none' }} />
             </div>
           </div>
         </section>
 
         {/* SECTION 4: PREFERENCES & DYNAMIC VENUE SELECTOR */}
-        <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
             <h2 style={{ fontSize: '12px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', textTransform: 'uppercase', tracking: '0.15em', margin: 0 }}>Preferences</h2>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
           </div>
 
-          {/* GENDER PICKER - Extraneous Compass Icon Removed */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>GENDER SPEC</label>
             <div 
               onClick={() => setIsGenderPickerOpen(true)}
-              style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+              style={{ width: '100%', boxSizing: 'border-box', backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
             >
               <span>{gender}</span>
             </div>
           </div>
 
-          {/* Professional Status Wrapper - Reset to Far-Right Spacing */}
-          <div style={{ backgroundColor: 'rgba(14,60,47,0.2)', padding: '18px 20px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            <div>
+          {/* 🛠️ ALIGNMENT RESTORED: Re-asserted perfect space-between boundaries for the Professional Status toggle block */}
+          <div style={{ width: '100%', boxSizing: 'border-box', backgroundColor: 'rgba(14,60,47,0.2)', padding: '18px 20px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ paddingRight: '8px' }}>
               <p style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: '#beedd9' }}>Professional Status</p>
               <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#a3d0be', textTransform: 'uppercase' }}>Registered PGA Pro Status</p>
             </div>
@@ -316,9 +314,9 @@ function EditPlayer({ playerId, onNavigate }) {
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>PREFERRED TEE BOX TEXTURE</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
               {['GOLD', 'BLACK', 'BLUE', 'WHITE'].map(tee => {
                 const active = preferredTeeBox === tee;
                 return (
@@ -330,11 +328,11 @@ function EditPlayer({ playerId, onNavigate }) {
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>HOME COURSE SELECTION</label>
             <div 
               onClick={() => setIsCoursePickerOpen(true)}
-              style={{ position: 'relative', cursor: 'pointer', backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: '#beedd9', fontWeight: '700', fontSize: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              style={{ width: '100%', boxSizing: 'border-box', position: 'relative', cursor: 'pointer', backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(65,72,69,0.15)', borderRadius: '12px', padding: '18px', color: '#beedd9', fontWeight: '700', fontSize: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
             >
               <span style={{ textTransform: 'uppercase' }}>{currentHomeCourseName}</span>
               <span style={{ color: '#ecc151' }}>📍</span>
@@ -343,33 +341,33 @@ function EditPlayer({ playerId, onNavigate }) {
         </section>
 
         {/* SECTION 5: SAFETY EMERGENCY CONTROLS */}
-        <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
             <h2 style={{ fontSize: '12px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', textTransform: 'uppercase', tracking: '0.15em', margin: 0 }}>Safety</h2>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>EMERGENCY CONTACT NAME</label>
-            <input type="text" value={emergencyName} onChange={(e) => setEmergencyName(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
+            <input type="text" value={emergencyName} onChange={(e) => setEmergencyName(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: 'rgba(14, 60, 47, 0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#a3d0be', tracking: '0.05em', paddingLeft: '4px' }}>EMERGENCY PHONE NUMBER</label>
-            <input type="tel" value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
+            <input type="tel" value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '12px', padding: '18px', color: 'white', fontWeight: '700', fontSize: '18px', outline: 'none' }} />
           </div>
         </section>
 
-        {/* SAVE BUTTON CONTAINER - Icon Removed, Label Simplified */}
-        <div style={{ marginTop: '20px' }}>
+        {/* 💾 CLEAN SAVE ACTION CONTROLLER */}
+        <div style={{ marginTop: '20px', width: '100%', boxSizing: 'border-box' }}>
           <button 
             onClick={handleUpdateProfileSubmit}
             disabled={saving}
             style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', boxShadow: '0 20px 40px rgba(236,193,81,0.15)', opacity: saving ? 0.6 : 1 }}
             type="button"
           >
-            {saving ? 'SAVING...' : 'SAVE'}
+            {saving ? 'COMPILING SCHEMAS...' : 'SAVE'}
           </button>
         </div>
 
