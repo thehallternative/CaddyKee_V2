@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 
-function CreateMatch({ onNavigate }) {
+function CreateMatch({ matchId, onNavigate }) {
   // 💾 STANDARDIZED PICKER & LIVE DATABASE COUPLING STATES
   const [matchName, setMatchName] = useState('');
   
@@ -39,6 +39,7 @@ function CreateMatch({ onNavigate }) {
   // 🎛️ DYNAMIC DATABASE-DRIVEN GAME BLUEPRINT MATRICES
   const [dbMasterGames, setDbMasterGames] = useState([]);
   const [liveGameStates, setLiveGameStates] = useState({});
+  const [isReconcilingMatch, setIsReconcilingMatch] = useState(false);
 
   // 🧮 Smart Display Parser for Plus & Standard Handicaps
   const formatHandicapDisplay = (val) => {
@@ -66,9 +67,6 @@ function CreateMatch({ onNavigate }) {
 
         if (courseError) throw courseError;
         setCoursesList(courseData || []);
-        if (courseData && courseData.length > 0) {
-          setSelectedCourseId(courseData[0].id);
-        }
 
         // 2. Fetch active community member profile rows
         const { data: profileData, error: profileError } = await supabase
@@ -78,15 +76,7 @@ function CreateMatch({ onNavigate }) {
         if (profileError) throw profileError;
         setProfilesList(profileData || []);
 
-        // 3. Evaluate and apply default captain assignment to Slot 1
-        const defaultCaptain = profileData?.find(
-          p => p.nickname?.toUpperCase() === 'DH' || p.display_name?.toUpperCase().includes('HAZEN')
-        );
-        if (defaultCaptain) {
-          setSelectedPlayers(prev => ({ ...prev, 1: defaultCaptain }));
-        }
-
-        // 4. Fetch our 5 favorite master game records from public.game_rules
+        // 3. Fetch our 5 favorite master game records from public.game_rules
         const { data: rulesData, error: rulesError } = await supabase
           .from('game_rules')
           .select('*')
@@ -94,7 +84,6 @@ function CreateMatch({ onNavigate }) {
           .order('is_favorite', { ascending: false });
 
         if (rulesError) throw rulesError;
-
         setDbMasterGames(rulesData || []);
 
         // Programmatically initialize a runtime state dictionary for each master rule structure
@@ -103,7 +92,6 @@ function CreateMatch({ onNavigate }) {
           const configSchema = game.config_schema || {};
           const flattenedVariables = {};
 
-          // Extract plain primitive default settings to manage form binding loops
           Object.keys(configSchema).forEach(key => {
             const item = configSchema[key];
             if (item && typeof item === 'object' && 'default' in item) {
@@ -119,6 +107,88 @@ function CreateMatch({ onNavigate }) {
             variables: flattenedVariables
           };
         });
+
+        // 4. IF MATCHID PROP IS PRESENT -> RECONCILE DATA ENGINES FROM RECOGNIZED ROUND RECORD
+        if (matchId) {
+          setIsReconcilingMatch(true);
+
+          // Ingest Match Parent Settings Block
+          const { data: matchObj, error: matchLoadErr } = await supabase
+            .from('matches')
+            .select('*')
+            .eq('id', matchId)
+            .single();
+
+          if (!matchLoadErr && matchObj) {
+            setMatchName(matchObj.match_name || '');
+            setTeeDate(matchObj.tee_date || '');
+            setTeeTime(matchObj.tee_time ? matchObj.tee_time.substring(0, 5) : '08:30');
+
+            const matchedCourse = (courseData || []).find(c => c.course_name === matchObj.course_name);
+            if (matchedCourse) setSelectedCourseId(matchedCourse.id);
+          }
+
+          // Ingest Active Sub Wager Sliders Matrix
+          const { data: activeWagers, error: wagersLoadErr } = await supabase
+            .from('active_wagers')
+            .select('*')
+            .eq('match_id', matchId);
+
+          if (!wagersLoadErr && activeWagers) {
+            activeWagers.forEach(wager => {
+              if (initializedStates[wager.game_type]) {
+                initializedStates[wager.game_type].active = true;
+                initializedStates[wager.game_type].variables = {
+                  ...initializedStates[wager.game_type].variables,
+                  ...(wager.rules_configuration || {})
+                };
+              }
+            });
+          }
+
+          // Ingest Pre-assigned Roster Lineup
+          const { data: activePlayers, error: playersLoadErr } = await supabase
+            .from('match_players')
+            .select('*')
+            .eq('match_id', matchId)
+            .order('player_position', { ascending: true });
+
+          const restoredPlayers = { 1: null, 2: null, 3: null, 4: null };
+          if (!playersLoadErr && activePlayers) {
+            activePlayers.forEach(mp => {
+              if (mp.profile_id) {
+                const foundProf = (profileData || []).find(p => p.id === mp.profile_id);
+                if (foundProf) {
+                  restoredPlayers[mp.player_position] = {
+                    ...foundProf,
+                    handicap_index: mp.handicap_at_match_time
+                  };
+                }
+              } else if (mp.guest_display_name) {
+                restoredPlayers[mp.player_position] = {
+                  id: null,
+                  is_guest: true,
+                  display_name: mp.guest_display_name,
+                  nickname: '',
+                  handicap_index: mp.handicap_at_match_time
+                };
+              }
+            });
+            setSelectedPlayers(restoredPlayers);
+          }
+        } else {
+          // Fallback Default Seeding for Fresh Creation Ingress
+          if (courseData && courseData.length > 0) {
+            setSelectedCourseId(courseData[0].id);
+          }
+          const defaultCaptain = profileData?.find(
+            p => p.nickname?.toUpperCase() === 'DH' || p.display_name?.toUpperCase().includes('HAZEN')
+          );
+          if (defaultCaptain) {
+            setSelectedPlayers({ 1: defaultCaptain, 2: null, 3: null, 4: null });
+          }
+        }
+
         setLiveGameStates(initializedStates);
 
       } catch (err) {
@@ -126,10 +196,11 @@ function CreateMatch({ onNavigate }) {
       } finally {
         setLoadingCourses(false);
         setLoadingProfiles(false);
+        setIsReconcilingMatch(false);
       }
     }
     streamInitialDatabaseTelemetry();
-  }, []);
+  }, [matchId]);
 
   // Open Player Drawer Controller
   const handleOpenPlayerSelection = (slotIndex) => {
@@ -157,8 +228,6 @@ function CreateMatch({ onNavigate }) {
     if (!guestName.trim()) return;
 
     let finalHcpValue = guestHandicap ? parseFloat(guestHandicap) : 0.0;
-    
-    // 🧮 Core Plus Math Conversion Rule: Store + as negative float value
     if (isPlusHandicap && finalHcpValue > 0) {
       finalHcpValue = -finalHcpValue;
     }
@@ -233,34 +302,55 @@ function CreateMatch({ onNavigate }) {
   // Find Currently Active Selected Course Object Profile safely
   const currentSelectedCourse = coursesList.find(c => c.id === selectedCourseId);
 
-  // 🚀 UNIFIED DATABASE TRANSACTION ENGINE
+  // 🚀 UNIFIED DATABASE TRANSACTION ENGINE (SUPPORTS BOTH INSERT AND UPDATE)
   const commitMatchToDatabase = async (shouldLaunchScoringView) => {
     try {
       const sanitizedTime = teeTime.length === 5 ? `${teeTime}:00` : teeTime;
       const targetCourseName = currentSelectedCourse ? currentSelectedCourse.course_name : 'Unknown Course';
+      let targetMatchId = matchId;
 
-      // TRANSACTION STEP 1: Insert Core Matches Header Log Item
-      const { data: newMatch, error: matchError } = await supabase
-        .from('matches')
-        .insert([
-          {
-            match_name: matchName || 'Saturday Wager Session',
+      if (matchId) {
+        // SCENARIO A: Update match configurations for existing rounds
+        const { error: matchUpdateErr } = await supabase
+          .from('matches')
+          .update({
+            match_name: matchName || 'Saturday Tournament Session',
             course_name: targetCourseName,
-            tee_date: teeDate,       
-            tee_time: sanitizedTime  
-          }
-        ])
-        .select()
-        .single();
+            tee_date: teeDate,
+            tee_time: sanitizedTime
+          })
+          .eq('id', matchId);
 
-      if (matchError) throw matchError;
+        if (matchUpdateErr) throw matchUpdateErr;
+
+        // Clean out previous dependent records to prevent relational key constraints duplication
+        await supabase.from('active_wagers').delete().eq('match_id', matchId);
+        await supabase.from('match_players').delete().eq('match_id', matchId);
+      } else {
+        // SCENARIO B: Fresh Round Ingestion Insert Block
+        const { data: newMatch, error: matchInsertErr } = await supabase
+          .from('matches')
+          .insert([
+            {
+              match_name: matchName || 'Saturday Wager Session',
+              course_name: targetCourseName,
+              tee_date: teeDate,       
+              tee_time: sanitizedTime  
+            }
+          ])
+          .select()
+          .single();
+
+        if (matchInsertErr) throw matchInsertErr;
+        targetMatchId = newMatch.id;
+      }
 
       // TRANSACTION STEP 2: Generate active side-wager entries inside active_wagers table
       const activeGameKeys = Object.keys(liveGameStates).filter(slug => liveGameStates[slug].active);
       
       if (activeGameKeys.length > 0) {
         const wagersPayload = activeGameKeys.map(slug => ({
-          match_id: newMatch.id,
+          match_id: targetMatchId,
           game_type: slug,
           rules_configuration: liveGameStates[slug].variables
         }));
@@ -278,7 +368,7 @@ function CreateMatch({ onNavigate }) {
         .map(slotKey => {
           const p = selectedPlayers[slotKey];
           return {
-            match_id: newMatch.id,
+            match_id: targetMatchId,
             profile_id: p.id, 
             guest_display_name: p.id ? null : p.display_name, 
             player_position: parseInt(slotKey),
@@ -297,14 +387,13 @@ function CreateMatch({ onNavigate }) {
       // TRANSACTION STEP 4: Conditional Workflow Route Distribution Diverter
       if (shouldLaunchScoringView) {
         onNavigate('live-game', {
-          matchId: newMatch.id,
+          matchId: targetMatchId,
           matchName: matchName || 'Saturday Wager Session',
           courseName: targetCourseName,
           activeGames: activeGameKeys,
           roster: selectedPlayers
         });
       } else {
-        // Safe return directly to Mission Control Home Hub view matrix
         onNavigate('mission-control');
       }
 
@@ -320,6 +409,14 @@ function CreateMatch({ onNavigate }) {
     return combinedCriteria.includes(searchFilter.toUpperCase());
   });
 
+  if (isReconcilingMatch) {
+    return (
+      <div style={{ color: '#beedd9', padding: '40px', textAlign: 'center', fontWeight: '900', fontStyle: 'italic', tracking: '0.1em' }}>
+        RECONCILING SCHEDULED ROUND CONFIGS...
+      </div>
+    );
+  }
+
   return (
     <div style={{ textAlign: 'left', width: '100%', boxSizing: 'border-box', paddingTop: '12px' }}>
 
@@ -328,7 +425,7 @@ function CreateMatch({ onNavigate }) {
         {/* PILLAR 1: MATCH NAME */}
         <section>
           <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em', display: 'block', marginBottom: '12px', paddingLeft: '8px' }}>
-            MATCH NAME
+            MATCH NAME {matchId && '(EDITING MODE)'}
           </span>
           <div style={{ backgroundColor: '#0e3c2f', padding: '24px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)' }}>
             <input 
@@ -554,7 +651,7 @@ function CreateMatch({ onNavigate }) {
             type="button"
           >
             <span className="material-symbols-outlined" style={{ fontWeight: 'bold', fontSize: '20px' }}>bookmark_add</span>
-            SAVE ROUND OVERVIEW
+            {matchId ? 'UPDATE ROUND CONFIGS' : 'SAVE ROUND OVERVIEW'}
           </button>
 
           {/* ACTION BUTTON B: SAVE & LAUNCH SCORING TRACER IMMEDIATELY */}
@@ -564,7 +661,7 @@ function CreateMatch({ onNavigate }) {
             type="button"
           >
             <span className="material-symbols-outlined" style={{ fontWeight: 'bold', fontSize: '22px' }}>power_settings_new</span>
-            SAVE & START ROUND
+            {matchId ? 'LAUNCH LIVE SCORES' : 'SAVE & START ROUND'}
           </button>
 
         </div>

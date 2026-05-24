@@ -33,6 +33,7 @@ function App() {
   const [editingPlayerId, setEditingPlayerId] = useState(null);
   const [editingCourseId, setEditingCourseId] = useState(null);
   const [editingGameId, setEditingGameId] = useState(null);
+  const [editingMatchId, setEditingMatchId] = useState(null); // ✅ NEW LAYER MATCH EXTRACTOR LOCK
 
   // 💬 KEE INTELLIGENCE CORE WORKSPACE STATES
   const [textInput, setTextInput] = useState('');
@@ -50,9 +51,18 @@ function App() {
         setEditingCourseId(contextPayload.courseId); 
       } else if (targetScreen === 'edit-game' && contextPayload.ruleId) {
         setEditingGameId(contextPayload.ruleId);
+      } else if (targetScreen === 'edit-match' && contextPayload.matchId) {
+        // ✅ NEW REDIRECT CAPTURE LOOP: Intercept scheduled rounds data packs safely
+        setEditingMatchId(contextPayload.matchId);
+        targetScreen = 'create-match'; // Route safely to the shared Setup Engine
       } else {
         setCurrentMatchContext(contextPayload);
       }
+    }
+
+    // ✅ CLEANUP GUARD: Reset state tracking variables if initializing a fresh blank creation pass
+    if (targetScreen === 'create-match' && (!contextPayload || !contextPayload.matchId)) {
+      setEditingMatchId(null);
     }
 
     // STACK PUSH: Don't log duplication patterns if reloading the current screen
@@ -84,7 +94,7 @@ function App() {
     if (activeScreen === 'edit-player') return 'EDIT PLAYER'; 
     if (activeScreen === 'create-player') return 'CREATE PLAYER';
     if (activeScreen === 'round-intel') return 'ROUND INTELLIGENCE';
-    if (activeScreen === 'create-match') return 'CREATE MATCH';
+    if (activeScreen === 'create-match') return editingMatchId ? 'EDIT MATCH SETUP' : 'CREATE MATCH'; // ✅ CONTEXT REGISTRATION
     if (activeScreen === 'game-intel') return 'GAME INTELLIGENCE';
     if (activeScreen === 'edit-game') return 'EDIT MASTER GAME';
     if (activeScreen === 'create-game') return 'CREATE NEW GAME';
@@ -179,13 +189,14 @@ function App() {
       {/* CORE ROUTING ENGINE INJECTION */}
       <main className="px-6 pt-4 max-w-xl mx-auto w-full box-border" style={{ display: 'flex', flexDirection: 'column' }}>
         {activeScreen === 'mission-control' && (
-          <MissionControl matchContext={currentMatchContext} onNavigate={(screen) => handleScreenNavigation(screen)} />
+          <MissionControl matchContext={currentMatchContext} onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
         )}
         {activeScreen === 'round-intel' && (
           <RoundIntelMain onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
         )}
         {activeScreen === 'create-match' && (
-          <CreateMatch onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
+          // ✅ INJECTED KEY PROP LINKMENT TO ACTIVATE SUB DRAWER OVERRIDES
+          <CreateMatch matchId={editingMatchId} onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
         )}
         {activeScreen === 'live-game' && (
           <LiveGameMain 
@@ -239,7 +250,6 @@ function App() {
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Players</span>
           </button>
 
-          {/* KEE VOICE CONTROL TRIGGER CHASSIS */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <button onClick={() => setIsKeeOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-22px)', width: '88px', padding: 0 }} type="button">
               <div style={{ width: '78px', height: '78px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '0px', boxSizing: 'border-box' }}>
@@ -262,9 +272,7 @@ function App() {
         </nav>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 💎 ACTIVE INTERACTIVE KEE VOICE INTELLIGENCE OVERLAY DRAWER CHASSIS       */}
-      {/* ========================================================================= */}
+      {/* ACTIVE INTERACTIVE KEE VOICE OVERLAY CHASSIS */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 130, pointerEvents: isKeeOpen ? 'auto' : 'none', display: 'block' }}>
         <div onClick={() => setIsKeeOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isKeeOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '12vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', backgroundColor: '#00251b', boxShadow: '0 -20px 100px rgba(0,0,0,0.8)', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isKeeOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}>
@@ -284,7 +292,6 @@ function App() {
             <button onClick={() => setIsKeeOpen(false)} style={{ backgroundColor: '#001710', color: '#beedd9', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }} type="button">Close</button>
           </div>
 
-          {/* DYNAMIC CHAT SCROLL WINDOW VIEWPORT MODULE */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box' }}>
             {chatLog.map((msg, i) => {
               const isKee = msg.sender === 'kee';
@@ -297,7 +304,6 @@ function App() {
               );
             })}
 
-            {/* DYNAMIC SAGE LOADING SIGNAL */}
             {isKeeProcessing && (
               <div style={{ display: 'flex', gap: '6px', height: '24px', alignItems: 'center', paddingLeft: '8px' }}>
                 <style>{`
@@ -311,7 +317,6 @@ function App() {
             )}
           </div>
 
-          {/* PRE-CONSTRUCTED SHORTCUT DRILL TAP CHIPS MAP */}
           <div style={{ padding: '0 24px', flex: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <p style={{ fontSize: '10px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', tracking: '0.1em', margin: 0 }}>TRY ASKING KEE</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
@@ -324,7 +329,6 @@ function App() {
             </div>
           </div>
 
-          {/* INPUT BAR SUBMIT SECTION CONTROLS CHASSIS */}
           <div style={{ padding: '24px', paddingBottom: '40px', flex: 'none', borderTop: '1px solid rgba(65,72,69,0.1)' }}>
             <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#00120b', padding: '4px', borderRadius: '30px', border: '1px solid rgba(236,193,81,0.15)' }}>
               <input 
@@ -334,13 +338,7 @@ function App() {
                 onKeyDown={(e) => e.key === 'Enter' && handleSendCaddyMessage()}
                 style={{ flex: 1, background: 'transparent', border: 'none', padding: '12px 20px', color: 'white', outline: 'none', fontSize: '14px', fontWeight: '600' }} 
               />
-              <button 
-                onClick={handleSendCaddyMessage}
-                style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#ecc151', border: 'none', color: '#3e2e00', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
-                type="button"
-              >
-                ▲
-              </button>
+              <button onClick={handleSendCaddyMessage} style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#ecc151', border: 'none', color: '#3e2e00', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} type="button">▲</button>
             </div>
           </div>
 
