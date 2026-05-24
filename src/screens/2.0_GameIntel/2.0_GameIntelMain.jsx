@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 
 function GameIntelMain({ onNavigate }) {
-  // 🎛️ CONTROLLERS, TABS & STREAM ENGINE READ STATE COUPLINGS
-  const [activeTab, setActiveTab] = useState('games');
+  // 🎛️ CONTROLLERS & STREAM ENGINE READ STATE COUPLINGS
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -41,43 +40,25 @@ function GameIntelMain({ onNavigate }) {
     const combinedStr = `${title} ${slug} ${category} ${content}`.toUpperCase();
     return combinedStr.includes(searchQuery.toUpperCase());
   }).sort((a, b) => {
-    // Parameter 1: Hard-lock favourites (Wolf, Hollywood, 2-Man Best Ball, Greenies) to float to the absolute top
+    // Force favorite items (Wolf, Hollywood, 2-Man Best Ball, Greenies) to float to the absolute top
     const favA = a.is_favorite ? 1 : 0;
     const favB = b.is_favorite ? 1 : 0;
     if (favB !== favA) return favB - favA;
     
-    // Parameter 2: Secondary alphabetization mapping matrix trace pass
+    // Secondary alphabetization mapping matrix trace pass
     return (a.title || '').localeCompare(b.title || '');
   });
 
   return (
     <div style={{ textAlign: 'left', width: '100%', boxSizing: 'border-box', paddingTop: '12px' }}>
       
-      {/* SEGMENTED TAB SWITCH CONTROLLER MATCHING PLAYER INTELLIGENCE CHASSIS */}
-      <div style={{ display: 'flex', gap: '32px', marginBottom: '24px', borderBottom: '1px solid rgba(65,72,69,0.2)' }}>
-        <button 
-          onClick={() => setActiveTab('games')}
-          style={{ paddingBottom: '12px', border: 'none', background: 'transparent', fontSize: '13px', fontWeight: '900', tracking: '0.1em', textTransform: 'uppercase', cursor: 'pointer', borderBottom: activeTab === 'games' ? '2px solid #ecc151' : '2px solid transparent', color: activeTab === 'games' ? '#ecc151' : 'rgba(190,237,217,0.5)' }}
-          type="button"
-        >
-          Games
-        </button>
-        <button 
-          onClick={() => setActiveTab('variations')}
-          style={{ paddingBottom: '12px', border: 'none', background: 'transparent', fontSize: '13px', fontWeight: '900', tracking: '0.1em', textTransform: 'uppercase', cursor: 'pointer', borderBottom: activeTab === 'variations' ? '2px solid #ecc151' : '2px solid transparent', color: activeTab === 'variations' ? '#ecc151' : 'rgba(190,237,217,0.5)' }}
-          type="button"
-        >
-          Variations
-        </button>
-      </div>
-
       {/* SEARCH FIELD BAR CHASSIS */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
         <div style={{ backgroundColor: '#0e3c2f', padding: '14px 18px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{ color: '#ecc151', fontWeight: 'bold' }}>🔍</span>
           <input 
             type="text"
-            placeholder={activeTab === 'games' ? "SEARCH OPERATIONAL GAMES..." : "SEARCH VARIANT SCHEMAS..."}
+            placeholder="SEARCH OPERATIONAL GAMES..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#beedd9', fontWeight: '700', fontSize: '13px', padding: 0, textTransform: 'uppercase' }}
@@ -85,7 +66,7 @@ function GameIntelMain({ onNavigate }) {
         </div>
       </div>
 
-      {/* COMMAND MODULE ACTIONS ROW - CORRECT TERM MATCHED TO 2.2 LAYOUT FILE */}
+      {/* COMMAND MODULE ACTIONS ROW - RECONFIGURED FOR SINGLE MASTER BUTTON SETUP */}
       <div style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}>
         <button 
           onClick={() => onNavigate('create-game')}
@@ -94,23 +75,16 @@ function GameIntelMain({ onNavigate }) {
         >
           <span>➕</span> Create New Game
         </button>
-        <button 
-          onClick={() => setActiveTab('variations')}
-          style={{ flex: 1, backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', padding: '18px 0', borderRadius: '12px', fontWeight: '900', fontSize: '12px', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', boxShadow: '0 8px 20px rgba(236,193,81,0.1)' }}
-          type="button"
-        >
-          <span>🔄</span> Create Variant
-        </button>
       </div>
 
       {/* MAIN CONTENT SECTION CHASSIS */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '8px', padding: '0 4px' }}>
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '900', color: '#ecc151', fontStyle: 'italic', textTransform: 'uppercase', tracking: '0.05em' }}>
-            {activeTab === 'games' ? 'CORE ENGINE BLUEPRINTS' : 'VARIATION WRAPPERS'}
+            CORE ENGINE BLUEPRINTS
           </h3>
           <span style={{ fontSize: '10px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', tracking: '0.15em' }}>
-            TOTAL UNITS: {activeTab === 'games' ? filteredGameRules.length.toString().padStart(2, '0') : '02'}
+            TOTAL UNITS: {filteredGameRules.length.toString().padStart(2, '0')}
           </span>
         </div>
 
@@ -118,7 +92,7 @@ function GameIntelMain({ onNavigate }) {
           <div style={{ color: '#beedd9', padding: '40px', textAlign: 'center', fontStyle: 'italic', fontWeight: '900' }}>
             STREAMING GAME MASTER RULES REGISTRY...
           </div>
-        ) : activeTab === 'games' ? (
+        ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {filteredGameRules.map(rule => {
               const subtitleString = rule.category || 'SIDE WAGER CORE ENGINE';
@@ -126,9 +100,9 @@ function GameIntelMain({ onNavigate }) {
               return (
                 <div 
                   key={rule.id}
-                  style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(20px)', borderRadius: '16px', border: rule.is_favorite ? '1px solid #ecc151' : '1px solid rgba(236, 193, 81, 0.08)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box', position: 'relative' }}
+                  style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(236, 193, 81, 0.08)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box', position: 'relative' }}
                 >
-                  {/* Glowing Premium Favourite Crown Tag Element */}
+                  {/* Premium Favourite Tag Identifier */}
                   {rule.is_favorite && (
                     <span style={{ position: 'absolute', top: '16px', right: '16px', fontSize: '10px', color: '#ecc151', fontWeight: '900', tracking: '0.05em', fontStyle: 'italic', textTransform: 'uppercase', backgroundColor: '#0e3c2f', padding: '4px 8px', borderRadius: '8px' }}>
                       ★ FAVOURITE
@@ -144,7 +118,7 @@ function GameIntelMain({ onNavigate }) {
                     </h4>
                   </div>
 
-                  {/* UNIFIED DUAL BUTTON TRACK BLOCK MATRIX - STABLE NUMERIC PREFIX CONNECTIONS */}
+                  {/* UNIFIED DUAL BUTTON TRACK BLOCK MATRIX */}
                   <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
                     <button 
                       onClick={() => setSelectedGameRules(rule)}
@@ -170,36 +144,6 @@ function GameIntelMain({ onNavigate }) {
                 NO RECOGNIZED GOLF GAMES REGISTERED TO BACKEND DATA HOOKS
               </div>
             )}
-          </div>
-        ) : (
-          /* UNIFIED BENTO VARIATIONS WRAPPERS CHASSIS MATCHING DIRECTORY MATRIX LOOK */
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {[
-              { title: 'ROCKWAY WOLF RULES', meta: 'MODIFIED MULTIPLIERS • FORCED SOLO ACTIVE' },
-              { title: 'CARRYOVER SKINS PRO', meta: 'COMPOUNDING STAKES • CAP AT HOLE 18' }
-            ].map((variant, idx) => (
-              <div 
-                key={idx}
-                style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(236, 193, 81, 0.08)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box' }}
-              >
-                <div>
-                  <p style={{ margin: '0 0 4px 0', fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.1em', textTransform: 'uppercase' }}>
-                    {variant.meta}
-                  </p>
-                  <h4 style={{ margin: 0, fontSize: '22px', fontWeight: '900', fontStyle: 'italic', color: 'white', textTransform: 'uppercase', tracking: '-0.02em' }}>
-                    {variant.title}
-                  </h4>
-                </div>
-                <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
-                  <button onClick={() => alert("Variation definitions detailing coming next deployment loop.")} style={{ flex: 1, padding: '14px 0', borderRadius: '30px', backgroundColor: '#0e3c2f', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer', border: '1px solid rgba(236,193,81,0.1)' }} type="button">
-                    View Details ➜
-                  </button>
-                  <button onClick={() => alert("Variation variables configuration interface routing next patch.")} style={{ padding: '0 20px', borderRadius: '30px', border: 'none', backgroundColor: '#ecc151', color: '#3e2e00', fontWeight: '900', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} type="button">
-                    ✎ Edit
-                  </button>
-                </div>
-              </div>
-            ))}
           </div>
         )}
       </section>
