@@ -4,6 +4,7 @@ import MissionControl from './screens/0.0_MissionControl';
 import RoundIntelMain from './screens/1.0_RoundIntel/1.0_RoundIntelMain'; 
 import CreateMatch from './screens/1.0_RoundIntel/1.1_CreateMatch'; 
 import LiveGameMain from './screens/1.0_RoundIntel/1.2_LiveGameMain';
+import GameIntelMain from './screens/2.0_GameIntel/2.0_GameIntelMain';
 import PlayerIntelMain from './screens/3.0_PlayerIntel/3.0_PlayerIntelMain';
 import EditPlayer from './screens/3.0_PlayerIntel/3.1_EditPlayer';
 import CreatePlayer from './screens/3.0_PlayerIntel/3.2_CreatePlayer';
@@ -32,7 +33,7 @@ function App() {
       if (targetScreen === 'edit-player' && contextPayload.playerId) {
         setEditingPlayerId(contextPayload.playerId);
       } else if (targetScreen === 'edit-course' && contextPayload.courseId) {
-        setEditingCourseId(contextPayload.courseId); // ✅ ROUTED: Ingest course id into editor slot state
+        setEditingCourseId(contextPayload.courseId); 
       } else {
         setCurrentMatchContext(contextPayload);
       }
@@ -45,6 +46,7 @@ function App() {
     if (activeScreen === 'live-game') handleScreenNavigation('round-intel');
     else if (activeScreen === 'create-match') handleScreenNavigation('round-intel');
     else if (activeScreen === 'round-intel') handleScreenNavigation('mission-control');
+    else if (activeScreen === 'game-intel') handleScreenNavigation('mission-control');
     else if (activeScreen === 'player-intel') handleScreenNavigation('mission-control');
     else if (activeScreen === 'edit-player') handleScreenNavigation('player-intel');
     else if (activeScreen === 'create-player') handleScreenNavigation('player-intel');
@@ -62,8 +64,9 @@ function App() {
     if (activeScreen === 'create-player') return 'CREATE PLAYER';
     if (activeScreen === 'round-intel') return 'ROUND INTELLIGENCE';
     if (activeScreen === 'create-match') return 'CREATE MATCH';
+    if (activeScreen === 'game-intel') return 'GAME INTELLIGENCE';
     if (activeScreen === 'course-intel') return 'COURSE INTELLIGENCE';
-    if (activeScreen === 'edit-course') return 'EDIT COURSE'; // ✅ ROUTED: Stacked title asset configured
+    if (activeScreen === 'edit-course') return 'EDIT COURSE'; 
     if (activeScreen === 'create-course') return 'CREATE COURSE';
     if (activeScreen === 'live-game') return currentMatchContext.matchName || 'LIVE SCORECARD';
     return '';
@@ -129,6 +132,9 @@ function App() {
             onNavigate={(screen) => handleScreenNavigation(screen)} 
           />
         )}
+        {activeScreen === 'game-intel' && (
+          <GameIntelMain onNavigate={(screen) => handleScreenNavigation(screen)} />
+        )}
         {activeScreen === 'player-intel' && (
           <PlayerIntelMain onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
         )}
@@ -154,7 +160,7 @@ function App() {
         <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 8px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
           
           {/* Mapped Action Pillar 1: Rounds Setup */}
-          <button onClick={() => handleScreenNavigation('round-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: activeScreen === 'round-intel' ? '#ecc151' : '#beedd9', opacity: activeScreen === 'round-intel' ? 1 : 0.6, padding: 0 }} type="button">
+          <button onClick={() => handleScreenNavigation('round-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: ['round-intel', 'create-match', 'live-game'].includes(activeScreen) ? '#ecc151' : '#beedd9', opacity: ['round-intel', 'create-match', 'live-game'].includes(activeScreen) ? 1 : 0.6, padding: 0 }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>sports_golf</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Rounds</span>
           </button>
@@ -181,8 +187,8 @@ function App() {
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Courses</span>
           </button>
           
-          {/* Mapped Action Pillar 5: Games Rulesets Engine Matrix Link Dummy Setup */}
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: '#beedd9', opacity: 0.6, padding: 0 }} type="button">
+          {/* Mapped Action Pillar 5: Games Rulesets Engine Matrix Link */}
+          <button onClick={() => handleScreenNavigation('game-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: activeScreen === 'game-intel' ? '#ecc151' : '#beedd9', opacity: activeScreen === 'game-intel' ? 1 : 0.6, padding: 0 }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>swords</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Games</span>
           </button>
