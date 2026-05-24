@@ -8,6 +8,7 @@ import PlayerIntelMain from './screens/3.0_PlayerIntel/3.0_PlayerIntelMain';
 import EditPlayer from './screens/3.0_PlayerIntel/3.1_EditPlayer';
 import CreatePlayer from './screens/3.0_PlayerIntel/3.2_CreatePlayer';
 import CourseIntelMain from './screens/4.0_CourseIntel/4.0_CourseIntelMain';
+import EditCourse from './screens/4.0_CourseIntel/4.1_EditCourse';
 import CreateCourse from './screens/4.0_CourseIntel/4.2_CreateCourse';
 
 function App() {
@@ -22,13 +23,16 @@ function App() {
     activeGames: ['match_play']
   });
 
-  // 📝 EXTRA DATA TRANSPORTER SLOT FOR INDIVIDUAL PLAYER EDITING
+  // 📝 EXTRA DATA TRANSPORTER SLOTS FOR EDIT MODES
   const [editingPlayerId, setEditingPlayerId] = useState(null);
+  const [editingCourseId, setEditingCourseId] = useState(null);
 
   const handleScreenNavigation = (targetScreen, contextPayload = null) => {
     if (contextPayload) {
       if (targetScreen === 'edit-player' && contextPayload.playerId) {
         setEditingPlayerId(contextPayload.playerId);
+      } else if (targetScreen === 'edit-course' && contextPayload.courseId) {
+        setEditingCourseId(contextPayload.courseId); // ✅ ROUTED: Ingest course id into editor slot state
       } else {
         setCurrentMatchContext(contextPayload);
       }
@@ -45,6 +49,7 @@ function App() {
     else if (activeScreen === 'edit-player') handleScreenNavigation('player-intel');
     else if (activeScreen === 'create-player') handleScreenNavigation('player-intel');
     else if (activeScreen === 'course-intel') handleScreenNavigation('mission-control');
+    else if (activeScreen === 'edit-course') handleScreenNavigation('course-intel');
     else if (activeScreen === 'create-course') handleScreenNavigation('course-intel');
     else handleScreenNavigation('mission-control');
   };
@@ -58,7 +63,8 @@ function App() {
     if (activeScreen === 'round-intel') return 'ROUND INTELLIGENCE';
     if (activeScreen === 'create-match') return 'CREATE MATCH';
     if (activeScreen === 'course-intel') return 'COURSE INTELLIGENCE';
-    if (activeScreen === 'create-course') return 'CREATE COURSE'; // 🚀 ROUTED: Subtitle text configured for new screen entry
+    if (activeScreen === 'edit-course') return 'EDIT COURSE'; // ✅ ROUTED: Stacked title asset configured
+    if (activeScreen === 'create-course') return 'CREATE COURSE';
     if (activeScreen === 'live-game') return currentMatchContext.matchName || 'LIVE SCORECARD';
     return '';
   };
@@ -135,6 +141,9 @@ function App() {
         {activeScreen === 'course-intel' && (
           <CourseIntelMain onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
         )}
+        {activeScreen === 'edit-course' && (
+          <EditCourse courseId={editingCourseId} onNavigate={(screen) => handleScreenNavigation(screen)} />
+        )}
         {activeScreen === 'create-course' && (
           <CreateCourse onNavigate={(screen) => handleScreenNavigation(screen)} />
         )}
@@ -167,7 +176,7 @@ function App() {
           </div>
 
           {/* Mapped Action Pillar 4: Courses Intel Map Sheets Link */}
-          <button onClick={() => handleScreenNavigation('course-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: ['course-intel', 'create-course'].includes(activeScreen) ? '#ecc151' : '#beedd9', opacity: ['course-intel', 'create-course'].includes(activeScreen) ? 1 : 0.6, padding: 0 }} type="button">
+          <button onClick={() => handleScreenNavigation('course-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: ['course-intel', 'edit-course', 'create-course'].includes(activeScreen) ? '#ecc151' : '#beedd9', opacity: ['course-intel', 'edit-course', 'create-course'].includes(activeScreen) ? 1 : 0.6, padding: 0 }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>map</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Courses</span>
           </button>
