@@ -36,11 +36,9 @@ function CreateMatch({ onNavigate }) {
   const [teeDate, setTeeDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [teeTime, setTeeTime] = useState('08:30'); 
 
-  const [games, setGames] = useState({
-    skins: { active: false, expanded: false, stakes: 10, carryOver: true },
-    wolf: { active: false, expanded: false, multiplier: 2, loneWolf: false },
-    match: { active: true, expanded: false, hcpScale: 100, tieBreaker: 'SUDDEN DEATH' }
-  });
+  // 🎛️ DYNAMIC DATABASE-DRIVEN GAME BLUEPRINT MATRICES
+  const [dbMasterGames, setDbMasterGames] = useState([]);
+  const [liveGameStates, setLiveGameStates] = useState({});
 
   // 🧮 Smart Display Parser for Plus & Standard Handicaps
   const formatHandicapDisplay = (val) => {
@@ -52,7 +50,7 @@ function CreateMatch({ onNavigate }) {
     return num.toFixed(1);
   };
 
-  // 📡 ASYNC MOUNT TELEMETRY LOAD (COURSES & PROFILES)
+  // 📡 ASYNC MOUNT TELEMETRY LOAD (COURSES, PROFILES, & CORE 5 GAME SCHEMAS)
   useEffect(() => {
     async function streamInitialDatabaseTelemetry() {
       try {
@@ -87,6 +85,41 @@ function CreateMatch({ onNavigate }) {
         if (defaultCaptain) {
           setSelectedPlayers(prev => ({ ...prev, 1: defaultCaptain }));
         }
+
+        // 4. Fetch our 5 favorite master game records from public.game_rules
+        const { data: rulesData, error: rulesError } = await supabase
+          .from('game_rules')
+          .select('*')
+          .eq('published', true)
+          .order('is_favorite', { ascending: false });
+
+        if (rulesError) throw rulesError;
+
+        setDbMasterGames(rulesData || []);
+
+        // Programmatically initialize a runtime state dictionary for each master rule structure
+        const initializedStates = {};
+        (rulesData || []).forEach(game => {
+          const configSchema = game.config_schema || {};
+          const flattenedVariables = {};
+
+          // Extract plain primitive default settings to manage form binding loops
+          Object.keys(configSchema).forEach(key => {
+            const item = configSchema[key];
+            if (item && typeof item === 'object' && 'default' in item) {
+              flattenedVariables[key] = item.default;
+            } else {
+              flattenedVariables[key] = item;
+            }
+          });
+
+          initializedStates[game.slug] = {
+            active: false,
+            expanded: false,
+            variables: flattenedVariables
+          };
+        });
+        setLiveGameStates(initializedStates);
 
       } catch (err) {
         console.error('Failed to query database registries:', err.message);
@@ -133,8 +166,8 @@ function CreateMatch({ onNavigate }) {
     const pseudoGuestProfile = {
       id: null, 
       is_guest: true,
-      display_name: guestName.trim(), // Kept natural casing to preserve formatting cleanly
-      nickname: '', // Erased static string so display_name rules extract logic
+      display_name: guestName.trim(), 
+      nickname: '', 
       handicap_index: finalHcpValue
     };
 
@@ -145,47 +178,56 @@ function CreateMatch({ onNavigate }) {
     setIsPlayerDrawerOpen(false);
   };
 
-  const handleGameToggle = (gameId) => {
-    setGames(prev => ({
-      ...prev,
-      [gameId]: { ...prev[gameId], active: !prev[gameId].active }
-    }));
+  // 🕹️ INDEPENDENT CONFIG ENGINE MUTATORS FOR DATABASE FIELDS
+  const handleGameToggle = (slug) => {
+    setLiveGameStates(prev => {
+      const matchNode = { ...prev[slug] };
+      matchNode.active = !matchNode.active;
+      return { ...prev, [slug]: matchNode };
+    });
   };
 
-  const handleDrawerExpand = (gameId) => {
-    if (!games[gameId].active) return;
-    setGames(prev => ({
-      ...prev,
-      [gameId]: { ...prev[gameId], expanded: !prev[gameId].expanded }
-    }));
+  const handleDrawerExpand = (slug) => {
+    setLiveGameStates(prev => {
+      const matchNode = { ...prev[slug] };
+      if (!matchNode.active) return prev;
+      matchNode.expanded = !matchNode.expanded;
+      return { ...prev, [slug]: matchNode };
+    });
   };
 
-  const adjustSkinsStakes = (amount) => {
-    setGames(prev => ({
-      ...prev,
-      skins: { ...prev.skins, stakes: Math.max(0, prev.skins.stakes + amount) }
-    }));
+  const handleSubVariableBooleanToggle = (slug, varKey) => {
+    setLiveGameStates(prev => {
+      const matchNode = { ...prev[slug] };
+      const vars = { ...matchNode.variables };
+      vars[varKey] = !vars[varKey];
+      matchNode.variables = vars;
+      return { ...prev, [slug]: matchNode };
+    });
   };
 
-  const toggleSkinsCarryOver = () => {
-    setGames(prev => ({
-      ...prev,
-      skins: { ...prev.skins, carryOver: !prev.skins.carryOver }
-    }));
+  const handleSubVariableNumericStep = (slug, varKey, increment, isInteger = false) => {
+    setLiveGameStates(prev => {
+      const matchNode = { ...prev[slug] };
+      const vars = { ...matchNode.variables };
+      const currentVal = typeof vars[varKey] === 'number' ? vars[varKey] : parseFloat(vars[varKey] || 0);
+      const step = isInteger ? 1 : 0.5;
+
+      const calculated = increment ? currentVal + step : currentVal - step;
+      vars[varKey] = calculated >= 0 ? calculated : 0;
+      matchNode.variables = vars;
+      return { ...prev, [slug]: matchNode };
+    });
   };
 
-  const toggleLoneWolf = () => {
-    setGames(prev => ({
-      ...prev,
-      wolf: { ...prev.wolf, loneWolf: !prev.wolf.loneWolf }
-    }));
-  };
-
-  const handleTieBreakerChange = (val) => {
-    setGames(prev => ({
-      ...prev,
-      match: { ...prev.match, tieBreaker: val }
-    }));
+  const handleSubVariableTextInput = (slug, varKey, value) => {
+    setLiveGameStates(prev => {
+      const matchNode = { ...prev[slug] };
+      const vars = { ...matchNode.variables };
+      vars[varKey] = value;
+      matchNode.variables = vars;
+      return { ...prev, [slug]: matchNode };
+    });
   };
 
   // Find Currently Active Selected Course Object Profile safely
@@ -214,13 +256,13 @@ function CreateMatch({ onNavigate }) {
       if (matchError) throw matchError;
 
       // TRANSACTION STEP 2: Loop and generate active side-wager relational entries inside active_wagers
-      const activeGameKeys = Object.keys(games).filter(g => games[g].active);
+      const activeGameKeys = Object.keys(liveGameStates).filter(slug => liveGameStates[slug].active);
       
       if (activeGameKeys.length > 0) {
-        const wagersPayload = activeGameKeys.map(gameKey => ({
+        const wagersPayload = activeGameKeys.map(slug => ({
           match_id: newMatch.id,
-          game_type: gameKey,
-          rules_configuration: games[gameKey]
+          game_type: slug,
+          rules_configuration: liveGameStates[slug].variables
         }));
 
         const { error: wagerError } = await supabase
@@ -288,7 +330,7 @@ function CreateMatch({ onNavigate }) {
               type="text" 
               value={matchName}
               onChange={(e) => setMatchName(e.target.value)}
-              placeholder="e.g., Saturday Skins Challenge" 
+              placeholder="e.g., Saturday Tournament Battle" 
               style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', color: '#beedd9', fontSize: '20px', fontWeight: '900', padding: 0 }}
             />
           </div>
@@ -347,7 +389,7 @@ function CreateMatch({ onNavigate }) {
             </div>
             <div style={{ backgroundColor: '#0e3c2f', padding: '20px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)' }}>
               <span style={{ fontSize: '9px', fontWeight: '700', color: 'rgba(190,237,217,0.5)', display: 'block', marginBottom: '4px' }}>TEE TIME</span>
-              <div style={{ display: 'flex', justifyContent: 'space-between', itemsCenter: 'center', color: '#beedd9' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#beedd9' }}>
                 <input 
                   type="time" 
                   value={teeTime} 
@@ -408,131 +450,97 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* PILLAR 5: WHAT */}
+        {/* PILLAR 5: WHAT (DYNAMIC CHASSIS CONNECTED TO SUPABASE TABLE ROWS) */}
         <section style={{ marginTop: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', padding: '0 8px' }}>
             <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em' }}>GAME MODE SELECTION</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            
-            {/* SKINS */}
-            <div style={{ backgroundColor: '#0e3c2f', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', overflow: 'hidden' }}>
-              <div onClick={() => handleDrawerExpand('skins')} style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#00251b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: games.skins.active ? '#ecc151' : 'rgba(190,237,217,0.3)', border: '1px solid rgba(236,193,81,0.05)', flex: 'none' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>payments</span>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '900', fontStyle: 'italic', color: games.skins.active ? '#ecc151' : 'rgba(190,237,217,0.6)', tracking: '0.05em' }}>SKINS</h3>
-                  <p style={{ margin: '2px 0 0 0', fontSize: '10px', fontWeight: '700', color: 'rgba(190,237,217,0.4)' }}>Standard Hole Wagers</p>
-                </div>
-                <div onClick={(e) => { e.stopPropagation(); handleGameToggle('skins'); }} style={{ width: '44px', height: '24px', borderRadius: '12px', backgroundColor: games.skins.active ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box' }}>
-                  <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: games.skins.active ? '#3e2e00' : '#414845', transform: games.skins.active ? 'translateX(20px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
-                </div>
-              </div>
-              
-              {games.skins.active && games.skins.expanded && (
-                <div style={{ padding: '20px 24px', backgroundColor: '#002117', borderTop: '1px solid rgba(236,193,81,0.05)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '900', color: '#beedd9', tracking: '0.05em' }}>STAKES PER HOLE</h4>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', backgroundColor: '#0e3c2f', padding: '6px 16px', borderRadius: '24px' }}>
-                      <button onClick={(e) => { e.stopPropagation(); adjustSkinsStakes(-5); }} style={{ background: 'none', border: 'none', color: '#ecc151', fontWeight: '900', fontSize: '18px', cursor: 'pointer' }}>-</button>
-                      <span style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900', fontSize: '16px' }}>${games.skins.stakes}</span>
-                      <button onClick={(e) => { e.stopPropagation(); adjustSkinsStakes(5); }} style={{ background: 'none', border: 'none', color: '#ecc151', fontWeight: '900', fontSize: '18px', cursor: 'pointer' }}>+</button>
-                    </div>
-                  </div>
-                  <div style={{ height: '1px', backgroundColor: 'rgba(236,193,81,0.05)' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '900', color: '#beedd9', tracking: '0.05em' }}>CARRY OVER</h4>
-                    </div>
-                    <div onClick={toggleSkinsCarryOver} style={{ width: '44px', height: '24px', borderRadius: '12px', backgroundColor: games.skins.carryOver ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box' }}>
-                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: games.skins.carryOver ? '#3e2e00' : '#414845', transform: games.skins.carryOver ? 'translateX(20px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            {dbMasterGames.map((game) => {
+              const gameLive = liveGameStates[game.slug] || { active: false, expanded: false, variables: {} };
+              const configSchema = game.config_schema || {};
 
-            {/* WOLF */}
-            <div style={{ backgroundColor: '#0e3c2f', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', overflow: 'hidden' }}>
-              <div onClick={() => handleDrawerExpand('wolf')} style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#00251b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: games.wolf.active ? '#ecc151' : 'rgba(190,237,217,0.3)', border: '1px solid rgba(236,193,81,0.05)', flex: 'none' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>pets</span>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '900', fontStyle: 'italic', color: games.wolf.active ? '#ecc151' : 'rgba(190,237,217,0.6)', tracking: '0.05em' }}>WOLF</h3>
-                  <p style={{ margin: '2px 0 0 0', fontSize: '10px', fontWeight: '700', color: 'rgba(190,237,217,0.4)' }}>Rotating Team Captain</p>
-                </div>
-                <div onClick={(e) => { e.stopPropagation(); handleGameToggle('wolf'); }} style={{ width: '44px', height: '24px', borderRadius: '12px', backgroundColor: games.wolf.active ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box' }}>
-                  <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: games.wolf.active ? '#3e2e00' : '#414845', transform: games.wolf.active ? 'translateX(20px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
-                </div>
-              </div>
-
-              {games.wolf.active && games.wolf.expanded && (
-                <div style={{ padding: '20px 24px', backgroundColor: '#002117', borderTop: '1px solid rgba(236,193,81,0.05)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '900', color: '#beedd9', tracking: '0.05em' }}>WOLF POINT SCALE</h4>
+              return (
+                <div key={game.slug} style={{ backgroundColor: '#0e3c2f', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', overflow: 'hidden' }}>
+                  
+                  {/* HEADER ITEM PANEL TRACK CONTROL SWITCH */}
+                  <div onClick={() => handleDrawerExpand(game.slug)} style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#00251b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: gameLive.active ? '#ecc151' : 'rgba(190,237,217,0.3)', border: '1px solid rgba(236,193,81,0.05)', flex: 'none' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+                        {game.slug === 'wolf' ? 'pets' : game.slug === 'hollywood' ? 'movie' : game.slug === 'team_game' ? 'groups' : game.slug === 'greenies' ? 'golf_course' : '3k'}
+                      </span>
                     </div>
-                    <span style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900', fontSize: '14px' }}>X {games.wolf.multiplier}</span>
-                  </div>
-                  <div style={{ height: '1px', backgroundColor: 'rgba(236,193,81,0.05)' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '900', color: '#beedd9', tracking: '0.05em' }}>LONE WOLF POT</h4>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '900', fontStyle: 'italic', color: gameLive.active ? '#ecc151' : 'rgba(190,237,217,0.6)', tracking: '0.05em' }}>{game.title}</h3>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '10px', fontWeight: '700', color: 'rgba(190,237,217,0.4)' }}>{game.category}</p>
                     </div>
-                    <div onClick={toggleLoneWolf} style={{ width: '44px', height: '24px', borderRadius: '12px', backgroundColor: games.wolf.loneWolf ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box' }} type="button">
-                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: games.wolf.loneWolf ? '#3e2e00' : '#414845', transform: games.wolf.loneWolf ? 'translateX(20px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
+                    <div onClick={(e) => { e.stopPropagation(); handleGameToggle(game.slug); }} style={{ width: '44px', height: '24px', borderRadius: '12px', backgroundColor: gameLive.active ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box' }}>
+                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: gameLive.active ? '#3e2e00' : '#414845', transform: gameLive.active ? 'translateX(20px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
 
-            {/* MATCH PLAY */}
-            <div style={{ backgroundColor: '#0e3c2f', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', overflow: 'hidden' }}>
-              <div onClick={() => handleDrawerExpand('match')} style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#00251b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: games.match.active ? '#ecc151' : 'rgba(190,237,217,0.3)', border: '1px solid rgba(236,193,81,0.05)', flex: 'none' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>swords</span>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '900', fontStyle: 'italic', color: games.match.active ? '#ecc151' : 'rgba(190,237,217,0.6)', tracking: '0.05em' }}>MATCH PLAY</h3>
-                  <p style={{ margin: '2px 0 0 0', fontSize: '10px', fontWeight: '700', color: 'rgba(190,237,217,0.4)' }}>Head-to-Head Scoring Matrix</p>
-                </div>
-                <div onClick={(e) => { e.stopPropagation(); handleGameToggle('match'); }} style={{ width: '44px', height: '24px', borderRadius: '12px', backgroundColor: games.match.active ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box' }}>
-                  <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: games.match.active ? '#3e2e00' : '#414845', transform: games.match.active ? 'translateX(20px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
-                </div>
-              </div>
+                  {/* SUB DYNAMIC ACCORDION VARIANT LOOPER MATRIX PANEL */}
+                  {gameLive.active && gameLive.expanded && (
+                    <div style={{ padding: '20px 24px', backgroundColor: '#002117', borderTop: '1px solid rgba(236,193,81,0.05)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      {Object.keys(configSchema).map((vKey, innerIdx) => {
+                        const meta = configSchema[vKey];
+                        const val = gameLive.variables[vKey];
+                        const labelText = meta.label || vKey.toUpperCase().replace(/_/g, ' ');
+                        const typeSpec = meta.type || typeof val;
 
-              {games.match.active && games.match.expanded && (
-                <div style={{ padding: '20px 24px', backgroundColor: '#002117', borderTop: '1px solid rgba(236,193,81,0.05)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '900', color: '#beedd9', tracking: '0.05em' }}>HANDICAP SCALE</h4>
+                        return (
+                          <div key={vKey} style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: innerIdx > 0 ? '1px solid rgba(65,72,69,0.2)' : 'none', paddingTop: innerIdx > 0 ? '16px' : '0' }}>
+                            
+                            {/* CASE 1: BOOLEAN PROPERTY RENDER LAYER */}
+                            {typeSpec === 'boolean' || typeof val === 'boolean' ? (
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                <div style={{ paddingRight: '12px' }}>
+                                  <h4 style={{ margin: 0, fontSize: '13px', fontWeight: '900', color: '#beedd9', tracking: '0.02em' }}>{labelText}</h4>
+                                  <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: 'rgba(190,237,217,0.4)' }}>{meta.description}</p>
+                                </div>
+                                <div onClick={() => handleSubVariableBooleanToggle(game.slug, vKey)} style={{ width: '44px', height: '24px', borderRadius: '12px', backgroundColor: val ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box', flexShrink: 0 }}>
+                                  <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: val ? '#3e2e00' : '#414845', transform: val ? 'translateX(20px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
+                                </div>
+                              </div>
+                            ) : typeSpec === 'numeric' || typeSpec === 'integer' || typeof val === 'number' ? (
+                              /* CASE 2: NUMERIC SCALAR STEPPERS RENDER LAYER */
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div>
+                                  <h4 style={{ margin: 0, fontSize: '13px', fontWeight: '900', color: '#beedd9', tracking: '0.02em' }}>{labelText}</h4>
+                                  <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: 'rgba(190,237,217,0.4)' }}>{meta.description}</p>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#001710', borderRadius: '12px', padding: '6px', border: '1px solid rgba(236,193,81,0.1)', justifyContent: 'space-between', width: '100%', boxSizing: 'border-box' }}>
+                                  <button onClick={() => handleSubVariableNumericStep(game.slug, vKey, false, typeSpec === 'integer')} style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: '#0e3c2f', border: 'none', color: '#ecc151', fontSize: '18px', fontWeight: '900', cursor: 'pointer' }} type="button">-</button>
+                                  <span style={{ fontSize: '16px', fontWeight: '900', color: '#ecc151', fontFamily: 'monospace' }}>
+                                    {typeof val === 'number' ? val.toFixed(typeSpec === 'integer' ? 0 : 2) : val}
+                                  </span>
+                                  <button onClick={() => handleSubVariableNumericStep(game.slug, vKey, true, typeSpec === 'integer')} style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: '#0e3c2f', border: 'none', color: '#ecc151', fontSize: '18px', fontWeight: '900', cursor: 'pointer' }} type="button">+</button>
+                                </div>
+                              </div>
+                            ) : (
+                              /* CASE 3: STANDARD TEXT OVERRIDES STRINGS BOX FALLBACK */
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <h4 style={{ margin: 0, fontSize: '13px', fontWeight: '900', color: '#beedd9', tracking: '0.02em' }}>{labelText}</h4>
+                                <p style={{ margin: '0 0 4px 0', fontSize: '10px', color: 'rgba(190,237,217,0.4)' }}>{meta.description}</p>
+                                <input 
+                                  type="text" 
+                                  value={val || ''} 
+                                  onChange={(e) => handleSubVariableTextInput(game.slug, vKey, e.target.value)} 
+                                  style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: 'white', fontSize: '14px', fontWeight: '700', outline: 'none' }} 
+                                />
+                              </div>
+                            )}
+
+                          </div>
+                        );
+                      })}
                     </div>
-                    <span style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900', fontSize: '14px' }}>{games.match.hcpScale}%</span>
-                  </div>
-                  <div style={{ height: '1px', backgroundColor: 'rgba(236,193,81,0.05)' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '12px', fontWeight: '900', color: '#beedd9', tracking: '0.05em' }}>TIE BREAKER RULE</h4>
-                    </div>
-                    <select 
-                      value={games.match.tieBreaker}
-                      onChange={(e) => handleTieBreakerChange(e.target.value)}
-                      style={{ backgroundColor: '#0e3c2f', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '10px', fontWeight: '900', color: '#ecc151', outline: 'none', cursor: 'pointer' }}
-                    >
-                      <option value="SUDDEN DEATH">SUDDEN DEATH</option>
-                      <option value="MATCH HALVED">MATCH HALVED</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
+                  )}
 
+                </div>
+              );
+            })}
           </div>
         </section>
 
@@ -608,7 +616,7 @@ function CreateMatch({ onNavigate }) {
           <div style={{ width: '40px', height: '5px', borderRadius: '3px', backgroundColor: 'rgba(190,237,217,0.15)', margin: '16px auto 8px auto', flex: 'none' }} />
           
           <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', flexDirection: 'column', gap: '14px', flex: 'none' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifycontent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <p style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', letterSpacing: '0.15em', margin: '0 0 2px 0', textTransform: 'uppercase' }}>ROSTER SQUAD MUTATION</p>
                 <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>SELECT PLAYER SLOT {activeTargetSlot}</h3>
@@ -630,7 +638,7 @@ function CreateMatch({ onNavigate }) {
             <button
               type="button"
               onClick={() => setIsAddingGuest(!isAddingGuest)}
-              style={{ width: '100%', backgroundColor: isAddingGuest ? '#ecc151' : '#0e3c2f', color: isAddingGuest ? '#3e2e00' : '#ecc151', border: '1px solid rgba(236,193,81,0.08)', padding: '14px 0', borderRadius: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '6px', textTransform: 'uppercase', transition: 'all 0.2s' }}
+              style={{ width: '100%', backgroundColor: isAddingGuest ? '#ecc151' : '#0e3c2f', color: isAddingGuest ? '#3e2e00' : '#ecc151', border: '1px solid rgba(236,193,81,0.08)', padding: '14px 0', borderRadius: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textTransform: 'uppercase', transition: 'all 0.2s' }}
             >
               <span style={{ fontSize: '14px', fontWeight: 'bold', fontFamily: 'monospace' }}>{isAddingGuest ? '✕' : '＋'}</span>
               {isAddingGuest ? 'Collapse Guest Console' : 'Create Quick Anonymous Guest'}
@@ -650,7 +658,7 @@ function CreateMatch({ onNavigate }) {
                       value={guestName}
                       onChange={(e) => setGuestName(e.target.value)}
                       required
-                      style={{ backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: 'white', fontSize: '14px', fontWeight: '700', outline: 'none' }}
+                      style={{ backgroundColor: '#0e3f2f', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: 'white', fontSize: '14px', fontWeight: '700', outline: 'none' }}
                     />
                   </div>
 
@@ -665,7 +673,7 @@ function CreateMatch({ onNavigate }) {
                         placeholder="0.0"
                         value={guestHandicap}
                         onChange={(e) => setGuestHandicap(e.target.value)}
-                        style={{ backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: isPlusHandicap ? '#ecc151' : 'white', fontSize: '14px', fontWeight: '900', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+                        style={{ backgroundColor: '#0e3f2f', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '12px 14px', color: isPlusHandicap ? '#ecc151' : 'white', fontSize: '14px', fontWeight: '900', outline: 'none', width: '100%', boxSizing: 'border-box' }}
                       />
                     </div>
 
@@ -673,10 +681,10 @@ function CreateMatch({ onNavigate }) {
                       <span style={{ fontSize: '9px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', letterSpacing: '0.05em' }}>INDEX VARIANT</span>
                       <div 
                         onClick={() => setIsPlusHandicap(!isPlusHandicap)}
-                        style={{ height: '46px', backgroundColor: '#0e3c2f', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '10px', display: 'flex', padding: '3px', boxSizing: 'border-box', cursor: 'pointer' }}
+                        style={{ height: '46px', backgroundColor: '#0e3f2f', border: '1px solid rgba(236,193,81,0.15)', borderRadius: '10px', display: 'flex', padding: '3px', boxSizing: 'border-box', cursor: 'pointer' }}
                       >
-                        <div style={{ flex: 1, backgroundColor: !isPlusHandicap ? '#00251b' : 'transparent', color: !isPlusHandicap ? '#beedd9' : 'rgba(190,237,217,0.25)', border: !isPlusHandicap ? '1px solid rgba(236,193,81,0.1)' : 'none', borderRadius: '7px', display: 'flex', alignItems: 'center', justifycontent: 'center', fontSize: '11px', fontWeight: '900' }}>STD</div>
-                        <div style={{ flex: 1, backgroundColor: isPlusHandicap ? '#ecc151' : 'transparent', color: isPlusHandicap ? '#3e2e00' : 'rgba(236,193,81,0.3)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifycontent: 'center', fontSize: '11px', fontWeight: '900' }}>PLUS (+)</div>
+                        <div style={{ flex: 1, backgroundColor: !isPlusHandicap ? '#00251b' : 'transparent', color: !isPlusHandicap ? '#beedd9' : 'rgba(190,237,217,0.25)', border: !isPlusHandicap ? '1px solid rgba(236,193,81,0.1)' : 'none', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900' }}>STD</div>
+                        <div style={{ flex: 1, backgroundColor: isPlusHandicap ? '#ecc151' : 'transparent', color: isPlusHandicap ? '#3e2e00' : 'rgba(236,193,81,0.3)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900' }}>PLUS (+)</div>
                       </div>
                     </div>
                   </div>
@@ -684,7 +692,7 @@ function CreateMatch({ onNavigate }) {
 
                 <button
                   type="submit"
-                  style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '10px', padding: '14px 0', fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '6px', marginTop: '4px' }}
+                  style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '10px', padding: '14px 0', fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '4px' }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px', fontWeight: 'bold' }}>check_circle</span>
                   Inject Slot {activeTargetSlot} Guest
@@ -700,7 +708,7 @@ function CreateMatch({ onNavigate }) {
                 <div 
                   key={profile.id} 
                   onClick={() => { if (!isAlreadyDrafted) handleSelectMemberProfile(profile); }}
-                  style={{ backgroundColor: isAlreadyDrafted ? 'rgba(0,29,20,0.3)' : '#001d14', border: '1px solid rgba(236,193,81,0.04)', padding: '16px 20px', borderRadius: '14px', display: 'flex', justifycontent: 'space-between', alignItems: 'center', cursor: isAlreadyDrafted ? 'not-allowed' : 'pointer', opacity: isAlreadyDrafted ? 0.35 : 1 }}
+                  style={{ backgroundColor: isAlreadyDrafted ? 'rgba(0,29,20,0.3)' : '#001d14', border: '1px solid rgba(236,193,81,0.04)', padding: '16px 20px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: isAlreadyDrafted ? 'not-allowed' : 'pointer', opacity: isAlreadyDrafted ? 0.35 : 1 }}
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <span style={{ color: '#beedd9', fontSize: '16px', fontWeight: '900', textTransform: 'uppercase' }}>
