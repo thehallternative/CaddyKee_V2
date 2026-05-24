@@ -43,7 +43,7 @@ function App() {
       }
     }
 
-    // 🚀 STACK PUSH: Don't log duplication patterns if reloading the current screen
+    // STACK PUSH: Don't log duplication patterns if reloading the current screen
     if (activeScreen !== targetScreen) {
       setScreenHistory((prev) => [...prev, activeScreen]);
     }
@@ -51,15 +51,13 @@ function App() {
     setActiveScreen(targetScreen);
   };
 
-  // 🚀 STACK POP: Dynamic back-tracking navigation engine loop
+  // STACK POP: Dynamic back-tracking navigation engine loop
   const handleHeaderBackTransition = () => {
     if (screenHistory.length === 0) {
-      // Emergency default fallback safety if stack is completely pristine
       setActiveScreen('mission-control');
       return;
     }
 
-    // Extract the absolute last screen visited out of history array tracking
     const updatedHistory = [...screenHistory];
     const previousScreen = updatedHistory.pop();
 
@@ -104,7 +102,14 @@ function App() {
         
         {/* 🎨 STACKED BRAND DESIGN: CaddyKee App Identity locked above clean contextual subtitle string */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: 1, minWidth: 0, gap: '2px' }}>
-          <h1 style={{ color: '#ecc151', fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.05em', fontSize: '24px', lineHeight: '1', margin: 0 }}>
+          {/* 🚀 FIXED LINK: Tapping branding clearing history matrices and maps home */}
+          <h1 
+            onClick={() => {
+              setScreenHistory([]);
+              setActiveScreen('mission-control');
+            }}
+            style={{ color: '#ecc151', fontFamily: 'sans-serif', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.05em', fontSize: '24px', lineHeight: '1', margin: 0, cursor: 'pointer' }}
+          >
             CADDYKEE
           </h1>
           <span style={{ color: '#beedd9', fontSize: '10px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', tracking: '0.05em', opacity: 0.8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>

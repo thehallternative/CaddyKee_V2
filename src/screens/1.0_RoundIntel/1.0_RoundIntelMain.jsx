@@ -68,13 +68,12 @@ function RoundIntelMain({ onNavigate }) {
     }
   }, [isScheduledOpen]);
 
-  // 🗑️ NATIVE CASCADING DESTRUCTION ENGINE (RLS BYPASS RE-ALIGNED)
+  // 🗑️ NATIVE CASCADING DESTRUCTION ENGINE
   const executeMatchPurge = async (matchId) => {
     try {
       setLoading(true);
       setDeleteTargetMatch(null); 
       
-      // PostgreSQL handles children automatically now that RLS policies are deployed
       const { error } = await supabase
         .from('matches')
         .delete()
@@ -204,10 +203,7 @@ function RoundIntelMain({ onNavigate }) {
   };
 
   return (
-    <div style={{ textAlign: 'center', width: '100%' }}>
-      <h2 className="text-4xl font-black italic uppercase tracking-tighter" style={{ color: '#ecc151', margin: '10px 0 28px 0' }}>
-        ROUND INTELLIGENCE
-      </h2>
+    <div style={{ textAlign: 'center', width: '100%', paddingTop: '12px' }}>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
         <button onClick={() => onNavigate('create-match')} style={{ width: '100%', padding: '24px', borderRadius: '16px', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '160px', backgroundColor: '#ecc151', color: '#3e2e00', textAlign: 'left', boxSizing: 'border-box' }} type="button">
