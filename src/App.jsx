@@ -187,10 +187,10 @@ function App() {
           </button>
 
           {/* KEE VOICE TARGET CONTROL MODAL INTERFACE TRIGGER */}
-          {/* ✅ VISUAL UPDATE: Enhanced button bounding matrices for much larger interactive presence */}
+          {/* ✅ VISUAL UPDATE: Background container style mappings, glow matrices, and decorative borders completely stripped to allow pure logo asset floating presentation */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-            <button onClick={() => setIsKOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-22px)', width: '88px', padding: 0 }} type="button">
-              <div style={{ width: '78px', height: '78px', borderRadius: '50%', backgroundColor: '#0e3c2f', border: '2px solid #ecc151', boxShadow: '0 0 30px rgba(236,193,81,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '4px', boxSizing: 'border-box' }}>
+            <button onClick={() => setIsKeeOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-22px)', width: '88px', padding: 0 }} type="button">
+              <div style={{ width: '78px', height: '78px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '0px', boxSizing: 'border-box' }}>
                 <img src={caddyKeeLogo} alt="KEE" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span class="material-symbols-outlined" style="color:#ecc151;font-size:36px;">graphic_eq</span>'; }} />
               </div>
               <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.08em', marginTop: '6px' }}>KEE</span>

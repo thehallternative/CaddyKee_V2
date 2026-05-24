@@ -1,70 +1,83 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../supabaseClient';
 
 function GameIntelMain({ onNavigate }) {
-  // 🎛️ CORE FILTERS & SCREEN CONTROLLERS
+  // 🎛️ CONTROLLERS, TABS & STREAM ENGINE READ STATE COUPLINGS
+  const [activeTab, setActiveTab] = useState('games');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGame, setSelectedGame] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // 📝 CORE RULES ARCHIVE DATA MATRIX
-  const gamesDictionary = [
-    {
-      id: 'skins',
-      title: 'SKINS',
-      subtitle: 'Carryover System',
-      variant: 'Per Hole Points',
-      description: 'The lowest unique score on a hole wins the skin. If no player wins the hole outright, the stake carries over to the next hole, compounding the payout pool value dynamically. Net or gross allocations can be locked prior to tee-off.',
-      tactics: 'Highly rewards aggressive play on par-3 and par-5 holes. A single spectacular hole can wipe out a day of steady bogeys.'
-    },
-    {
-      id: 'wolf',
-      title: 'WOLF',
-      subtitle: 'Rotation Tactics',
-      variant: '1 v 3 or 2 v 2 Matrix',
-      description: 'Players rotate order as the designated Wolf on each hole. The Wolf hits first and dynamically chooses a partner immediately after watching a drive land, or risks going Lone Wolf to play 1-vs-3 for triple points.',
-      tactics: 'Requires social strategy and risk management. If you are playing as the Wolf and a steady partner hits an early clean fairway finder, lock them in rather than risking an unpredictable later shot.'
-    },
-    {
-      id: 'match_play',
-      title: 'MATCH PLAY',
-      subtitle: 'Hole-by-Hole Ledger',
-      variant: '1 v 1 Conflict',
-      description: 'Head-to-head match scoring independent of total cumulative strokes. Wins are calculated strictly by who takes fewer strokes on an individual hole, with standard handicap allowance indices distributed across the card.',
-      tactics: 'Play the opponent, not the course. If your competitor hits two consecutive shots into deep hazard fescue, switch to a conservative iron to secure the hole securely.'
-    },
-    {
-      id: 'stableford',
-      title: 'STABLEFORD',
-      subtitle: 'Modified Scoring Scale',
-      variant: 'Point Aggregation',
-      description: 'Converts traditional stroke values into positive and negative point metrics relative to par. Double Bogey or worse yields -1, Bogey drops 0, Par awards 2, Birdie yields 4, and an Eagle earns 6 points.',
-      tactics: 'Completely eliminates the scorecard-destroying penalty of a single bad hole. A quadruple bogey hurts exactly as much as a standard bogey, so keep firing at flags.'
-    },
-    {
-      id: 'bingo_bango_bongo',
-      title: 'BINGO BANGO BONGO',
-      subtitle: 'Skill-Agnostic Race',
-      variant: 'Multi-Phase Achievement',
-      description: 'Awards points across three distinct checkpoints on every single hole: Bingo (First on the green), Bango (Closest to the pin once all balls rest on the green), and Bongo (First ball inside the cup).',
-      tactics: 'Highly rewards high-handicap players or short hitters. Intentionally laying up just short of the green ensures you hit first into the green, giving you an uncontested shot at the Bingo point.'
+  // 🗄️ TELEMETRY CACHE HOOK MATRICES
+  const [gameRules, setGameRules] = useState([]);
+  const [selectedGameRules, setSelectedGameRules] = useState(null);
+
+  // 📡 DATABASE READ: CONNECT LIVE STREAM FROM SUPABASE game_rules
+  const fetchGameRules = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('game_rules')
+        .select('*');
+
+      if (error) throw error;
+      setGameRules(data || []);
+    } catch (err) {
+      console.error('Game rules pipeline payload load failure:', err.message);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  // 🔍 FRONTEND SEARCH LOOKAHEAD FILTER
-  const filteredGames = gamesDictionary.filter(g =>
-    g.title.toUpperCase().includes(searchQuery.toUpperCase()) ||
-    g.description.toUpperCase().includes(searchQuery.toUpperCase())
-  );
+  useEffect(() => {
+    fetchGameRules();
+  }, []);
+
+  // 🔍 LOOKAHEAD EXTENSION FILTER & PREEMPTIVE FAVOURITES VECTOR SORTING
+  const filteredGameRules = gameRules.filter(g => {
+    const title = g.title || '';
+    const slug = g.slug || '';
+    const category = g.category || '';
+    const content = g.content || '';
+    const combinedStr = `${title} ${slug} ${category} ${content}`.toUpperCase();
+    return combinedStr.includes(searchQuery.toUpperCase());
+  }).sort((a, b) => {
+    // Parameter 1: Hard-lock favourites (Wolf, Hollywood, 2-Man Best Ball, Greenies) to float to the absolute top
+    const favA = a.is_favorite ? 1 : 0;
+    const favB = b.is_favorite ? 1 : 0;
+    if (favB !== favA) return favB - favA;
+    
+    // Parameter 2: Secondary alphabetization mapping matrix trace pass
+    return (a.title || '').localeCompare(b.title || '');
+  });
 
   return (
     <div style={{ textAlign: 'left', width: '100%', boxSizing: 'border-box', paddingTop: '12px' }}>
       
+      {/* SEGMENTED TAB SWITCH CONTROLLER MATCHING PLAYER INTELLIGENCE CHASSIS */}
+      <div style={{ display: 'flex', gap: '32px', marginBottom: '24px', borderBottom: '1px solid rgba(65,72,69,0.2)' }}>
+        <button 
+          onClick={() => setActiveTab('games')}
+          style={{ paddingBottom: '12px', border: 'none', background: 'transparent', fontSize: '13px', fontWeight: '900', tracking: '0.1em', textTransform: 'uppercase', cursor: 'pointer', borderBottom: activeTab === 'games' ? '2px solid #ecc151' : '2px solid transparent', color: activeTab === 'games' ? '#ecc151' : 'rgba(190,237,217,0.5)' }}
+          type="button"
+        >
+          Games
+        </button>
+        <button 
+          onClick={() => setActiveTab('variations')}
+          style={{ paddingBottom: '12px', border: 'none', background: 'transparent', fontSize: '13px', fontWeight: '900', tracking: '0.1em', textTransform: 'uppercase', cursor: 'pointer', borderBottom: activeTab === 'variations' ? '2px solid #ecc151' : '2px solid transparent', color: activeTab === 'variations' ? '#ecc151' : 'rgba(190,237,217,0.5)' }}
+          type="button"
+        >
+          Variations
+        </button>
+      </div>
+
       {/* SEARCH FIELD BAR CHASSIS */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
         <div style={{ backgroundColor: '#0e3c2f', padding: '14px 18px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{ color: '#ecc151', fontWeight: 'bold' }}>🔍</span>
           <input 
             type="text"
-            placeholder="SEARCH OPERATIONAL GAMES..."
+            placeholder={activeTab === 'games' ? "SEARCH OPERATIONAL GAMES..." : "SEARCH VARIANT SCHEMAS..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#beedd9', fontWeight: '700', fontSize: '13px', padding: 0, textTransform: 'uppercase' }}
@@ -72,94 +85,166 @@ function GameIntelMain({ onNavigate }) {
         </div>
       </div>
 
-      {/* COMPONENT SECTION HEADER CHASSIS */}
+      {/* COMMAND MODULE ACTIONS ROW - CORRECT TERM MATCHED TO 2.2 LAYOUT FILE */}
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}>
+        <button 
+          onClick={() => onNavigate('create-game')}
+          style={{ flex: 1, backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', padding: '18px 0', borderRadius: '12px', fontWeight: '900', fontSize: '12px', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', boxShadow: '0 8px 20px rgba(236,193,81,0.1)' }}
+          type="button"
+        >
+          <span>➕</span> Create New Game
+        </button>
+        <button 
+          onClick={() => setActiveTab('variations')}
+          style={{ flex: 1, backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', padding: '18px 0', borderRadius: '12px', fontWeight: '900', fontSize: '12px', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', boxShadow: '0 8px 20px rgba(236,193,81,0.1)' }}
+          type="button"
+        >
+          <span>🔄</span> Create Variant
+        </button>
+      </div>
+
+      {/* MAIN CONTENT SECTION CHASSIS */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '8px', padding: '0 4px' }}>
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '900', color: '#ecc151', fontStyle: 'italic', textTransform: 'uppercase', tracking: '0.05em' }}>MY GAMES</h3>
-          <span style={{ fontSize: '10px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', tracking: '0.15em' }}>TOTAL UNITS: {filteredGames.length.toString().padStart(2, '0')}</span>
+          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '900', color: '#ecc151', fontStyle: 'italic', textTransform: 'uppercase', tracking: '0.05em' }}>
+            {activeTab === 'games' ? 'CORE ENGINE BLUEPRINTS' : 'VARIATION WRAPPERS'}
+          </h3>
+          <span style={{ fontSize: '10px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', tracking: '0.15em' }}>
+            TOTAL UNITS: {activeTab === 'games' ? filteredGameRules.length.toString().padStart(2, '0') : '02'}
+          </span>
         </div>
 
-        {/* UNIFIED BENTO CARD ITERATOR LAYOUT ENGINE */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {filteredGames.map((game) => (
-            <div 
-              key={game.id}
-              style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(236, 193, 81, 0.08)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box' }}
-            >
-              <div>
-                <p style={{ margin: '0 0 4px 0', fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.1em', textTransform: 'uppercase' }}>
-                  {game.subtitle || 'SIDE WAGER ENGINE'}
-                </p>
-                <h4 style={{ margin: 0, fontSize: '22px', fontWeight: '900', fontStyle: 'italic', color: 'white', textTransform: 'uppercase', tracking: '-0.02em' }}>
-                  {game.title}
-                </h4>
-              </div>
+        {loading ? (
+          <div style={{ color: '#beedd9', padding: '40px', textAlign: 'center', fontStyle: 'italic', fontWeight: '900' }}>
+            STREAMING GAME MASTER RULES REGISTRY...
+          </div>
+        ) : activeTab === 'games' ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {filteredGameRules.map(rule => {
+              const subtitleString = rule.category || 'SIDE WAGER CORE ENGINE';
 
-              {/* UNIFIED DUAL BUTTON TRACK BLOCK MATRIX */}
-              <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
-                <button 
-                  onClick={() => setSelectedGame(game)}
-                  style={{ flex: 1, padding: '14px 0', borderRadius: '30px', backgroundColor: '#0e3c2f', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer', border: '1px solid rgba(236,193,81,0.1)' }}
-                  type="button"
+              return (
+                <div 
+                  key={rule.id}
+                  style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(20px)', borderRadius: '16px', border: rule.is_favorite ? '1px solid #ecc151' : '1px solid rgba(236, 193, 81, 0.08)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box', position: 'relative' }}
                 >
-                  View Details ➜
-                </button>
-                <button 
-                  onClick={() => alert(`${game.title} configuration logic rules are native core matrices managed by KEE Intelligence schemas.`)}
-                  style={{ padding: '0 20px', borderRadius: '30px', border: 'none', backgroundColor: '#ecc151', color: '#3e2e00', fontWeight: '900', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  type="button"
-                >
-                  ✎ Edit
-                </button>
+                  {/* Glowing Premium Favourite Crown Tag Element */}
+                  {rule.is_favorite && (
+                    <span style={{ position: 'absolute', top: '16px', right: '16px', fontSize: '10px', color: '#ecc151', fontWeight: '900', tracking: '0.05em', fontStyle: 'italic', textTransform: 'uppercase', backgroundColor: '#0e3c2f', padding: '4px 8px', borderRadius: '8px' }}>
+                      ★ FAVOURITE
+                    </span>
+                  )}
+
+                  <div>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.1em', textTransform: 'uppercase' }}>
+                      {subtitleString} {rule.version && `(v${rule.version})`}
+                    </p>
+                    <h4 style={{ margin: 0, fontSize: '22px', fontWeight: '900', fontStyle: 'italic', color: 'white', textTransform: 'uppercase', tracking: '-0.02em' }}>
+                      {rule.title}
+                    </h4>
+                  </div>
+
+                  {/* UNIFIED DUAL BUTTON TRACK BLOCK MATRIX - STABLE NUMERIC PREFIX CONNECTIONS */}
+                  <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                    <button 
+                      onClick={() => setSelectedGameRules(rule)}
+                      style={{ flex: 1, padding: '14px 0', borderRadius: '30px', backgroundColor: '#0e3c2f', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer', border: '1px solid rgba(236,193,81,0.1)' }}
+                      type="button"
+                    >
+                      View Details ➜
+                    </button>
+                    <button 
+                      onClick={() => onNavigate('edit-game', { ruleId: rule.id })}
+                      style={{ padding: '0 20px', borderRadius: '30px', border: 'none', backgroundColor: '#ecc151', color: '#3e2e00', fontWeight: '900', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      type="button"
+                    >
+                      ✎ Edit
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
+            {filteredGameRules.length === 0 && (
+              <div style={{ color: 'rgba(190,237,217,0.3)', padding: '40px', textAlign: 'center', fontStyle: 'italic', fontWeight: '700', border: '1px dashed rgba(236,193,81,0.1)', borderRadius: '16px' }}>
+                NO RECOGNIZED GOLF GAMES REGISTERED TO BACKEND DATA HOOKS
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+        ) : (
+          /* UNIFIED BENTO VARIATIONS WRAPPERS CHASSIS MATCHING DIRECTORY MATRIX LOOK */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {[
+              { title: 'ROCKWAY WOLF RULES', meta: 'MODIFIED MULTIPLIERS • FORCED SOLO ACTIVE' },
+              { title: 'CARRYOVER SKINS PRO', meta: 'COMPOUNDING STAKES • CAP AT HOLE 18' }
+            ].map((variant, idx) => (
+              <div 
+                key={idx}
+                style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', backdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(236, 193, 81, 0.08)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box' }}
+              >
+                <div>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.1em', textTransform: 'uppercase' }}>
+                    {variant.meta}
+                  </p>
+                  <h4 style={{ margin: 0, fontSize: '22px', fontWeight: '900', fontStyle: 'italic', color: 'white', textTransform: 'uppercase', tracking: '-0.02em' }}>
+                    {variant.title}
+                  </h4>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                  <button onClick={() => alert("Variation definitions detailing coming next deployment loop.")} style={{ flex: 1, padding: '14px 0', borderRadius: '30px', backgroundColor: '#0e3c2f', color: '#ecc151', fontWeight: '900', fontStyle: 'italic', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer', border: '1px solid rgba(236,193,81,0.1)' }} type="button">
+                    View Details ➜
+                  </button>
+                  <button onClick={() => alert("Variation variables configuration interface routing next patch.")} style={{ padding: '0 20px', borderRadius: '30px', border: 'none', backgroundColor: '#ecc151', color: '#3e2e00', fontWeight: '900', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} type="button">
+                    ✎ Edit
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ========================================================================= */}
       {/* 💎 UNIFIED HIGH-READABILITY TACTICAL RULES OVERLAY DRAWER                 */}
       {/* ========================================================================= */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: selectedGame ? 'auto' : 'none', display: 'block' }}>
-        <div onClick={() => setSelectedGame(null)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: selectedGame ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
-        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '15vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', boxSizing: 'border-box', boxShadow: '0 -20px 100px rgba(0,0,0,0.8)', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: selectedGame ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: selectedGameRules ? 'auto' : 'none', display: 'block' }}>
+        <div onClick={() => setSelectedGameRules(null)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: selectedGameRules ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '15vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', backgroundColor: '#00251b', boxSizing: 'border-box', boxShadow: '0 -20px 100px rgba(0,0,0,0.8)', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: selectedGameRules ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           
           <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(236,193,81,0.2)', margin: '16px auto 4px auto', flex: 'none' }} />
           
-          {selectedGame && (
+          {selectedGameRules && (
             <>
               {/* Drawer Header Layout */}
               <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(236,193,81,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 'none' }}>
                 <div>
                   <p style={{ margin: '0 0 2px 0', fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.15em', textTransform: 'uppercase' }}>
-                    {selectedGame.variant}
+                    SLUG IDENTIFIER: {selectedGameRules.slug || 'NONE'}
                   </p>
                   <h3 style={{ margin: 0, color: '#beedd9', fontSize: '24px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', tracking: '-0.02em' }}>
-                    {selectedGame.title}
+                    {selectedGameRules.title}
                   </h3>
                 </div>
-                <button onClick={() => setSelectedGame(null)} style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 18px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', textTransform: 'uppercase' }} type="button">Close</button>
+                <button onClick={() => setSelectedGameRules(null)} style={{ backgroundColor: '#001710', color: '#ecc151', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 18px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', textTransform: 'uppercase' }} type="button">Close</button>
               </div>
 
               {/* Drawer Scrollable Content Body */}
               <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px', boxSizing: 'border-box', paddingBottom: '60px' }}>
                 
-                {/* Ruleset Definition Container */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.1em' }}>WAGER RULES AND OPERATION</span>
-                  <div style={{ backgroundColor: '#001710', padding: '20px', borderRadius: '14px', border: '1px solid rgba(236,193,81,0.05)' }}>
-                    <p style={{ margin: 0, color: '#beedd9', fontSize: '14px', lineHeight: '1.6', fontWeight: '500' }}>
-                      {selectedGame.description}
-                    </p>
-                  </div>
+                {/* Structural Configuration Target Schema Summary */}
+                <div style={{ backgroundColor: '#001710', padding: '16px', borderRadius: '12px', borderLeft: '3px solid #ecc151', boxSizing: 'border-box' }}>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '9px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', tracking: '0.05em' }}>TEMPLATE VARIABLES MATRIX SCHEMA</p>
+                  <span style={{ fontSize: '13px', fontWeight: '700', fontFamily: 'monospace', color: '#ecc151' }}>
+                    {JSON.stringify(selectedGameRules.config_schema) === '{}' ? 'NO EXTENDED CONFIG SCHEMA BOUND' : JSON.stringify(selectedGameRules.config_schema)}
+                  </span>
                 </div>
 
-                {/* Tactical Tips Analysis Container */}
+                {/* Rules Content Technical Guidelines Blueprint Documentation */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.1em' }}>CADDY INTELLIGENCE TACTICS</span>
+                  <span style={{ fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.1em' }}>WAGER RULES AND DOCUMENTATION TEXT</span>
                   <div style={{ backgroundColor: '#001710', padding: '20px', borderRadius: '14px', border: '1px solid rgba(236,193,81,0.05)' }}>
-                    <p style={{ margin: 0, color: '#ecc151', fontSize: '14px', lineHeight: '1.6', fontWeight: '500', fontStyle: 'italic' }}>
-                      {selectedGame.tactics}
+                    <p style={{ margin: 0, color: '#beedd9', fontSize: '14px', lineHeight: '1.6', fontWeight: '500', whiteSpace: 'pre-wrap' }}>
+                      {selectedGameRules.content || 'No documentation descriptions compiled for this rule profile asset yet.'}
                     </p>
                   </div>
                 </div>
