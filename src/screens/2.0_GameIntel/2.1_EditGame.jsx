@@ -2,25 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 
 function EditGame({ ruleId, onNavigate }) {
-  // 🎛️ SYSTEM CONTROLLERS
+  // 🎛️ SYSTEM ENGINE CONTROLLERS
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 📝 IMMUTABLE BACKEND TEMPLATE SNAPSHOT
+  // 📝 CORE BLUEPRINT SNAPSHOTS
   const [masterRule, setMasterRule] = useState(null);
-
-  // 🎨 MASTER GAME TYPOGRAPHY
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [content, setContent] = useState('');
   const [version, setVersion] = useState('1.0');
 
-  // 🗄️ PARSED FORM VALUES STATE STORAGE
-  const [formValues, setFormValues] = useState({});
+  // 🗄️ LOCAL MUTABLE PARAMETERS CAPSULES
+  const [liveConfigSchema, setLiveConfigSchema] = useState({});
   const [variantName, setVariantName] = useState('');
 
-  // 📡 DATABASE READ: FETCH GAME RULE SCHEMAS FROM SUPABASE
+  // 📡 DATABASE READ: ACCUMULATE AND EXTRACT BLUEPRINTS FROM SUPABASE
   const fetchGameRuleDefaults = async () => {
     try {
       setLoading(true);
@@ -34,26 +32,15 @@ function EditGame({ ruleId, onNavigate }) {
       if (data) {
         setMasterRule(data);
         setTitle(data.title || '');
-        setCategory(data.category || 'BETTING GAMES');
+        setCategory(data.category || 'SIDE WAGER ENGINE');
         setContent(data.content || '');
         setVersion(data.version || '1.0');
 
-        // Extract the target default primitives from the config_schema structure safely
-        const schema = data.config_schema || {};
-        const parsedPrimitives = {};
-        
-        Object.keys(schema).forEach(key => {
-          if (schema[key] && typeof schema[key] === 'object' && 'default' in schema[key]) {
-            parsedPrimitives[key] = schema[key].default;
-          } else {
-            parsedPrimitives[key] = schema[key];
-          }
-        });
-        
-        setFormValues(parsedPrimitives);
+        // Keep the full nested schema intact for custom variable alterations
+        setLiveConfigSchema(data.config_schema || {});
       }
     } catch (err) {
-      console.error('Failed to parse database core game rules attributes:', err.message);
+      console.error('Failed to decompress live database blueprint specs:', err.message);
     } finally {
       setLoading(false);
     }
@@ -63,69 +50,90 @@ function EditGame({ ruleId, onNavigate }) {
     if (ruleId) fetchGameRuleDefaults();
   }, [ruleId]);
 
-  // 🕹️ FORM MUTATORS FOR VALUES STATE
-  const handleValueMutationChange = (key, newValue) => {
-    setFormValues(prev => ({ ...prev, [key]: newValue }));
-  };
-
-  // 🔍 EVALUATE MUTATIONS FOR VARIANT SAFEGUARDS
-  const checkHasFormMutationPatterns = () => {
-    if (!masterRule) return false;
-    const initialSchema = masterRule.config_schema || {};
-    
-    return Object.keys(formValues).some(key => {
-      const originalValue = initialSchema[key] && typeof initialSchema[key] === 'object' && 'default' in initialSchema[key]
-        ? initialSchema[key].default
-        : initialSchema[key];
-      return formValues[key] !== originalValue;
+  // 🕹️ TOUCH DYNAMIC MUTATORS FOR NESTED JSON SCHEMAS
+  const handleToggleValueMutation = (key) => {
+    setLiveConfigSchema(prev => {
+      const target = { ...prev[key] };
+      // Handle both raw booleans and nested schema object structures cleanly
+      if (typeof target.default === 'boolean') {
+        target.default = !target.default;
+      } else if (typeof target === 'boolean') {
+        return { ...prev, [key]: !target };
+      } else {
+        target.default = !target.default;
+      }
+      return { ...prev, [key]: target };
     });
   };
 
-  // 💾 INTERCEPT SAVE ACTION TO TRIGGER VARIANT MODAL
-  const handleFormSaveActionTrigger = () => {
-    const changesDetected = checkHasFormMutationPatterns();
+  const handleNumericStepMutation = (key, increment) => {
+    setLiveConfigSchema(prev => {
+      const target = { ...prev[key] };
+      const currentVal = typeof target.default === 'number' ? target.default : parseFloat(target.default || 0);
+      const step = target.type === 'integer' ? 1 : 0.5;
+      
+      const updatedVal = increment ? currentVal + step : currentVal - step;
+      target.default = updatedVal >= 0 ? updatedVal : 0;
+      
+      return { ...prev, [key]: target };
+    });
+  };
+
+  const handleTextStringMutation = (key, textVal) => {
+    setLiveConfigSchema(prev => {
+      const target = { ...prev[key] };
+      if (typeof target === 'object') {
+        target.default = textVal;
+        return { ...prev, [key]: target };
+      }
+      return { ...prev, [key]: textVal };
+    });
+  };
+
+  // 🔍 EVALUATE DELTAS AGAINST PRISTINE BACKEND RECORD
+  const checkHasFormMutationPatterns = () => {
+    if (!masterRule || !masterRule.config_schema) return false;
+    return JSON.stringify(liveConfigSchema) !== JSON.stringify(masterRule.config_schema);
+  };
+
+  // 💾 SAVE BUTTON INTERCEPT INTERFACE INTERACTION
+  const handleSaveButtonClickAction = () => {
+    const hasChanges = checkHasFormMutationPatterns();
     
-    if (!changesDetected) {
+    if (!hasChanges) {
+      // Bounce back to dashboard directly if no configurations were tweaked
       onNavigate('game-intel');
       return;
     }
 
+    // Trigger elegant variant preservation modal window
     setVariantName(`${title} (Custom Style)`);
     setIsModalOpen(true);
   };
 
-  // 💾 DATABASE WRITE: SAVE BRAND NEW VARIANT COPY ROW TO SUPABASE
+  // 💾 DATABASE WRITE: COMMIT BRAND NEW CUSTOM BRANCH VARIATION TO SUPABASE
   const handleCommitVariantToBackendDatabase = async () => {
     if (!variantName.trim()) {
-      alert('Please enter a variant name.');
+      alert('Please provide a unique variation name signature.');
       return;
     }
 
     try {
       setSaving(true);
 
-      // Deep clone configuration schema matrix and update default values cleanly
-      const updatedSchemaLayout = { ...(masterRule.config_schema || {}) };
-      Object.keys(formValues).forEach(key => {
-        if (updatedSchemaLayout[key] && typeof updatedSchemaLayout[key] === 'object') {
-          updatedSchemaLayout[key] = { ...updatedSchemaLayout[key], default: formValues[key] };
-        } else {
-          updatedSchemaLayout[key] = formValues[key];
-        }
-      });
-
-      const customGeneratedSlug = `${masterRule.slug}_variant_${Math.random().toString(36).substring(2, 7)}`;
+      // Derive database-safe runtime slugs to differentiate records
+      const variationUniqueSlug = `${masterRule.slug}_variant_${Math.random().toString(36).substring(2, 7)}`;
 
       const variantPayload = {
         title: variantName.trim(),
-        slug: customGeneratedSlug,
+        slug: variationUniqueSlug,
         category: category.trim(),
         content: content,
         version: version,
         format: masterRule.format || 'md',
         is_favorite: false,
         published: true,
-        config_schema: updatedSchemaLayout,
+        config_schema: liveConfigSchema, // Commits cleanly parsed nested parameters layout payload
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -139,26 +147,18 @@ function EditGame({ ruleId, onNavigate }) {
       setIsModalOpen(false);
       onNavigate('game-intel');
     } catch (err) {
-      alert(`Failed to save custom variant: ${err.message}`);
+      alert(`Variation commit transaction aborted: ${err.message}`);
     } finally {
       setSaving(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div style={{ color: '#beedd9', padding: '40px', textAlign: 'center', fontWeight: '900', fontStyle: 'italic', tracking: '0.1em' }}>
-        DECOMPRESSING LIVE BLUEPRINT SPECS...
-      </div>
-    );
-  }
 
   return (
     <div style={{ textAlign: 'left', width: '100%', position: 'relative', boxSizing: 'border-box', paddingTop: '12px' }}>
 
       <main style={{ display: 'flex', flexDirection: 'column', gap: '32px', paddingBottom: '60px', boxSizing: 'border-box', width: '100%' }}>
         
-        {/* GAME HEADER SUMMARY PLATFORM DESCRIPTIONS CHASSIS */}
+        {/* GAME OVERVIEW DESCRIPTION CHASSIS */}
         <section style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(236,193,81,0.08)', borderRadius: '16px', padding: '24px', boxSizing: 'border-box' }}>
           <p style={{ margin: '0 0 4px 0', fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.15em', textTransform: 'uppercase' }}>
             {category} (MASTER LOCKED)
@@ -168,12 +168,12 @@ function EditGame({ ruleId, onNavigate }) {
           </h2>
           <div style={{ backgroundColor: '#001710', padding: '16px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.04)' }}>
             <p style={{ margin: 0, color: '#beedd9', fontSize: '14px', lineHeight: '1.6', fontWeight: '500', whiteSpace: 'pre-wrap' }}>
-              {content || 'No documentation descriptions bound to this blueprint template asset profile.'}
+              {content || 'No baseline overview guidelines written for this master profile blueprint.'}
             </p>
           </div>
         </section>
 
-        {/* DYNAMIC DOCK INPUTS SCHEMAS LOOP MATRIX CONTROL CHASSIS */}
+        {/* DYNAMIC FORM TRANSLATION SCHEMA LOOP INPUTS CHASSIS */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
@@ -185,22 +185,24 @@ function EditGame({ ruleId, onNavigate }) {
 
           <div style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#0e3c2f', padding: '24px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
-            {Object.keys(formValues).map((key, index) => {
-              const currentValue = formValues[key];
-              const schemaMeta = masterRule.config_schema?.[key] || {};
-              const labelText = schemaMeta.label || key.toUpperCase().replace(/_/g, ' ');
-              const typeSpec = schemaMeta.type || (typeof currentValue);
+            {Object.keys(liveConfigSchema).map((key, index) => {
+              const node = liveConfigSchema[key];
+              
+              // Extract data parameters cleanly from nested or literal variations nodes
+              const labelText = (node && typeof node === 'object' && node.label) ? node.label : key.toUpperCase().replace(/_/g, ' ');
+              const currentValue = (node && typeof node === 'object' && 'default' in node) ? node.default : node;
+              const typeSpec = (node && typeof node === 'object' && node.type) ? node.type : (typeof currentValue);
 
-              // 🎛️ FIELD INTERFACE A: PREMIUM COMPACT SLIDING TOGGLE SWITCHES FOR BOOLEAN TYPE CONTROLS
-              if (typeSpec === 'boolean') {
+              // CONTROL MAPPING ENGINE INTERFACE A: MINT SLIDING TOGGLE PILLS FOR BOOLEANS
+              if (typeSpec === 'boolean' || typeof currentValue === 'boolean') {
                 return (
                   <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', boxSizing: 'border-box', borderTop: index > 0 ? '1px solid rgba(65,72,69,0.2)' : 'none', paddingTop: index > 0 ? '20px' : '0' }}>
                     <div style={{ paddingRight: '12px' }}>
                       <p style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: 'white' }}>{labelText}</p>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#a3d0be', textTransform: 'uppercase' }}>{schemaMeta.description || 'Boolean Option'}</p>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#a3d0be', textTransform: 'uppercase' }}>Type: Boolean Selector Switch</p>
                     </div>
                     <div 
-                      onClick={() => handleValueMutationChange(key, !currentValue)}
+                      onClick={() => handleToggleValueMutation(key)}
                       style={{ width: '48px', height: '24px', borderRadius: '12px', backgroundColor: currentValue ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box', flexShrink: 0 }}
                     >
                       <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: currentValue ? '#3e2e00' : '#414845', transform: currentValue ? 'translateX(24px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
@@ -209,28 +211,28 @@ function EditGame({ ruleId, onNavigate }) {
                 );
               }
 
-              // 🎛️ FIELD INTERFACE B: NUMERIC MINUS / PLUS STEPPERS FOR INT/NUMERIC CONFIG ENTRIES
+              // CONTROL MAPPING ENGINE INTERFACE B: HIGH CONTRAST MODIFIER STEPPERS FOR NUMERICS
               if (typeSpec === 'numeric' || typeSpec === 'integer' || typeof currentValue === 'number') {
-                const step = typeSpec === 'integer' ? 1 : 0.5;
+                const numVal = typeof currentValue === 'number' ? currentValue : parseFloat(currentValue || 0);
                 return (
                   <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box', borderTop: '1px solid rgba(65,72,69,0.2)', paddingTop: '20px' }}>
                     <div>
                       <p style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: 'white' }}>{labelText}</p>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#a3d0be', textTransform: 'uppercase' }}>{schemaMeta.description || 'Numeric Limit Value'}</p>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#a3d0be', textTransform: 'uppercase' }}>Type: Numeric Scalar Limits</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#001710', borderRadius: '12px', padding: '6px', border: '1px solid rgba(236,193,81,0.1)', justifyContent: 'space-between', width: '100%', boxSizing: 'border-box' }}>
                       <button 
-                        onClick={() => handleValueMutationChange(key, currentValue - step >= 0 ? currentValue - step : 0)}
+                        onClick={() => handleNumericStepMutation(key, false)}
                         style={{ width: '44px', height: '44px', borderRadius: '8px', backgroundColor: '#0e3c2f', border: 'none', color: '#ecc151', fontSize: '20px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         type="button"
                       >
                         -
                       </button>
                       <span style={{ fontSize: '18px', fontWeight: '900', color: '#ecc151', fontFamily: 'monospace' }}>
-                        {typeof currentValue === 'number' ? currentValue.toFixed(typeSpec === 'integer' ? 0 : 2) : currentValue}
+                        {numVal.toFixed(typeSpec === 'integer' ? 0 : 2)}
                       </span>
                       <button 
-                        onClick={() => handleValueMutationChange(key, currentValue + step)}
+                        onClick={() => handleNumericStepMutation(key, true)}
                         style={{ width: '44px', height: '44px', borderRadius: '8px', backgroundColor: '#0e3c2f', border: 'none', color: '#ecc151', fontSize: '20px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         type="button"
                       >
@@ -241,27 +243,33 @@ function EditGame({ ruleId, onNavigate }) {
                 );
               }
 
-              // 🎛️ FIELD INTERFACE C: TRADITIONAL TEXT STRING CONTAINER FALLBACK INJECTION MARKS
+              // CONTROL MAPPING ENGINE INTERFACE C: STRINGS TEXT RECOVERY BOX ENTRIES
               return (
                 <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box', borderTop: '1px solid rgba(65,72,69,0.2)', paddingTop: '20px' }}>
                   <label style={{ fontSize: '15px', fontWeight: '900', color: 'white' }}>{labelText}</label>
                   <input 
                     type="text" 
                     value={currentValue || ''} 
-                    onChange={(e) => handleValueMutationChange(key, e.target.value)} 
+                    onChange={(e) => handleTextStringMutation(key, e.target.value)} 
                     style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '16px', color: 'white', fontSize: '16px', fontWeight: '700', outline: 'none' }} 
                   />
                 </div>
               );
             })}
 
+            {Object.keys(liveConfigSchema).length === 0 && (
+              <div style={{ color: 'rgba(190,237,217,0.3)', padding: '20px', textAlign: 'center', fontStyle: 'italic', fontSize: '13px' }}>
+                No variable attributes registered to this template schema framework profiles.
+              </div>
+            )}
+
           </div>
         </section>
 
-        {/* 💾 CONTEXT ACTION BUTTON */}
+        {/* SAVE SUBMIT CONTAINER ROW CONTROL */}
         <div style={{ marginTop: '12px', width: '100%', boxSizing: 'border-box' }}>
           <button 
-            onClick={handleFormSaveActionTrigger}
+            onClick={handleSaveButtonClickAction}
             style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', boxShadow: '0 20px 40px rgba(236,193,81,0.15)' }}
             type="button"
           >
@@ -284,7 +292,7 @@ function EditGame({ ruleId, onNavigate }) {
               Create Custom Variant
             </h3>
             <p style={{ margin: '6px 0 0 0', color: '#beedd9', fontSize: '12px', lineHeight: '1.5', fontWeight: '500' }}>
-              Master blueprints cannot be overwritten. Please declare a custom identifier name tag signature to register this customized variation setup.
+              Master blueprints cannot be overwritten. Please declare a custom identifier name tag signature to register this customized variation round setup.
             </p>
           </div>
 
