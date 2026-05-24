@@ -26,13 +26,20 @@ function App() {
     matchId: null,
     matchName: '',
     courseName: '',
-    activeGames: ['match_play']
+    activeGames: ['wolf'] // Defaulted to Wolf for initial testing
   });
 
   // 📝 EXTRA DATA TRANSPORTER SLOTS FOR EDIT MODES
   const [editingPlayerId, setEditingPlayerId] = useState(null);
   const [editingCourseId, setEditingCourseId] = useState(null);
   const [editingGameId, setEditingGameId] = useState(null);
+
+  // 💬 KEE INTELLIGENCE CORE WORKSPACE STATES
+  const [textInput, setTextInput] = useState('');
+  const [isKeeProcessing, setIsKeeProcessing] = useState(false);
+  const [chatLog, setChatLog] = useState([
+    { sender: 'kee', text: "Systems online, Partner. Ready to call the wagers. Give me the hole scores or ask a rules query." }
+  ]);
 
   // Unified Navigation Router that saves your historical footsteps
   const handleScreenNavigation = (targetScreen, contextPayload = null) => {
@@ -88,10 +95,46 @@ function App() {
     return '';
   };
 
+  // 📡 THE INTELLIGENT KEE CONTEXT INGESTION & REASONING LOOP SIMULATOR
+  const handleSendCaddyMessage = () => {
+    if (!textInput.trim()) return;
+
+    const userMessageText = textInput.trim();
+    
+    // Log user input step directly into the chat list
+    setChatLog(prev => [...prev, { sender: 'user', text: userMessageText }]);
+    setTextInput('');
+    setIsKeeProcessing(true);
+
+    // Context Assembly Snapshot Payload
+    const contextSnapshot = {
+      activeGames: currentMatchContext.activeGames,
+      currentCourse: currentMatchContext.courseName || 'Rockway Vineyards Golf Club',
+      players: ['DH', 'Rosco', 'Timmy', 'Syv']
+    };
+
+    // Simulate Kee reasoning over your custom playbook rules (Option A Local Parser)
+    setTimeout(() => {
+      let keeResponseText = "I parsed that instruction against your active game rules parameters. Let me know if you need to lock that score modification.";
+      const query = userMessageText.toLowerCase();
+
+      if (query.includes('scores') || query.includes('hole')) {
+        keeResponseText = "Scores recognized for Hole 1. Enforcing Rockway rotation parameters: DH was the Wolf and selected Timmy. Syv cards a net Birdie, activating a 2x Rockway Boost modifier for the Hunters' pool ledger.";
+      } else if (query.includes('wolf') || query.includes('rules')) {
+        keeResponseText = "Under Rockway house guidelines, the Wolf must declare partnerships immediately after a drive lands. On a player's 4th rotation turn, a Forced Solo rule applies if they have not gone lone wolf yet.";
+      } else if (query.includes('leader') || query.includes('winning')) {
+        keeResponseText = "Evaluating match value matrices: Rosco is currently up +$40. DH holds second place at -$10. Timmy and Syv sit at -$15.";
+      }
+
+      setChatLog(prev => [...prev, { sender: 'kee', text: keeResponseText }]);
+      setIsKeeProcessing(false);
+    }, 1200);
+  };
+
   return (
     <div style={{ backgroundColor: '#001710', minHeight: '100vh', position: 'relative', fontFamily: 'sans-serif', overflowX: 'hidden', paddingBottom: '140px', boxSizing: 'border-box' }}>
       
-      {/* 👑 MASTER APP STACKED HEADER BAR - STABLE IDENTIFIER FOR ALL VIEWS */}
+      {/* 👑 MASTER APP STACKED HEADER BAR */}
       <header style={{ width: '100%', padding: '24px 24px 16px 24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(0, 23, 16, 0.8)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
         <div style={{ width: '40px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #ecc151', backgroundColor: '#0e3c2f', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
@@ -107,7 +150,6 @@ function App() {
           </div>
         </div>
         
-        {/* 🎨 STACKED BRAND DESIGN: CaddyKee App Identity locked above clean contextual subtitle string */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', flex: 1, minWidth: 0, gap: '2px' }}>
           <h1 
             onClick={() => {
@@ -183,23 +225,21 @@ function App() {
         )}
       </main>
 
-      {/* 🧭 PILL CONTEXT HUD FOOTER NAV - FULL ALIGNMENT PILL FIXED */}
+      {/* 🧭 PILL CONTEXT HUD FOOTER NAV */}
       <div style={{ position: 'fixed', bottom: '24px', left: '16px', right: '16px', zIndex: 50, display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
         <nav style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '0 8px', borderRadius: '40px', height: '80px', backgroundColor: 'rgba(14, 60, 47, 0.98)', border: '1px solid rgba(236, 193, 81, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
           
-          {/* Mapped Action Pillar 1: Rounds Setup */}
           <button onClick={() => handleScreenNavigation('round-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: ['round-intel', 'create-match', 'live-game'].includes(activeScreen) ? '#ecc151' : '#beedd9', opacity: ['round-intel', 'create-match', 'live-game'].includes(activeScreen) ? 1 : 0.6, padding: 0 }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>sports_golf</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Rounds</span>
           </button>
           
-          {/* Mapped Action Pillar 2: Roster Profiles */}
           <button onClick={() => handleScreenNavigation('player-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: ['player-intel', 'edit-player', 'create-player'].includes(activeScreen) ? '#ecc151' : '#beedd9', opacity: ['player-intel', 'edit-player', 'create-player'].includes(activeScreen) ? 1 : 0.6, padding: 0 }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>group</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Players</span>
           </button>
 
-          {/* KEE VOICE TARGET CONTROL MODAL INTERFACE TRIGGER */}
+          {/* KEE VOICE CONTROL TRIGGER CHASSIS */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <button onClick={() => setIsKeeOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-22px)', width: '88px', padding: 0 }} type="button">
               <div style={{ width: '78px', height: '78px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '0px', boxSizing: 'border-box' }}>
@@ -209,13 +249,11 @@ function App() {
             </button>
           </div>
 
-          {/* Mapped Action Pillar 4: Courses Intel Map Sheets Link */}
           <button onClick={() => handleScreenNavigation('course-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: ['course-intel', 'edit-course', 'create-course'].includes(activeScreen) ? '#ecc151' : '#beedd9', opacity: ['course-intel', 'edit-course', 'create-course'].includes(activeScreen) ? 1 : 0.6, padding: 0 }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>map</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Courses</span>
           </button>
           
-          {/* Mapped Action Pillar 5: Games Rulesets Engine Matrix Link */}
           <button onClick={() => handleScreenNavigation('game-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: ['game-intel', 'edit-game', 'create-game'].includes(activeScreen) ? '#ecc151' : '#beedd9', opacity: ['game-intel', 'edit-game', 'create-game'].includes(activeScreen) ? 1 : 0.6, padding: 0 }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>swords</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Games</span>
@@ -224,10 +262,13 @@ function App() {
         </nav>
       </div>
 
-      {/* GLOBAL KEE VOICE INTELLIGENCE OVERLAY DRAWER CHASSIS */}
+      {/* ========================================================================= */}
+      {/* 💎 ACTIVE INTERACTIVE KEE VOICE INTELLIGENCE OVERLAY DRAWER CHASSIS       */}
+      {/* ========================================================================= */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 130, pointerEvents: isKeeOpen ? 'auto' : 'none', display: 'block' }}>
         <div onClick={() => setIsKeeOpen(false)} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', opacity: isKeeOpen ? 1 : 0, transition: 'opacity 0.4s', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: '12vh', borderTop: '2px solid rgba(236,193,81,0.3)', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', backgroundColor: '#00251b', boxShadow: '0 -20px 100px rgba(0,0,0,0.8)', transition: 'transform 0.4s cubic-bezier(0.1, 0.85, 0.25, 1)', transform: isKeeOpen ? 'translateY(0)' : 'translateY(100%)', display: 'flex', flexDirection: 'column' }}>
+          
           <div style={{ width: '48px', height: '6px', borderRadius: '3px', backgroundColor: 'rgba(236,193,81,0.2)', margin: '16px auto 4px auto', flex: 'none' }} />
           
           <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(65,72,69,0.1)', flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -235,43 +276,74 @@ function App() {
               <div style={{ width: '44px', height: '44px', backgroundColor: 'rgba(236,193,81,0.1)', border: '1px solid #ecc151', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ecc151', borderRadius: '50%' }}>💬</div>
               <div>
                 <h3 style={{ margin: 0, color: '#beedd9', fontSize: '20px', fontWeight: '900', fontStyle: 'italic' }}>KEE</h3>
-                <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', tracking: '0.05em' }}>● ACTIVE INTELLIGENCE</span>
+                <span style={{ fontSize: '9px', fontWeight: '900', color: '#ecc151', tracking: '0.05em' }}>
+                  {isKeeProcessing ? '● REASONING SCHEMAS...' : '● ACTIVE REALTIME INTELLIGENCE'}
+                </span>
               </div>
             </div>
             <button onClick={() => setIsKeeOpen(false)} style={{ backgroundColor: '#001710', color: '#beedd9', border: '1px solid rgba(236,193,81,0.15)', padding: '10px 16px', borderRadius: '24px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }} type="button">Close</button>
           </div>
 
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px', boxSizing: 'border-box', textAlign: 'center', gap: '32px' }}>
-            <div>
-              <p style={{ color: '#ecc151', fontStyle: 'italic', fontWeight: '900', fontSize: '18px', margin: '0 0 16px 0', tracking: '0.05em' }}>Listening...</p>
-              <div style={{ display: 'flex', gap: '6px', height: '40px', alignItems: 'center', justifyContent: 'center' }}>
+          {/* DYNAMIC CHAT SCROLL WINDOW VIEWPORT MODULE */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxSizing: 'border-box' }}>
+            {chatLog.map((msg, i) => {
+              const isKee = msg.sender === 'kee';
+              return (
+                <div key={i} style={{ display: 'flex', justifyContent: isKee ? 'flex-start' : 'flex-end', width: '100%' }}>
+                  <div style={{ maxWidth: '85%', padding: '16px 20px', borderRadius: '20px', borderTopLeftRadius: isKee ? '4px' : '20px', borderTopRightRadius: isKee ? '20px' : '4px', backgroundColor: isKee ? '#001710' : '#ecc151', color: isKee ? '#beedd9' : '#3e2e00', border: isKee ? '1px solid rgba(236,193,81,0.08)' : 'none', fontSize: '14px', fontWeight: '600', lineHeight: '1.5' }}>
+                    {msg.text}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* DYNAMIC SAGE LOADING SIGNAL */}
+            {isKeeProcessing && (
+              <div style={{ display: 'flex', gap: '6px', height: '24px', alignItems: 'center', paddingLeft: '8px' }}>
                 <style>{`
-                  @keyframes wavePulse { 0%, 100% { height: 10px; } 50% { height: 36px; } }
-                  .w-bar { width: 4px; background: #ecc151; border-radius: 2px; animation: wavePulse 1.2s ease-in-out infinite; }
+                  @keyframes wavePulse { 0%, 100% { height: 8px; opacity: 0.4; } 50% { height: 20px; opacity: 1; } }
+                  .w-bar { width: 3px; background: #ecc151; border-radius: 2px; animation: wavePulse 1s ease-in-out infinite; }
                 `}</style>
                 <div className="w-bar" style={{ animationDelay: '0.1s' }} />
                 <div className="w-bar" style={{ animationDelay: '0.3s' }} />
                 <div className="w-bar" style={{ animationDelay: '0.5s' }} />
-                <div className="w-bar" style={{ animationDelay: '0.2s' }} />
-                <div className="w-bar" style={{ animationDelay: '0.1s' }} />
               </div>
-            </div>
+            )}
+          </div>
 
-            <div style={{ width: '100%', maxWidth: '400px', boxSizing: 'border-box' }}>
-              <p style={{ fontSize: '11px', fontWeight: '900', color: 'rgba(190,237,217,0.5)', tracking: '0.1em', marginBottom: '12px' }}>TRY ASKING</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ backgroundColor: '#001710', padding: '16px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', textAlign: 'left', fontStyle: 'italic', fontSize: '13px', color: '#beedd9' }}>"What's the wind doing on the 4th?"</div>
-                <div style={{ backgroundColor: '#001710', padding: '16px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', textAlign: 'left', fontStyle: 'italic', fontSize: '13px', color: '#beedd9' }}>"Who's leading the tournament?"</div>
-              </div>
+          {/* PRE-CONSTRUCTED SHORTCUT DRILL TAP CHIPS MAP */}
+          <div style={{ padding: '0 24px', flex: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <p style={{ fontSize: '10px', fontWeight: '900', color: 'rgba(190,237,217,0.4)', tracking: '0.1em', margin: 0 }}>TRY ASKING KEE</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+              <button onClick={() => setTextInput("Lock in Hole 1 scores: DH 6, Rosco 5, Timmy 6, Syv 4. Partner was Timmy.")} style={{ backgroundColor: '#001710', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', textAlign: 'left', fontStyle: 'italic', fontSize: '13px', color: '#beedd9', cursor: 'pointer', outline: 'none' }} type="button">
+                "Lock in Hole 1 scores: DH 6, Rosco 5, Timmy 6, Syv 4..."
+              </button>
+              <button onClick={() => setTextInput("Explain the Rockway Wolf partner selection rules")} style={{ backgroundColor: '#001710', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(236,193,81,0.05)', textAlign: 'left', fontStyle: 'italic', fontSize: '13px', color: '#beedd9', cursor: 'pointer', outline: 'none' }} type="button">
+                "Explain the Rockway Wolf partner selection rules..."
+              </button>
             </div>
           </div>
 
-          <div style={{ padding: '24px', paddingBottom: '40px', flex: 'none' }}>
-            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#00120b', padding: '4px', borderRadius: '30px', border: '1px solid rgba(236,193,81,0.1)' }}>
-              <input placeholder="Type a caddy message..." style={{ flex: 1, background: 'transparent', border: 'none', padding: '12px 20px', color: 'white', outline: 'none', fontSize: '14px' }} />
-              <button style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#ecc151', border: 'none', color: '#3e2e00', display: 'flex', alignItems: 'center', justifyContent: 'center' }} type="button">▲</button>
+          {/* INPUT BAR SUBMIT SECTION CONTROLS CHASSIS */}
+          <div style={{ padding: '24px', paddingBottom: '40px', flex: 'none', borderTop: '1px solid rgba(65,72,69,0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#00120b', padding: '4px', borderRadius: '30px', border: '1px solid rgba(236,193,81,0.15)' }}>
+              <input 
+                placeholder="Type scores or ask caddy question..." 
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendCaddyMessage()}
+                style={{ flex: 1, background: 'transparent', border: 'none', padding: '12px 20px', color: 'white', outline: 'none', fontSize: '14px', fontWeight: '600' }} 
+              />
+              <button 
+                onClick={handleSendCaddyMessage}
+                style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#ecc151', border: 'none', color: '#3e2e00', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} 
+                type="button"
+              >
+                ▲
+              </button>
             </div>
           </div>
+
         </div>
       </div>
 
