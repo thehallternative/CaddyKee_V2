@@ -233,8 +233,8 @@ function CreateMatch({ onNavigate }) {
   // Find Currently Active Selected Course Object Profile safely
   const currentSelectedCourse = coursesList.find(c => c.id === selectedCourseId);
 
-  // 🚀 ATOMIC COMPOUND TRANSACTION TELEMETRY EMISSION
-  const handleInitializeMatch = async () => {
+  // 🚀 UNIFIED DATABASE TRANSACTION ENGINE
+  const commitMatchToDatabase = async (shouldLaunchScoringView) => {
     try {
       const sanitizedTime = teeTime.length === 5 ? `${teeTime}:00` : teeTime;
       const targetCourseName = currentSelectedCourse ? currentSelectedCourse.course_name : 'Unknown Course';
@@ -244,7 +244,7 @@ function CreateMatch({ onNavigate }) {
         .from('matches')
         .insert([
           {
-            match_name: matchName || 'Saturday Skins Challenge',
+            match_name: matchName || 'Saturday Wager Session',
             course_name: targetCourseName,
             tee_date: teeDate,       
             tee_time: sanitizedTime  
@@ -255,7 +255,7 @@ function CreateMatch({ onNavigate }) {
 
       if (matchError) throw matchError;
 
-      // TRANSACTION STEP 2: Loop and generate active side-wager relational entries inside active_wagers
+      // TRANSACTION STEP 2: Generate active side-wager entries inside active_wagers table
       const activeGameKeys = Object.keys(liveGameStates).filter(slug => liveGameStates[slug].active);
       
       if (activeGameKeys.length > 0) {
@@ -272,7 +272,7 @@ function CreateMatch({ onNavigate }) {
         if (wagerError) throw wagerError;
       }
 
-      // TRANSACTION STEP 3: Map Active Board Slots and Write into the optimized match_players schema
+      // TRANSACTION STEP 3: Map Active Board Slots and Write into match_players schema
       const activeRosterPayload = Object.keys(selectedPlayers)
         .filter(slotKey => selectedPlayers[slotKey] !== null)
         .map(slotKey => {
@@ -294,14 +294,19 @@ function CreateMatch({ onNavigate }) {
         if (rosterError) throw rosterError;
       }
 
-      // TRANSACTION STEP 4: Fast Handoff Context payload step over to scoring view layout chassis
-      onNavigate('live-game', {
-        matchId: newMatch.id,
-        matchName: matchName || 'Saturday Skins Challenge',
-        courseName: targetCourseName,
-        activeGames: activeGameKeys,
-        roster: selectedPlayers
-      });
+      // TRANSACTION STEP 4: Conditional Workflow Route Distribution Diverter
+      if (shouldLaunchScoringView) {
+        onNavigate('live-game', {
+          matchId: newMatch.id,
+          matchName: matchName || 'Saturday Wager Session',
+          courseName: targetCourseName,
+          activeGames: activeGameKeys,
+          roster: selectedPlayers
+        });
+      } else {
+        // Safe return directly to Mission Control Home Hub view matrix
+        onNavigate('mission-control');
+      }
 
     } catch (err) {
       console.error('Supabase payload dispatch crash:', err.message);
@@ -450,7 +455,7 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* PILLAR 5: WHAT (DYNAMIC CHASSIS CONNECTED TO SUPABASE TABLE ROWS) */}
+        {/* PILLAR 5: WHAT */}
         <section style={{ marginTop: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', padding: '0 8px' }}>
             <span style={{ fontSize: '10px', fontWeight: '900', fontStyle: 'italic', color: '#ecc151', letterSpacing: '0.3em' }}>GAME MODE SELECTION</span>
@@ -464,7 +469,6 @@ function CreateMatch({ onNavigate }) {
               return (
                 <div key={game.slug} style={{ backgroundColor: '#0e3c2f', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', overflow: 'hidden' }}>
                   
-                  {/* HEADER ITEM PANEL TRACK CONTROL SWITCH */}
                   <div onClick={() => handleDrawerExpand(game.slug)} style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer' }}>
                     <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#00251b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: gameLive.active ? '#ecc151' : 'rgba(190,237,217,0.3)', border: '1px solid rgba(236,193,81,0.05)', flex: 'none' }}>
                       <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
@@ -480,7 +484,6 @@ function CreateMatch({ onNavigate }) {
                     </div>
                   </div>
 
-                  {/* SUB DYNAMIC ACCORDION VARIANT LOOPER MATRIX PANEL */}
                   {gameLive.active && gameLive.expanded && (
                     <div style={{ padding: '20px 24px', backgroundColor: '#002117', borderTop: '1px solid rgba(236,193,81,0.05)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                       {Object.keys(configSchema).map((vKey, innerIdx) => {
@@ -492,7 +495,6 @@ function CreateMatch({ onNavigate }) {
                         return (
                           <div key={vKey} style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: innerIdx > 0 ? '1px solid rgba(65,72,69,0.2)' : 'none', paddingTop: innerIdx > 0 ? '16px' : '0' }}>
                             
-                            {/* CASE 1: BOOLEAN PROPERTY RENDER LAYER */}
                             {typeSpec === 'boolean' || typeof val === 'boolean' ? (
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                                 <div style={{ paddingRight: '12px' }}>
@@ -504,7 +506,6 @@ function CreateMatch({ onNavigate }) {
                                 </div>
                               </div>
                             ) : typeSpec === 'numeric' || typeSpec === 'integer' || typeof val === 'number' ? (
-                              /* CASE 2: NUMERIC SCALAR STEPPERS RENDER LAYER */
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 <div>
                                   <h4 style={{ margin: 0, fontSize: '13px', fontWeight: '900', color: '#beedd9', tracking: '0.02em' }}>{labelText}</h4>
@@ -519,7 +520,6 @@ function CreateMatch({ onNavigate }) {
                                 </div>
                               </div>
                             ) : (
-                              /* CASE 3: STANDARD TEXT OVERRIDES STRINGS BOX FALLBACK */
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                 <h4 style={{ margin: 0, fontSize: '13px', fontWeight: '900', color: '#beedd9', tracking: '0.02em' }}>{labelText}</h4>
                                 <p style={{ margin: '0 0 4px 0', fontSize: '10px', color: 'rgba(190,237,217,0.4)' }}>{meta.description}</p>
@@ -544,16 +544,29 @@ function CreateMatch({ onNavigate }) {
           </div>
         </section>
 
-        {/* START ROUND BUTTON */}
-        <div style={{ paddingTop: '28px', paddingBottom: '20px' }}>
+        {/* 🎚️ SPLIT WORKFLOW ACTIONS CONTROLLER TRAY */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', paddingTop: '28px', paddingBottom: '40px', width: '100%', boxSizing: 'border-box' }}>
+          
+          {/* ACTION BUTTON A: SAVE ROUND ONLY (RETURNS TO HOME HUB) */}
           <button 
-            onClick={handleInitializeMatch}
-            style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 20px 40px rgba(236,193,81,0.15)' }}
+            onClick={() => commitMatchToDatabase(false)}
+            style={{ width: '100%', backgroundColor: 'transparent', color: '#ecc151', border: '1px solid rgba(236,193,81,0.4)', borderRadius: '40px', padding: '20px 0', fontSize: '16px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxSizing: 'border-box' }}
             type="button"
           >
-            <span className="material-symbols-outlined" style={{ fontWeight: 'bold' }}>power_settings_new</span>
-            START ROUND
+            <span className="material-symbols-outlined" style={{ fontWeight: 'bold', fontSize: '20px' }}>bookmark_add</span>
+            SAVE ROUND OVERVIEW
           </button>
+
+          {/* ACTION BUTTON B: SAVE & LAUNCH SCORING TRACER IMMEDIATELY */}
+          <button 
+            onClick={() => commitMatchToDatabase(true)}
+            style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxSizing: 'border-box', boxShadow: '0 20px 40px rgba(236,193,81,0.15)' }}
+            type="button"
+          >
+            <span className="material-symbols-outlined" style={{ fontWeight: 'bold', fontSize: '22px' }}>power_settings_new</span>
+            SAVE & START ROUND
+          </button>
+
         </div>
 
       </div>
@@ -604,7 +617,7 @@ function CreateMatch({ onNavigate }) {
       </div>
 
       {/* ========================================================================= */}
-      {/* 💎 DRAWER B: HIGH-FIDELITY SEARCH DRAWER + ACCOUNTABLE QUICK GUEST PACK  */}
+      {/* 2005. DRAWER B: HIGH-FIDELITY SEARCH DRAWER + ACCOUNTABLE QUICK GUEST PACK  */}
       {/* ========================================================================= */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 110, pointerEvents: isPlayerDrawerOpen ? 'auto' : 'none', display: 'block' }}>
         <div 
