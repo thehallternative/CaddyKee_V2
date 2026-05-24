@@ -5,6 +5,8 @@ import RoundIntelMain from './screens/1.0_RoundIntel/1.0_RoundIntelMain';
 import CreateMatch from './screens/1.0_RoundIntel/1.1_CreateMatch'; 
 import LiveGameMain from './screens/1.0_RoundIntel/1.2_LiveGameMain';
 import GameIntelMain from './screens/2.0_GameIntel/2.0_GameIntelMain';
+import EditGame from './screens/2.0_GameIntel/2.1_EditGame';
+import CreateGame from './screens/2.0_GameIntel/2.2_CreateGame';
 import PlayerIntelMain from './screens/3.0_PlayerIntel/3.0_PlayerIntelMain';
 import EditPlayer from './screens/3.0_PlayerIntel/3.1_EditPlayer';
 import CreatePlayer from './screens/3.0_PlayerIntel/3.2_CreatePlayer';
@@ -30,6 +32,7 @@ function App() {
   // 📝 EXTRA DATA TRANSPORTER SLOTS FOR EDIT MODES
   const [editingPlayerId, setEditingPlayerId] = useState(null);
   const [editingCourseId, setEditingCourseId] = useState(null);
+  const [editingGameId, setEditingGameId] = useState(null);
 
   // Unified Navigation Router that saves your historical footsteps
   const handleScreenNavigation = (targetScreen, contextPayload = null) => {
@@ -38,6 +41,8 @@ function App() {
         setEditingPlayerId(contextPayload.playerId);
       } else if (targetScreen === 'edit-course' && contextPayload.courseId) {
         setEditingCourseId(contextPayload.courseId); 
+      } else if (targetScreen === 'edit-game' && contextPayload.ruleId) {
+        setEditingGameId(contextPayload.ruleId);
       } else {
         setCurrentMatchContext(contextPayload);
       }
@@ -74,6 +79,8 @@ function App() {
     if (activeScreen === 'round-intel') return 'ROUND INTELLIGENCE';
     if (activeScreen === 'create-match') return 'CREATE MATCH';
     if (activeScreen === 'game-intel') return 'GAME INTELLIGENCE';
+    if (activeScreen === 'edit-game') return 'EDIT MASTER GAME';
+    if (activeScreen === 'create-game') return 'CREATE NEW GAME';
     if (activeScreen === 'course-intel') return 'COURSE INTELLIGENCE';
     if (activeScreen === 'edit-course') return 'EDIT COURSE'; 
     if (activeScreen === 'create-course') return 'CREATE COURSE';
@@ -148,7 +155,13 @@ function App() {
           />
         )}
         {activeScreen === 'game-intel' && (
-          <GameIntelMain onNavigate={(screen) => handleScreenNavigation(screen)} />
+          <GameIntelMain onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
+        )}
+        {activeScreen === 'edit-game' && (
+          <EditGame ruleId={editingGameId} onNavigate={(screen) => handleScreenNavigation(screen)} />
+        )}
+        {activeScreen === 'create-game' && (
+          <CreateGame onNavigate={(screen) => handleScreenNavigation(screen)} />
         )}
         {activeScreen === 'player-intel' && (
           <PlayerIntelMain onNavigate={(screen, payload) => handleScreenNavigation(screen, payload)} />
@@ -187,7 +200,6 @@ function App() {
           </button>
 
           {/* KEE VOICE TARGET CONTROL MODAL INTERFACE TRIGGER */}
-          {/* ✅ VISUAL UPDATE: Background container style mappings, glow matrices, and decorative borders completely stripped to allow pure logo asset floating presentation */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <button onClick={() => setIsKeeOpen(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', outline: 'none', color: '#ecc151', transform: 'translateY(-22px)', width: '88px', padding: 0 }} type="button">
               <div style={{ width: '78px', height: '78px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '0px', boxSizing: 'border-box' }}>
@@ -204,7 +216,7 @@ function App() {
           </button>
           
           {/* Mapped Action Pillar 5: Games Rulesets Engine Matrix Link */}
-          <button onClick={() => handleScreenNavigation('game-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: activeScreen === 'game-intel' ? '#ecc151' : '#beedd9', opacity: activeScreen === 'game-intel' ? 1 : 0.6, padding: 0 }} type="button">
+          <button onClick={() => handleScreenNavigation('game-intel')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: ['game-intel', 'edit-game', 'create-game'].includes(activeScreen) ? '#ecc151' : '#beedd9', opacity: ['game-intel', 'edit-game', 'create-game'].includes(activeScreen) ? 1 : 0.6, padding: 0 }} type="button">
             <span className="material-symbols-outlined" style={{ fontSize: '24px', fontWeight: 'bold' }}>swords</span>
             <span style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', tracking: '0.05em', marginTop: '4px' }}>Games</span>
           </button>
