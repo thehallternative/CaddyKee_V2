@@ -16,6 +16,9 @@ function App() {
   const [isKeeOpen, setIsKeeOpen] = useState(false);
   const [activeScreen, setActiveScreen] = useState('mission-control');
   
+  // 🧭 THE AUTOMATIC NAVIGATION STACK ARRAYS
+  const [screenHistory, setScreenHistory] = useState([]);
+
   // 🧭 THE FAST-SESSION DATA TRANSPORTER SLOTS
   const [currentMatchContext, setCurrentMatchContext] = useState({
     matchId: null,
@@ -28,6 +31,7 @@ function App() {
   const [editingPlayerId, setEditingPlayerId] = useState(null);
   const [editingCourseId, setEditingCourseId] = useState(null);
 
+  // Unified Navigation Router that saves your historical footsteps
   const handleScreenNavigation = (targetScreen, contextPayload = null) => {
     if (contextPayload) {
       if (targetScreen === 'edit-player' && contextPayload.playerId) {
@@ -38,22 +42,29 @@ function App() {
         setCurrentMatchContext(contextPayload);
       }
     }
+
+    // 🚀 STACK PUSH: Don't log duplication patterns if reloading the current screen
+    if (activeScreen !== targetScreen) {
+      setScreenHistory((prev) => [...prev, activeScreen]);
+    }
+    
     setActiveScreen(targetScreen);
   };
 
-  // Resolve Header Back Button Navigation Logic Matrix
+  // 🚀 STACK POP: Dynamic back-tracking navigation engine loop
   const handleHeaderBackTransition = () => {
-    if (activeScreen === 'live-game') handleScreenNavigation('round-intel');
-    else if (activeScreen === 'create-match') handleScreenNavigation('round-intel');
-    else if (activeScreen === 'round-intel') handleScreenNavigation('mission-control');
-    else if (activeScreen === 'game-intel') handleScreenNavigation('mission-control');
-    else if (activeScreen === 'player-intel') handleScreenNavigation('mission-control');
-    else if (activeScreen === 'edit-player') handleScreenNavigation('player-intel');
-    else if (activeScreen === 'create-player') handleScreenNavigation('player-intel');
-    else if (activeScreen === 'course-intel') handleScreenNavigation('mission-control');
-    else if (activeScreen === 'edit-course') handleScreenNavigation('course-intel');
-    else if (activeScreen === 'create-course') handleScreenNavigation('course-intel');
-    else handleScreenNavigation('mission-control');
+    if (screenHistory.length === 0) {
+      // Emergency default fallback safety if stack is completely pristine
+      setActiveScreen('mission-control');
+      return;
+    }
+
+    // Extract the absolute last screen visited out of history array tracking
+    const updatedHistory = [...screenHistory];
+    const previousScreen = updatedHistory.pop();
+
+    setScreenHistory(updatedHistory);
+    setActiveScreen(previousScreen);
   };
 
   // Custom Human-Readable Screen Header Title Formatter
