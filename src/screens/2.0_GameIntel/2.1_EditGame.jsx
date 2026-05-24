@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 
 function EditGame({ ruleId, onNavigate }) {
-  // 🎛️ SYSTEM ENGINE CONTROLLERS
+  // 🎛️ SYSTEM CONTROLLERS
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,11 +14,11 @@ function EditGame({ ruleId, onNavigate }) {
   const [content, setContent] = useState('');
   const [version, setVersion] = useState('1.0');
 
-  // 🗄️ LOCAL MUTABLE PARAMETERS CAPSULES
-  const [liveConfigSchema, setLiveConfigSchema] = useState({});
+  // 🗄️ PARSED FLAT STATE DICTIONARY FOR LIVE GOLFER FIELDS
+  const [flatVariables, setFlatVariables] = useState({});
   const [variantName, setVariantName] = useState('');
 
-  // 📡 DATABASE READ: ACCUMULATE AND EXTRACT BLUEPRINTS FROM SUPABASE
+  // 📡 DATABASE READ: FETCH GAME RULE SCHEMAS FROM SUPABASE
   const fetchGameRuleDefaults = async () => {
     try {
       setLoading(true);
@@ -32,15 +32,27 @@ function EditGame({ ruleId, onNavigate }) {
       if (data) {
         setMasterRule(data);
         setTitle(data.title || '');
-        setCategory(data.category || 'SIDE WAGER ENGINE');
+        setCategory(data.category || 'BETTING GAMES');
         setContent(data.content || '');
         setVersion(data.version || '1.0');
 
-        // Keep the full nested schema intact for custom variable alterations
-        setLiveConfigSchema(data.config_schema || {});
+        // Extract the target default values from the config_schema safely into flat state primitives
+        const rawSchema = data.config_schema || {};
+        const extractionMap = {};
+        
+        Object.keys(rawSchema).forEach(key => {
+          const item = rawSchema[key];
+          if (item && typeof item === 'object' && 'default' in item) {
+            extractionMap[key] = item.default;
+          } else {
+            extractionMap[key] = item;
+          }
+        });
+        
+        setFlatVariables(extractionMap);
       }
     } catch (err) {
-      console.error('Failed to decompress live database blueprint specs:', err.message);
+      console.error('Failed to parse database core game rules attributes:', err.message);
     } finally {
       setLoading(false);
     }
@@ -50,90 +62,68 @@ function EditGame({ ruleId, onNavigate }) {
     if (ruleId) fetchGameRuleDefaults();
   }, [ruleId]);
 
-  // 🕹️ TOUCH DYNAMIC MUTATORS FOR NESTED JSON SCHEMAS
-  const handleToggleValueMutation = (key) => {
-    setLiveConfigSchema(prev => {
-      const target = { ...prev[key] };
-      // Handle both raw booleans and nested schema object structures cleanly
-      if (typeof target.default === 'boolean') {
-        target.default = !target.default;
-      } else if (typeof target === 'boolean') {
-        return { ...prev, [key]: !target };
-      } else {
-        target.default = !target.default;
-      }
-      return { ...prev, [key]: target };
-    });
+  // 🕹️ MUTATORS FOR THE FLAT RENDERING ENGINE VALUES
+  const handleVariableUpdate = (key, value) => {
+    setFlatVariables(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleNumericStepMutation = (key, increment) => {
-    setLiveConfigSchema(prev => {
-      const target = { ...prev[key] };
-      const currentVal = typeof target.default === 'number' ? target.default : parseFloat(target.default || 0);
-      const step = target.type === 'integer' ? 1 : 0.5;
-      
-      const updatedVal = increment ? currentVal + step : currentVal - step;
-      target.default = updatedVal >= 0 ? updatedVal : 0;
-      
-      return { ...prev, [key]: target };
-    });
-  };
-
-  const handleTextStringMutation = (key, textVal) => {
-    setLiveConfigSchema(prev => {
-      const target = { ...prev[key] };
-      if (typeof target === 'object') {
-        target.default = textVal;
-        return { ...prev, [key]: target };
-      }
-      return { ...prev, [key]: textVal };
-    });
-  };
-
-  // 🔍 EVALUATE DELTAS AGAINST PRISTINE BACKEND RECORD
+  // 🔍 EVALUATE IF MODIFICATIONS WERE TWEAKED
   const checkHasFormMutationPatterns = () => {
     if (!masterRule || !masterRule.config_schema) return false;
-    return JSON.stringify(liveConfigSchema) !== JSON.stringify(masterRule.config_schema);
+    const rawSchema = masterRule.config_schema;
+    
+    return Object.keys(flatVariables).some(key => {
+      const item = rawSchema[key];
+      const originalValue = (item && typeof item === 'object' && 'default' in item) ? item.default : item;
+      return flatVariables[key] !== originalValue;
+    });
   };
 
-  // 💾 SAVE BUTTON INTERCEPT INTERFACE INTERACTION
-  const handleSaveButtonClickAction = () => {
-    const hasChanges = checkHasFormMutationPatterns();
+  // 💾 SAVE TRIGGER CLICK
+  const handleFormSaveActionTrigger = () => {
+    const changesDetected = checkHasFormMutationPatterns();
     
-    if (!hasChanges) {
-      // Bounce back to dashboard directly if no configurations were tweaked
+    if (!changesDetected) {
       onNavigate('game-intel');
       return;
     }
 
-    // Trigger elegant variant preservation modal window
     setVariantName(`${title} (Custom Style)`);
     setIsModalOpen(true);
   };
 
-  // 💾 DATABASE WRITE: COMMIT BRAND NEW CUSTOM BRANCH VARIATION TO SUPABASE
+  // 💾 DATABASE WRITE: SAVE BRAND NEW VARIANT COPY ROW TO SUPABASE
   const handleCommitVariantToBackendDatabase = async () => {
     if (!variantName.trim()) {
-      alert('Please provide a unique variation name signature.');
+      alert('Please enter a variant name.');
       return;
     }
 
     try {
       setSaving(true);
 
-      // Derive database-safe runtime slugs to differentiate records
-      const variationUniqueSlug = `${masterRule.slug}_variant_${Math.random().toString(36).substring(2, 7)}`;
+      // Re-assemble the config_schema structure keeping original metadata structure clean
+      const baseSchemaLayout = { ...(masterRule.config_schema || {}) };
+      Object.keys(flatVariables).forEach(key => {
+        if (baseSchemaLayout[key] && typeof baseSchemaLayout[key] === 'object') {
+          baseSchemaLayout[key] = { ...baseSchemaLayout[key], default: flatVariables[key] };
+        } else {
+          baseSchemaLayout[key] = flatVariables[key];
+        }
+      });
+
+      const customGeneratedSlug = `${masterRule.slug}_variant_${Math.random().toString(36).substring(2, 7)}`;
 
       const variantPayload = {
         title: variantName.trim(),
-        slug: variationUniqueSlug,
+        slug: customGeneratedSlug,
         category: category.trim(),
         content: content,
         version: version,
         format: masterRule.format || 'md',
         is_favorite: false,
         published: true,
-        config_schema: liveConfigSchema, // Commits cleanly parsed nested parameters layout payload
+        config_schema: baseSchemaLayout,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -147,18 +137,26 @@ function EditGame({ ruleId, onNavigate }) {
       setIsModalOpen(false);
       onNavigate('game-intel');
     } catch (err) {
-      alert(`Variation commit transaction aborted: ${err.message}`);
+      alert(`Failed to save custom variant: ${err.message}`);
     } finally {
       setSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div style={{ color: '#beedd9', padding: '40px', textAlign: 'center', fontWeight: '900', fontStyle: 'italic', tracking: '0.1em' }}>
+        DECOMPRESSING LIVE BLUEPRINT SPECS...
+      </div>
+    );
+  }
 
   return (
     <div style={{ textAlign: 'left', width: '100%', position: 'relative', boxSizing: 'border-box', paddingTop: '12px' }}>
 
       <main style={{ display: 'flex', flexDirection: 'column', gap: '32px', paddingBottom: '60px', boxSizing: 'border-box', width: '100%' }}>
         
-        {/* GAME OVERVIEW DESCRIPTION CHASSIS */}
+        {/* GAME HEADER BLUEPRINT OVERVIEW EXPLANATION */}
         <section style={{ backgroundColor: 'rgba(14, 60, 47, 0.4)', border: '1px solid rgba(236,193,81,0.08)', borderRadius: '16px', padding: '24px', boxSizing: 'border-box' }}>
           <p style={{ margin: '0 0 4px 0', fontSize: '10px', fontWeight: '900', color: '#ecc151', tracking: '0.15em', textTransform: 'uppercase' }}>
             {category} (MASTER LOCKED)
@@ -173,7 +171,7 @@ function EditGame({ ruleId, onNavigate }) {
           </div>
         </section>
 
-        {/* DYNAMIC FORM TRANSLATION SCHEMA LOOP INPUTS CHASSIS */}
+        {/* PARSED INPUT SECTION CHASSIS */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
@@ -183,93 +181,83 @@ function EditGame({ ruleId, onNavigate }) {
             <span style={{ flexGrow: 1, height: '1px', backgroundColor: '#0e3c2f' }} />
           </div>
 
-          <div style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#0e3c2f', padding: '24px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            
-            {Object.keys(liveConfigSchema).map((key, index) => {
-              const node = liveConfigSchema[key];
-              
-              // Extract data parameters cleanly from nested or literal variations nodes
-              const labelText = (node && typeof node === 'object' && node.label) ? node.label : key.toUpperCase().replace(/_/g, ' ');
-              const currentValue = (node && typeof node === 'object' && 'default' in node) ? node.default : node;
-              const typeSpec = (node && typeof node === 'object' && node.type) ? node.type : (typeof currentValue);
+          {/* DYNAMIC FORM RENDERING GENERATION PASS */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', boxSizing: 'border-box' }}>
+            {Object.keys(flatVariables).map((key) => {
+              const currentValue = flatVariables[key];
+              const schemaMeta = masterRule?.config_schema?.[key] || {};
+              const labelText = schemaMeta.label || key.toUpperCase().replace(/_/g, ' ');
+              const typeSpec = schemaMeta.type || typeof currentValue;
 
-              // CONTROL MAPPING ENGINE INTERFACE A: MINT SLIDING TOGGLE PILLS FOR BOOLEANS
-              if (typeSpec === 'boolean' || typeof currentValue === 'boolean') {
-                return (
-                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', boxSizing: 'border-box', borderTop: index > 0 ? '1px solid rgba(65,72,69,0.2)' : 'none', paddingTop: index > 0 ? '20px' : '0' }}>
-                    <div style={{ paddingRight: '12px' }}>
-                      <p style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: 'white' }}>{labelText}</p>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#a3d0be', textTransform: 'uppercase' }}>Type: Boolean Selector Switch</p>
-                    </div>
-                    <div 
-                      onClick={() => handleToggleValueMutation(key)}
-                      style={{ width: '48px', height: '24px', borderRadius: '12px', backgroundColor: currentValue ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box', flexShrink: 0 }}
-                    >
-                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: currentValue ? '#3e2e00' : '#414845', transform: currentValue ? 'translateX(24px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
-                    </div>
-                  </div>
-                );
-              }
-
-              // CONTROL MAPPING ENGINE INTERFACE B: HIGH CONTRAST MODIFIER STEPPERS FOR NUMERICS
-              if (typeSpec === 'numeric' || typeSpec === 'integer' || typeof currentValue === 'number') {
-                const numVal = typeof currentValue === 'number' ? currentValue : parseFloat(currentValue || 0);
-                return (
-                  <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box', borderTop: '1px solid rgba(65,72,69,0.2)', paddingTop: '20px' }}>
-                    <div>
-                      <p style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: 'white' }}>{labelText}</p>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#a3d0be', textTransform: 'uppercase' }}>Type: Numeric Scalar Limits</p>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#001710', borderRadius: '12px', padding: '6px', border: '1px solid rgba(236,193,81,0.1)', justifyContent: 'space-between', width: '100%', boxSizing: 'border-box' }}>
-                      <button 
-                        onClick={() => handleNumericStepMutation(key, false)}
-                        style={{ width: '44px', height: '44px', borderRadius: '8px', backgroundColor: '#0e3c2f', border: 'none', color: '#ecc151', fontSize: '20px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        type="button"
-                      >
-                        -
-                      </button>
-                      <span style={{ fontSize: '18px', fontWeight: '900', color: '#ecc151', fontFamily: 'monospace' }}>
-                        {numVal.toFixed(typeSpec === 'integer' ? 0 : 2)}
-                      </span>
-                      <button 
-                        onClick={() => handleNumericStepMutation(key, true)}
-                        style={{ width: '44px', height: '44px', borderRadius: '8px', backgroundColor: '#0e3c2f', border: 'none', color: '#ecc151', fontSize: '20px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        type="button"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                );
-              }
-
-              // CONTROL MAPPING ENGINE INTERFACE C: STRINGS TEXT RECOVERY BOX ENTRIES
               return (
-                <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box', borderTop: '1px solid rgba(65,72,69,0.2)', paddingTop: '20px' }}>
-                  <label style={{ fontSize: '15px', fontWeight: '900', color: 'white' }}>{labelText}</label>
-                  <input 
-                    type="text" 
-                    value={currentValue || ''} 
-                    onChange={(e) => handleTextStringMutation(key, e.target.value)} 
-                    style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '16px', color: 'white', fontSize: '16px', fontWeight: '700', outline: 'none' }} 
-                  />
+                <div 
+                  key={key} 
+                  style={{ backgroundColor: '#0e3c2f', padding: '20px', borderRadius: '16px', border: '1px solid rgba(236,193,81,0.05)', display: 'flex', flexDirection: 'column', gap: '12px', boxSizing: 'border-box' }}
+                >
+                  {/* TYPE A: HANDLING BOOLEAN TOGGLES */}
+                  {typeSpec === 'boolean' || typeof currentValue === 'boolean' ? (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <div>
+                        <span style={{ fontSize: '11px', fontWeight: '900', color: '#ecc151', tracking: '0.05em' }}>TOGGLE PARAMETER</span>
+                        <h4 style={{ margin: '4px 0 0 0', fontSize: '18px', fontWeight: '900', color: 'white' }}>{labelText}</h4>
+                      </div>
+                      <div 
+                        onClick={() => handleVariableUpdate(key, !currentValue)}
+                        style={{ width: '48px', height: '24px', borderRadius: '12px', backgroundColor: currentValue ? '#ecc151' : '#001710', position: 'relative', padding: '2px', cursor: 'pointer', boxSizing: 'border-box', flexShrink: 0 }}
+                      >
+                        <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: currentValue ? '#3e2e00' : '#414845', transform: currentValue ? 'translateX(24px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
+                      </div>
+                    </div>
+                  ) : typeSpec === 'numeric' || typeSpec === 'integer' || typeof currentValue === 'number' ? (
+                    /* TYPE B: HANDLING NUMERIC STEPPERS */
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div>
+                        <span style={{ fontSize: '11px', fontWeight: '900', color: '#ecc151', tracking: '0.05em' }}>SCALAR FACTOR</span>
+                        <h4 style={{ margin: '4px 0 0 0', fontSize: '18px', fontWeight: '900', color: 'white' }}>{labelText}</h4>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#001710', borderRadius: '12px', padding: '6px', border: '1px solid rgba(236,193,81,0.1)', justifyContent: 'space-between', width: '100%', boxSizing: 'border-box' }}>
+                        <button 
+                          onClick={() => handleVariableUpdate(key, currentValue - 1 >= 0 ? currentValue - 1 : 0)}
+                          style={{ width: '44px', height: '44px', borderRadius: '8px', backgroundColor: '#0e3c2f', border: 'none', color: '#ecc151', fontSize: '20px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          type="button"
+                        >
+                          -
+                        </button>
+                        <span style={{ fontSize: '20px', fontWeight: '900', color: '#ecc151', fontFamily: 'monospace' }}>
+                          {currentValue}
+                        </span>
+                        <button 
+                          onClick={() => handleVariableUpdate(key, currentValue + 1)}
+                          style={{ width: '44px', height: '44px', borderRadius: '8px', backgroundColor: '#0e3c2f', border: 'none', color: '#ecc151', fontSize: '20px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          type="button"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* TYPE C: FALLBACK TRADITIONAL STRING INPUTS */
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: '900', color: '#ecc151', tracking: '0.05em' }}>TEXT SPECIFICATION</span>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '900', color: 'white' }}>{labelText}</h4>
+                      <input 
+                        type="text" 
+                        value={currentValue || ''} 
+                        onChange={(e) => handleVariableUpdate(key, e.target.value)} 
+                        style={{ width: '100%', boxSizing: 'border-box', backgroundColor: '#001710', border: '1px solid rgba(236,193,81,0.1)', borderRadius: '10px', padding: '16px', color: 'white', fontSize: '16px', fontWeight: '700', outline: 'none' }} 
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}
-
-            {Object.keys(liveConfigSchema).length === 0 && (
-              <div style={{ color: 'rgba(190,237,217,0.3)', padding: '20px', textAlign: 'center', fontStyle: 'italic', fontSize: '13px' }}>
-                No variable attributes registered to this template schema framework profiles.
-              </div>
-            )}
-
           </div>
         </section>
 
-        {/* SAVE SUBMIT CONTAINER ROW CONTROL */}
+        {/* 💾 CONTEXT ACTION BUTTON */}
         <div style={{ marginTop: '12px', width: '100%', boxSizing: 'border-box' }}>
           <button 
-            onClick={handleSaveButtonClickAction}
+            onClick={handleFormSaveActionTrigger}
             style={{ width: '100%', backgroundColor: '#ecc151', color: '#3e2e00', border: 'none', borderRadius: '40px', padding: '22px 0', fontSize: '18px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', boxShadow: '0 20px 40px rgba(236,193,81,0.15)' }}
             type="button"
           >
